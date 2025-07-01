@@ -46,6 +46,7 @@ private:
     void setRequestParams(QUrlQuery &url);
     void setRequestAuth(QNetworkRequest &req);
     void setRequestBody(QNetworkRequest &req);
+    void setRequestHeaders(QNetworkRequest &req);
 
     void sendRequest(QNetworkRequest &request);
     void readReply();

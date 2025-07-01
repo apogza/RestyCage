@@ -36,6 +36,7 @@ void RestyCageWindow::on_sendButton_clicked()
     QNetworkRequest req(url);
 
     setRequestAuth(req);
+    setRequestHeaders(req);
     setRequestBody(req);
     sendRequest(req);
 }
@@ -63,15 +64,24 @@ void RestyCageWindow::setRequestAuth(QNetworkRequest &req)
         QString user = ui->authBasicUserEdit->text();
         QString password = ui->authBasicPasswordEdit->text();
 
-        req.setRawHeader("Authorization", QString("Basic %1:%2").arg(user).arg(password).toUtf8());
+        req.setRawHeader("Authorization", QString("Basic %1:%2").arg(user, password).toUtf8());
     }
 }
 
 void RestyCageWindow::setRequestBody(QNetworkRequest &req)
 {
 
+}
 
+void RestyCageWindow::setRequestHeaders(QNetworkRequest &req)
+{
+    for (int i; i < reqHeadersModel.rowCount(); i++)
+    {
+        QString headerKey = reqHeadersModel.item(i, 0)->text();
+        QString headerValue = reqHeadersModel.item(i, 1)->text();
 
+        req.headers().append(headerKey, headerValue);
+    }
 }
 
 void RestyCageWindow::sendRequest(QNetworkRequest &request)
@@ -161,21 +171,17 @@ void RestyCageWindow::on_reqRemoveParamBtn_clicked()
     removeModelRow(ui->reqParamsTableView, reqParamsModel);
 }
 
-
 void RestyCageWindow::on_reqHeadersAddBtn_clicked()
 {
     addModelRow(reqHeadersModel);
 }
-
 
 void RestyCageWindow::on_reqHeadersRemoveBtn_clicked()
 {
     removeModelRow(ui->reqHeadersTableView, reqHeadersModel);
 }
 
-
 void RestyCageWindow::on_comboBox_currentIndexChanged(int index)
 {
     ui->reqBodyStackedWidget->setCurrentIndex(index);
 }
-
