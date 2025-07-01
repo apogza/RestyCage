@@ -11,6 +11,8 @@ qt_add_executable(RestyCage
     restycagewindow.cpp
     restycagewindow.h
     restycagewindow.ui
+    qjsonmodel.h qjsonmodel.cpp
+    qutf8.h
 )
 
 target_link_libraries(RestyCage
