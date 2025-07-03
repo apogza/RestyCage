@@ -6,6 +6,7 @@
 #include "QHttpHeaders"
 #include "QList"
 #include "QSet"
+#include "QIODevice"
 
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -70,12 +71,29 @@ void RestyCageWindow::setRequestAuth(QNetworkRequest &req)
 
 void RestyCageWindow::setRequestBody(QNetworkRequest &req)
 {
+    QString bodyType = ui->reqBodyTypeComboBox->currentText();
 
+    if (bodyType == "Form Data")
+    {
+
+    }
+    else if (bodyType == "X-www-encoded-form")
+    {
+
+    }
+    else if (bodyType == "Raw")
+    {
+
+    }
+    else if (bodyType == "Binary")
+    {
+
+    }
 }
 
 void RestyCageWindow::setRequestHeaders(QNetworkRequest &req)
 {
-    for (int i; i < reqHeadersModel.rowCount(); i++)
+    for (int i = 0; i < reqHeadersModel.rowCount(); i++)
     {
         QString headerKey = reqHeadersModel.item(i, 0)->text();
         QString headerValue = reqHeadersModel.item(i, 1)->text();
@@ -88,6 +106,8 @@ void RestyCageWindow::sendRequest(QNetworkRequest &request)
 {
     const QString method = ui->methodComboBox->currentText();
     QNetworkReply *reply = nam->sendCustomRequest(request, method.toUtf8());
+    requestStartMs = QDateTime::currentMSecsSinceEpoch();
+
     connect(reply, &QNetworkReply::finished, this, &RestyCageWindow::readReply);
 }
 
@@ -95,8 +115,14 @@ void RestyCageWindow::readReply()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     readReplyHeaders(reply);
-
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray body = reply->readAll();
+
+    qint64 totalTime = QDateTime::currentMSecsSinceEpoch() -  requestStartMs;
+
+    ui->statusLbl->setText(QString::number(statusCode));
+    ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(body.size())));
+    ui->timeLbl->setText(QString("%1 ms").arg(QString::number(totalTime)));
 
     QJsonModel *model = new QJsonModel(ui->respJsonTreeView);
     ui->respJsonTreeView->setModel(model);
@@ -105,23 +131,35 @@ void RestyCageWindow::readReply()
 
 void RestyCageWindow::readReplyHeaders(QNetworkReply *reply)
 {
+    QSet<QString> headerSet;
     QHttpHeaders replyHeaders = reply->headers();
 
     ui->respHeadersTableWidget->clearContents();
     ui->respHeadersTableWidget->setRowCount(0);
 
+    int j = 0;
     for (int i = 0; i < replyHeaders.size(); i++)
     {
+        QString headerKey = replyHeaders.nameAt(i);
+
+        if (headerSet.contains(headerKey))
+        {
+            continue;
+        }
+
+        headerSet.insert(headerKey);
+
         QTableWidgetItem *itemKey = new QTableWidgetItem();
-        itemKey->setText(replyHeaders.nameAt(i));
+        itemKey->setText(headerKey);
 
         QTableWidgetItem *itemValue = new QTableWidgetItem();
         itemValue->setText(QString::fromUtf8(replyHeaders.valueAt(i).toByteArray()));
 
-        ui->respHeadersTableWidget->insertRow(i);
+        ui->respHeadersTableWidget->insertRow(j);
 
-        ui->respHeadersTableWidget->setItem(i, 0, itemKey);
-        ui->respHeadersTableWidget->setItem(i, 1, itemValue);
+        ui->respHeadersTableWidget->setItem(j, 0, itemKey);
+        ui->respHeadersTableWidget->setItem(j, 1, itemValue);
+        j++;
     }
 }
 
@@ -143,7 +181,6 @@ void RestyCageWindow::initModels()
     reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
 
     ui->reqHeadersTableView->setModel(&reqHeadersModel);
-
 }
 
 void RestyCageWindow::addModelRow(QStandardItemModel &itemsModel)
@@ -155,6 +192,7 @@ void RestyCageWindow::removeModelRow(QTableView* tableView, QStandardItemModel &
 {
     QItemSelectionModel *selectionModel = tableView->selectionModel();
     QModelIndexList indexlist = selectionModel->selectedIndexes();
+
     foreach (QModelIndex idx, indexlist)
     {
         itemsModel.removeRow(idx.row());
@@ -181,7 +219,8 @@ void RestyCageWindow::on_reqHeadersRemoveBtn_clicked()
     removeModelRow(ui->reqHeadersTableView, reqHeadersModel);
 }
 
-void RestyCageWindow::on_comboBox_currentIndexChanged(int index)
+void RestyCageWindow::on_reqBodyTypeComboBox_currentIndexChanged(int index)
 {
     ui->reqBodyStackedWidget->setCurrentIndex(index);
 }
+

@@ -30,14 +30,14 @@ private slots:
     void on_reqRemoveParamBtn_clicked();
     void on_reqHeadersAddBtn_clicked();
     void on_reqHeadersRemoveBtn_clicked();
-
-    void on_comboBox_currentIndexChanged(int index);
+    void on_reqBodyTypeComboBox_currentIndexChanged(int index);
 
 private:
     Ui::RestyCageWindow *ui;
     QNetworkAccessManager *nam;
     QStandardItemModel reqParamsModel;
     QStandardItemModel reqHeadersModel;
+    quint64 requestStartMs;
 
     void initModels();
     void addModelRow(QStandardItemModel &itemsModel);
