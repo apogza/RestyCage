@@ -8,7 +8,6 @@
 #include <QTableView>
 #include <QNetworkReply>
 
-
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class RestyCageWindow;
@@ -32,15 +31,32 @@ private slots:
     void on_reqHeadersRemoveBtn_clicked();
     void on_reqBodyTypeComboBox_currentIndexChanged(int index);
 
+    void on_reqParamsTableView_doubleClicked(const QModelIndex &index);
+
+    void on_reqBodyFormDataAddRowBtn_clicked();
+
+    void on_reqHeadersTableView_doubleClicked(const QModelIndex &index);
+
+    void on_pushButton_2_clicked();
+
+    void on_reqAddUrlEncodedBodyRowBtn_clicked();
+
+    void on_reqRemoveUrlEncodedBodyRowBtn_clicked();
+
+    void on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::RestyCageWindow *ui;
     QNetworkAccessManager *nam;
     QStandardItemModel reqParamsModel;
     QStandardItemModel reqHeadersModel;
+    QStandardItemModel reqUrlEncodedFormBodyModel;
+    QStandardItemModel reqFormBodyModel;
     quint64 requestStartMs;
 
     void initModels();
-    void addModelRow(QStandardItemModel &itemsModel);
+    void addSimpleModelRow(QStandardItemModel &itemsModel);
+    void editSimpleRow(QStandardItemModel &itemsModel, int row, int column);
     void removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel);
 
     void setRequestParams(QUrlQuery &url);

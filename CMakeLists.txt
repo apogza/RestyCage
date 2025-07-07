@@ -13,6 +13,9 @@ qt_add_executable(RestyCage
     restycagewindow.ui
     qjsonmodel.h qjsonmodel.cpp
     qutf8.h
+
+    keyvaluedialog.h keyvaluedialog.cpp keyvaluedialog.ui
+    keyvaluefiletextdialog.h keyvaluefiletextdialog.cpp keyvaluefiletextdialog.ui
 )
 
 target_link_libraries(RestyCage

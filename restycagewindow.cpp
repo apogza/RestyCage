@@ -7,12 +7,15 @@
 #include "QList"
 #include "QSet"
 #include "QIODevice"
+#include "keyvaluedialog.h"
+#include "keyvaluefiletextdialog.h"
 
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RestyCageWindow)
 {
     ui->setupUi(this);
+
     nam = new QNetworkAccessManager(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
@@ -38,7 +41,9 @@ void RestyCageWindow::on_sendButton_clicked()
 
     setRequestAuth(req);
     setRequestHeaders(req);
+
     setRequestBody(req);
+
     sendRequest(req);
 }
 
@@ -116,11 +121,12 @@ void RestyCageWindow::readReply()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     readReplyHeaders(reply);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
     QByteArray body = reply->readAll();
 
     qint64 totalTime = QDateTime::currentMSecsSinceEpoch() -  requestStartMs;
 
-    ui->statusLbl->setText(QString::number(statusCode));
+    ui->statusLbl->setText(QString("HTTP %1").arg(QString::number(statusCode)));
     ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(body.size())));
     ui->timeLbl->setText(QString("%1 ms").arg(QString::number(totalTime)));
 
@@ -170,22 +176,83 @@ void RestyCageWindow::on_authComboBox_currentIndexChanged(int index)
 
 void RestyCageWindow::initModels()
 {
-    reqParamsModel.insertColumns(0, 2);
+
+    reqParamsModel.insertColumns(0, 3);
     reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
     reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
+    reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
 
     ui->reqParamsTableView->setModel(&reqParamsModel);
 
-    reqHeadersModel.insertColumns(0, 2);
+    reqHeadersModel.insertColumns(0, 3);
     reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
     reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
+    reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
 
     ui->reqHeadersTableView->setModel(&reqHeadersModel);
+
+    reqFormBodyModel.insertColumns(0, 4);
+    reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
+    reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Type"));
+    reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Value"));
+    reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr("Description"));
+
+    ui->reqBodyFormTableView->setModel(&reqFormBodyModel);
+
+    reqUrlEncodedFormBodyModel.insertColumns(0, 3);
+    reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
+    reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
+    reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
+
+    ui->reqUrlEncodedBodyTableView->setModel(&reqUrlEncodedFormBodyModel);
 }
 
-void RestyCageWindow::addModelRow(QStandardItemModel &itemsModel)
+void RestyCageWindow::addSimpleModelRow(QStandardItemModel &itemsModel)
 {
-    itemsModel.insertRow(itemsModel.rowCount());
+    KeyValueDialog *dialog = new KeyValueDialog(this);
+
+    int result = dialog->exec();
+
+    if (result == QDialog::Accepted)
+    {
+        QString key = dialog->getKey();
+        QString value = dialog->getValue();
+        QString description = dialog->getDescription();
+
+        itemsModel.insertRow(itemsModel.rowCount(),
+                             {
+                              new QStandardItem(key),
+                              new QStandardItem(value),
+                              new QStandardItem(description)
+                             }
+        );
+    }
+}
+
+void RestyCageWindow::editSimpleRow(QStandardItemModel &itemsModel, int row, int column)
+{
+    QStandardItem *keyItem = itemsModel.item(row, 0);
+    QStandardItem *valueItem = itemsModel.item(row, 1);
+    QStandardItem *descriptionItem = itemsModel.item(row, 2);
+
+    QString key = keyItem->data(Qt::EditRole).toString();
+    QString value = valueItem->data(Qt::EditRole).toString();
+    QString description = descriptionItem->data(Qt::EditRole).toString();
+
+    KeyValueDialog *keyValueDialog = new KeyValueDialog(this, key, value, description);
+    int result = keyValueDialog->exec();
+
+    if (result == QDialog::Accepted)
+    {
+        QStandardItem *item = itemsModel.item(row, 0);
+        item->setData(keyValueDialog->getKey(), Qt::EditRole);
+
+        item = itemsModel.item(row, 1);
+        item->setData(keyValueDialog->getValue(), Qt::EditRole);
+
+        item = itemsModel.item(row, 2);
+        item->setData(keyValueDialog->getDescription(), Qt::EditRole);
+    }
 }
 
 void RestyCageWindow::removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel)
@@ -201,7 +268,7 @@ void RestyCageWindow::removeModelRow(QTableView* tableView, QStandardItemModel &
 
 void RestyCageWindow::on_reqAddParamBtn_clicked()
 {
-    addModelRow(reqParamsModel);
+    addSimpleModelRow(reqParamsModel);
 }
 
 void RestyCageWindow::on_reqRemoveParamBtn_clicked()
@@ -211,7 +278,7 @@ void RestyCageWindow::on_reqRemoveParamBtn_clicked()
 
 void RestyCageWindow::on_reqHeadersAddBtn_clicked()
 {
-    addModelRow(reqHeadersModel);
+    addSimpleModelRow(reqHeadersModel);
 }
 
 void RestyCageWindow::on_reqHeadersRemoveBtn_clicked()
@@ -222,5 +289,75 @@ void RestyCageWindow::on_reqHeadersRemoveBtn_clicked()
 void RestyCageWindow::on_reqBodyTypeComboBox_currentIndexChanged(int index)
 {
     ui->reqBodyStackedWidget->setCurrentIndex(index);
+}
+
+void RestyCageWindow::on_reqParamsTableView_doubleClicked(const QModelIndex &index)
+{
+    editSimpleRow(reqParamsModel, index.row(), index.column());
+}
+
+void RestyCageWindow::on_reqBodyFormDataAddRowBtn_clicked()
+{
+    KeyValueFileTextDialog *dialog = new  KeyValueFileTextDialog(this);
+
+    int result = dialog->exec();
+    if (result == QDialog::Accepted)
+    {
+        QString key = dialog->getKey();
+        QString type = dialog->getType();
+        QString filePath = dialog->getFilePathValue();
+        QString fileName = dialog->getFileNameValue();
+        QString textValue = dialog->getTextValue();
+
+        QString description = dialog->getDescription();
+
+        QStandardItem *keyItem = new QStandardItem();
+        keyItem->setData(key, Qt::EditRole);
+
+        QStandardItem *typeItem = new QStandardItem();
+        typeItem->setData(type, Qt::EditRole);
+
+        QStandardItem *valueItem = new QStandardItem();
+
+        if (type == "File")
+        {
+            valueItem->setData(fileName, Qt::EditRole);
+            valueItem->setData(filePath, Qt::UserRole);
+        }
+        else
+        {
+            valueItem->setData(textValue, Qt::EditRole);
+        }
+
+        QStandardItem *descriptionItem = new QStandardItem();
+        descriptionItem->setData(description, Qt::EditRole);
+
+        reqFormBodyModel.insertRow(reqFormBodyModel.rowCount(), { keyItem, typeItem, valueItem, descriptionItem });
+    }
+}
+
+void RestyCageWindow::on_reqHeadersTableView_doubleClicked(const QModelIndex &index)
+{
+    editSimpleRow(reqHeadersModel, index.row(), index.column());
+}
+
+void RestyCageWindow::on_pushButton_2_clicked()
+{
+    removeModelRow(ui->reqBodyFormTableView, reqFormBodyModel);
+}
+
+void RestyCageWindow::on_reqAddUrlEncodedBodyRowBtn_clicked()
+{
+    addSimpleModelRow(reqUrlEncodedFormBodyModel);
+}
+
+void RestyCageWindow::on_reqRemoveUrlEncodedBodyRowBtn_clicked()
+{
+    removeModelRow(ui->reqUrlEncodedBodyTableView, reqUrlEncodedFormBodyModel);
+}
+
+void RestyCageWindow::on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index)
+{
+    editSimpleRow(reqUrlEncodedFormBodyModel, index.row(), index.column());
 }
 
