@@ -173,11 +173,6 @@
                  <string>Bearer Token</string>
                 </property>
                </item>
-               <item>
-                <property name="text">
-                 <string/>
-                </property>
-               </item>
               </widget>
              </item>
              <item>
@@ -423,6 +418,35 @@
             </widget>
            </item>
            <item>
+            <widget class="QComboBox" name="rawContentTypeComboBox">
+             <item>
+              <property name="text">
+               <string>JSON</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>HTML</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>XML</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Text</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>JavaScript</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
@@ -605,7 +629,7 @@
            <widget class="QWidget" name="page_7">
             <layout class="QGridLayout" name="gridLayout_11">
              <item row="0" column="0">
-              <widget class="QTextEdit" name="textEdit"/>
+              <widget class="QTextEdit" name="reqRawBodyTextEdit"/>
              </item>
             </layout>
            </widget>
@@ -616,14 +640,14 @@
                <item>
                 <widget class="QPushButton" name="reqFileSelectionBtn">
                  <property name="text">
-                  <string>Select...</string>
+                  <string>Select File...</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QLabel" name="reqFileSelectionLbl">
                  <property name="text">
-                  <string>File Name...</string>
+                  <string/>
                  </property>
                 </widget>
                </item>

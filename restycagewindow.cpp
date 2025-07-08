@@ -1,14 +1,16 @@
 #include "restycagewindow.h"
 #include "ui_restycagewindow.h"
 #include "qjsonmodel.h"
-#include "QModelIndexList"
-#include "QUrlQuery"
-#include "QHttpHeaders"
-#include "QList"
-#include "QSet"
-#include "QIODevice"
 #include "keyvaluedialog.h"
 #include "keyvaluefiletextdialog.h"
+#include <QModelIndexList>
+#include <QHttpHeaders>
+#include <QList>
+#include <QSet>
+#include <QIODevice>
+#include <QFile>
+#include <QHttpMultiPart>
+#include <QFileDialog>
 
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,6 +22,7 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
 
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << "Key" << "Value");
+    ui->rawContentTypeComboBox->setVisible(false);
 
     initModels();
 }
@@ -31,6 +34,9 @@ RestyCageWindow::~RestyCageWindow()
 
 void RestyCageWindow::on_sendButton_clicked()
 {
+    ui->requestTabWidget->setDisabled(true);
+    ui->responseTabWidget->setDisabled(true);
+
     QUrl url(ui->urlEdit->text());
 
     QUrlQuery urlQuery(url);
@@ -42,9 +48,7 @@ void RestyCageWindow::on_sendButton_clicked()
     setRequestAuth(req);
     setRequestHeaders(req);
 
-    setRequestBody(req);
-
-    sendRequest(req);
+    sendRequest(req, urlQuery);
 }
 
 void RestyCageWindow::setRequestParams(QUrlQuery &url)
@@ -74,28 +78,6 @@ void RestyCageWindow::setRequestAuth(QNetworkRequest &req)
     }
 }
 
-void RestyCageWindow::setRequestBody(QNetworkRequest &req)
-{
-    QString bodyType = ui->reqBodyTypeComboBox->currentText();
-
-    if (bodyType == "Form Data")
-    {
-
-    }
-    else if (bodyType == "X-www-encoded-form")
-    {
-
-    }
-    else if (bodyType == "Raw")
-    {
-
-    }
-    else if (bodyType == "Binary")
-    {
-
-    }
-}
-
 void RestyCageWindow::setRequestHeaders(QNetworkRequest &req)
 {
     for (int i = 0; i < reqHeadersModel.rowCount(); i++)
@@ -107,13 +89,124 @@ void RestyCageWindow::setRequestHeaders(QNetworkRequest &req)
     }
 }
 
-void RestyCageWindow::sendRequest(QNetworkRequest &request)
+void RestyCageWindow::sendRequest(QNetworkRequest &request, QUrlQuery &urlQuery)
 {
     const QString method = ui->methodComboBox->currentText();
-    QNetworkReply *reply = nam->sendCustomRequest(request, method.toUtf8());
+
+    QString bodyType = ui->reqBodyTypeComboBox->currentText();
+
+    QNetworkReply *reply = nullptr;
+
+    if (bodyType == "Form Data")
+    {
+        reply = sendMultiPartRequest(request, method);
+    }
+    else if (bodyType == "X-www-encoded-form")
+    {
+        reply = sendUrlEncodedFormRequest(request, method, urlQuery);
+    }
+    else if (bodyType == "Raw")
+    {
+        reply = sendRawRequest(request, method);
+    }
+    else if (bodyType == "Binary")
+    {
+        reply = sendBinaryRequest(request, method);
+    }
+    else
+    {
+        reply = nam->sendCustomRequest(request, method.toUtf8());
+    }
+
     requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
     connect(reply, &QNetworkReply::finished, this, &RestyCageWindow::readReply);
+}
+
+QNetworkReply *RestyCageWindow::sendMultiPartRequest(QNetworkRequest &request, const QString &method)
+{
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("multipart/form-data"));
+    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    for (int i = 0; i < reqFormBodyModel.rowCount(); i++)
+    {
+        QString key = reqFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
+        QString type = reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
+        QString value = reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
+
+        QHttpPart part;
+        part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QString("form-data; name=\"%1\"").arg(key)));
+
+        if (type == "File")
+        {
+            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+            QFile *file = new QFile(value, multiPart);
+
+            file->open(QIODevice::ReadOnly);
+            part.setBodyDevice(file);
+            multiPart->append(part);
+        }
+        else
+        {
+            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+            part.setBody(value.toUtf8());
+        }
+    }
+
+    return nam->sendCustomRequest(request, method.toUtf8(), multiPart);
+}
+
+QNetworkReply *RestyCageWindow::sendUrlEncodedFormRequest(QNetworkRequest &request, const QString &method, QUrlQuery &urlQuery)
+{
+    for (int i = 0; i < reqUrlEncodedFormBodyModel.rowCount(); i++)
+    {
+        QString key = reqUrlEncodedFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
+        QString value = reqUrlEncodedFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
+
+        urlQuery.addQueryItem(key, value);
+    }
+
+    return nam->sendCustomRequest(request, method.toUtf8());
+}
+
+QNetworkReply *RestyCageWindow::sendRawRequest(QNetworkRequest &request, const QString &method)
+{
+    QString body = ui->reqRawBodyTextEdit->toPlainText();
+    QString bodyType = ui->reqBodyTypeComboBox->currentText();
+
+    if (bodyType == "JSON")
+    {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+    }
+    else if (bodyType == "XML")
+    {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/xml"));
+    }
+    else if (bodyType == "HTML")
+    {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/html"));
+    }
+    else if (bodyType == "JavaScript")
+    {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/javascript"));
+    }
+    else
+    {
+        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+    }
+
+    return nam->sendCustomRequest(request, method.toUtf8(), body.toUtf8());
+}
+
+QNetworkReply *RestyCageWindow::sendBinaryRequest(QNetworkRequest &request, const QString &method)
+{
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+
+    QFile file(selectedBinaryBodyFilePath);
+    file.open(QIODevice::ReadOnly);
+    QByteArray fileByteArray = file.readAll();
+
+    return nam->sendCustomRequest(request, method.toUtf8(), fileByteArray);
 }
 
 void RestyCageWindow::readReply()
@@ -133,6 +226,9 @@ void RestyCageWindow::readReply()
     QJsonModel *model = new QJsonModel(ui->respJsonTreeView);
     ui->respJsonTreeView->setModel(model);
     model->loadJson(body);
+
+    ui->requestTabWidget->setDisabled(false);
+    ui->responseTabWidget->setDisabled(false);
 }
 
 void RestyCageWindow::readReplyHeaders(QNetworkReply *reply)
@@ -176,7 +272,6 @@ void RestyCageWindow::on_authComboBox_currentIndexChanged(int index)
 
 void RestyCageWindow::initModels()
 {
-
     reqParamsModel.insertColumns(0, 3);
     reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
     reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
@@ -289,6 +384,7 @@ void RestyCageWindow::on_reqHeadersRemoveBtn_clicked()
 void RestyCageWindow::on_reqBodyTypeComboBox_currentIndexChanged(int index)
 {
     ui->reqBodyStackedWidget->setCurrentIndex(index);
+    ui->rawContentTypeComboBox->setVisible(ui->reqBodyTypeComboBox->currentText() == "Raw");
 }
 
 void RestyCageWindow::on_reqParamsTableView_doubleClicked(const QModelIndex &index)
@@ -359,5 +455,18 @@ void RestyCageWindow::on_reqRemoveUrlEncodedBodyRowBtn_clicked()
 void RestyCageWindow::on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index)
 {
     editSimpleRow(reqUrlEncodedFormBodyModel, index.row(), index.column());
+}
+
+void RestyCageWindow::on_reqFileSelectionBtn_clicked()
+{
+    QFileDialog fileDialog;
+    int result = fileDialog.exec();
+
+    if (result == QDialog::Accepted)
+    {
+        selectedBinaryBodyFilePath = fileDialog.selectedFiles().at(0);
+        QFileInfo fileInfo(selectedBinaryBodyFilePath);
+        ui->reqFileSelectionLbl->setText(fileInfo.fileName());
+    }
 }
 

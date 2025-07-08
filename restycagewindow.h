@@ -7,6 +7,7 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QNetworkReply>
+#include <QUrlQuery>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -45,6 +46,8 @@ private slots:
 
     void on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index);
 
+    void on_reqFileSelectionBtn_clicked();
+
 private:
     Ui::RestyCageWindow *ui;
     QNetworkAccessManager *nam;
@@ -52,6 +55,7 @@ private:
     QStandardItemModel reqHeadersModel;
     QStandardItemModel reqUrlEncodedFormBodyModel;
     QStandardItemModel reqFormBodyModel;
+    QString selectedBinaryBodyFilePath;
     quint64 requestStartMs;
 
     void initModels();
@@ -61,10 +65,15 @@ private:
 
     void setRequestParams(QUrlQuery &url);
     void setRequestAuth(QNetworkRequest &req);
-    void setRequestBody(QNetworkRequest &req);
     void setRequestHeaders(QNetworkRequest &req);
 
-    void sendRequest(QNetworkRequest &request);
+    void sendRequest(QNetworkRequest &request, QUrlQuery &urlQuery);
+    QNetworkReply *sendMultiPartRequest(QNetworkRequest &request, const QString &method);
+    QNetworkReply *sendUrlEncodedFormRequest(QNetworkRequest &request, const QString &method, QUrlQuery &urlQuery);
+    QNetworkReply *sendRawRequest(QNetworkRequest &request, const QString &method);
+    QNetworkReply *sendBinaryRequest(QNetworkRequest &request, const QString &method);
+
+
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);
 
