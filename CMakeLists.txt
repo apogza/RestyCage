@@ -16,6 +16,7 @@ qt_add_executable(RestyCage
 
     keyvaluedialog.h keyvaluedialog.cpp keyvaluedialog.ui
     keyvaluefiletextdialog.h keyvaluefiletextdialog.cpp keyvaluefiletextdialog.ui
+    queryform.h queryform.cpp queryform.ui
 )
 
 target_link_libraries(RestyCage
