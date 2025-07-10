@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 project(RestyCage LANGUAGES CXX)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
@@ -17,6 +18,9 @@ qt_add_executable(RestyCage
     keyvaluedialog.h keyvaluedialog.cpp keyvaluedialog.ui
     keyvaluefiletextdialog.h keyvaluefiletextdialog.cpp keyvaluefiletextdialog.ui
     queryform.h queryform.cpp queryform.ui
+    Resources.qrc
+    environmentform.h environmentform.cpp environmentform.ui
+    keyvaluehandler.h keyvaluehandler.cpp
 )
 
 target_link_libraries(RestyCage
@@ -25,6 +29,7 @@ target_link_libraries(RestyCage
         Qt::Widgets
         Qt::Network
 )
+target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
 include(GNUInstallDirs)
 

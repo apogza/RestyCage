@@ -1,6 +1,6 @@
+#include "qjsonmodel.h"
 #include "queryform.h"
 #include "ui_queryform.h"
-#include "keyvaluedialog.h"
 #include "keyvaluefiletextdialog.h"
 #include <QFile>
 #include <QFileDialog>
@@ -14,6 +14,7 @@ QueryForm::QueryForm(QWidget *parent)
     ui->setupUi(this);
 
     nam = new QNetworkAccessManager(this);
+    keyValueHandler = new KeyValueHandler(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << "Key" << "Value");
@@ -299,61 +300,17 @@ void QueryForm::on_authComboBox_currentIndexChanged(int index)
 
 void QueryForm::addSimpleModelRow(QStandardItemModel &itemsModel)
 {
-    KeyValueDialog *dialog = new KeyValueDialog(this);
-
-    int result = dialog->exec();
-
-    if (result == QDialog::Accepted)
-    {
-        QString key = dialog->getKey();
-        QString value = dialog->getValue();
-        QString description = dialog->getDescription();
-
-        itemsModel.insertRow(itemsModel.rowCount(),
-                             {
-                                 new QStandardItem(key),
-                                 new QStandardItem(value),
-                                 new QStandardItem(description)
-                             }
-                             );
-    }
+    keyValueHandler->addRowModel(this, itemsModel);
 }
 
 void QueryForm::editSimpleRow(QStandardItemModel &itemsModel, int row, int column)
 {
-    QStandardItem *keyItem = itemsModel.item(row, 0);
-    QStandardItem *valueItem = itemsModel.item(row, 1);
-    QStandardItem *descriptionItem = itemsModel.item(row, 2);
-
-    QString key = keyItem->data(Qt::EditRole).toString();
-    QString value = valueItem->data(Qt::EditRole).toString();
-    QString description = descriptionItem->data(Qt::EditRole).toString();
-
-    KeyValueDialog *keyValueDialog = new KeyValueDialog(this, key, value, description);
-    int result = keyValueDialog->exec();
-
-    if (result == QDialog::Accepted)
-    {
-        QStandardItem *item = itemsModel.item(row, 0);
-        item->setData(keyValueDialog->getKey(), Qt::EditRole);
-
-        item = itemsModel.item(row, 1);
-        item->setData(keyValueDialog->getValue(), Qt::EditRole);
-
-        item = itemsModel.item(row, 2);
-        item->setData(keyValueDialog->getDescription(), Qt::EditRole);
-    }
+    keyValueHandler->editRowModel(this, itemsModel, row, column);
 }
 
-void QueryForm::removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel)
+void QueryForm::removeModelRow(QTableView *tableView, QStandardItemModel &itemsModel)
 {
-    QItemSelectionModel *selectionModel = tableView->selectionModel();
-    QModelIndexList indexlist = selectionModel->selectedIndexes();
-
-    foreach (QModelIndex idx, indexlist)
-    {
-        itemsModel.removeRow(idx.row());
-    }
+    keyValueHandler->deleteRowModel(tableView, itemsModel);
 }
 
 void QueryForm::on_reqAddParamBtn_clicked()

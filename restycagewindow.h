@@ -2,7 +2,6 @@
 #define RESTYCAGEWINDOW_H
 
 #include <QMainWindow>
-#include "queryform.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,9 +17,20 @@ public:
     RestyCageWindow(QWidget *parent = nullptr);
     ~RestyCageWindow();
 
+private slots:
+
+    void on_queryTabWidget_tabCloseRequested(int index);
+
+    void on_newQueryBtn_clicked();
+
+    void on_newCollectionBtn_clicked();
+
+    void on_collectionsToolButton_clicked();
+
+    void on_envToolButton_clicked();
+
 private:
-    Ui::RestyCageWindow *ui;
-    QueryForm *queryForm;
+    Ui::RestyCageWindow *ui;    
 
 };
 #endif // RESTYCAGEWINDOW_H

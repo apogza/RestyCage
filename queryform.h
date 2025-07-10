@@ -1,6 +1,8 @@
 #ifndef QUERYFORM_H
 #define QUERYFORM_H
 
+#include "keyvaluehandler.h"
+
 #include <QWidget>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -8,7 +10,7 @@
 #include <QTableView>
 #include <QNetworkReply>
 #include <QUrlQuery>
-#include "qjsonmodel.h"
+
 
 namespace Ui {
 class QueryForm;
@@ -56,6 +58,7 @@ private:
     QStandardItemModel reqFormBodyModel;
     QString selectedBinaryBodyFilePath;
     quint64 requestStartMs;
+    KeyValueHandler *keyValueHandler;
 
     void initModels();
     void addSimpleModelRow(QStandardItemModel &itemsModel);
