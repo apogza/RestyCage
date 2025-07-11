@@ -25,12 +25,11 @@ private slots:
 
     void on_newCollectionBtn_clicked();
 
-    void on_collectionsToolButton_clicked();
-
-    void on_envToolButton_clicked();
+    void on_addEnvironmentBtn_clicked();
 
 private:
-    Ui::RestyCageWindow *ui;    
+    Ui::RestyCageWindow *ui;
+    void addNewQuery();
 
 };
 #endif // RESTYCAGEWINDOW_H

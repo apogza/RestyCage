@@ -24,6 +24,8 @@ private slots:
 
     void on_removeEnvironmentBtn_clicked();
 
+    void on_saveEnvironmentBtn_clicked();
+
 private:
     Ui::EnvironmentForm *ui;
     QStandardItemModel envItemModel;

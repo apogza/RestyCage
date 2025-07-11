@@ -1,5 +1,6 @@
 #include "environmentform.h"
 #include "ui_environmentform.h"
+#include "environmentserializer.h"
 
 EnvironmentForm::EnvironmentForm(QWidget *parent)
     : QWidget(parent)
@@ -39,5 +40,22 @@ void EnvironmentForm::on_tableView_doubleClicked(const QModelIndex &index)
 void EnvironmentForm::on_removeEnvironmentBtn_clicked()
 {
     keyValueHandler->deleteRowModel(ui->tableView, envItemModel);
+}
+
+
+void EnvironmentForm::on_saveEnvironmentBtn_clicked()
+{
+    EnvironmentSerializer serializer;
+
+    for(int i = 0; i < envItemModel.rowCount(); i++)
+    {
+        QStandardItem *keyItem = envItemModel.item(i, 0);
+        QStandardItem *valueItem = envItemModel.item(i, 1);
+        QStandardItem *descriptionItem = envItemModel.item(i, 2);
+
+        serializer.addVariable(keyItem->text(), valueItem->text(), descriptionItem->text());
+    }
+
+    serializer.saveToFile("Test.json");
 }
 

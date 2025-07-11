@@ -8,7 +8,9 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     , ui(new Ui::RestyCageWindow)
 {
     ui->setupUi(this);
-    ui->splitter->setSizes({100, 500});
+    ui->splitter->setSizes({200, 500});
+
+    addNewQuery();
 }
 
 RestyCageWindow::~RestyCageWindow()
@@ -23,23 +25,27 @@ void RestyCageWindow::on_queryTabWidget_tabCloseRequested(int index)
 
 void RestyCageWindow::on_newQueryBtn_clicked()
 {
-    QueryForm *queryForm = new QueryForm(ui->queryTabWidget);
-    ui->queryTabWidget->addTab(queryForm, "New Query");
+    addNewQuery();
 }
 
 void RestyCageWindow::on_newCollectionBtn_clicked()
 {
+
+}
+
+void RestyCageWindow::on_addEnvironmentBtn_clicked()
+{
     EnvironmentForm *environmentForm = new EnvironmentForm(ui->queryTabWidget);
-    ui->queryTabWidget->addTab(environmentForm, "New Environment");
+    int idx = ui->queryTabWidget->addTab(environmentForm, "New Environment");
+
+    ui->queryTabWidget->setCurrentIndex(idx);
 }
 
-void RestyCageWindow::on_collectionsToolButton_clicked()
+void RestyCageWindow::addNewQuery()
 {
-    ui->menuStackedWidget->setCurrentIndex(0);
-}
+    QueryForm *queryForm = new QueryForm(ui->queryTabWidget);
+    int idx = ui->queryTabWidget->addTab(queryForm, "New Query");
 
-void RestyCageWindow::on_envToolButton_clicked()
-{
-    ui->menuStackedWidget->setCurrentIndex(1);
+    ui->queryTabWidget->setCurrentIndex(idx);
 }
 
