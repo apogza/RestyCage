@@ -25,6 +25,8 @@ qt_add_executable(RestyCage
     keyvaluehandler.h keyvaluehandler.cpp
     queryserializer.h queryserializer.cpp
     environmentserializer.h environmentserializer.cpp
+    constants.h
+    namedialog.h namedialog.cpp namedialog.ui
 )
 
 target_link_libraries(RestyCage
