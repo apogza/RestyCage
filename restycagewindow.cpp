@@ -29,6 +29,9 @@ RestyCageWindow::~RestyCageWindow()
 
 void RestyCageWindow::on_queryTabWidget_tabCloseRequested(int index)
 {
+    QString tabTitle = ui->queryTabWidget->tabText(index);
+    tabs.remove(tabTitle);
+
     ui->queryTabWidget->removeTab(index);
 }
 
@@ -124,8 +127,6 @@ void RestyCageWindow::on_newCollectionBtn_clicked()
         {
             QDir().mkdir(collectionDirPath);
         }
-
-        //mainDir = QDir(reqDirPath);
 
         QString newCollectionName = nameDialog.getName();
         mainDir.mkdir(newCollectionName);
