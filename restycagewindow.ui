@@ -29,7 +29,7 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="collectionsPage">
            <property name="geometry">
@@ -50,7 +50,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="newCollectionBtn">
                 <property name="text">
                  <string/>
                 </property>
@@ -95,7 +95,14 @@
              </layout>
             </item>
             <item>
-             <widget class="QTreeView" name="treeView"/>
+             <widget class="QTreeView" name="collectionsTreeView">
+              <property name="editTriggers">
+               <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+              </property>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
+             </widget>
             </item>
            </layout>
           </widget>

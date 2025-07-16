@@ -5,6 +5,7 @@
 #include <QByteArray>
 
 const QString envDirPath = "envs";
+const QString collectionDirPath = "collections";
 
 static const char *keyHeader = "Key";
 static const char *valueHeader = "Value";

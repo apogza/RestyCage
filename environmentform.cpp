@@ -73,7 +73,7 @@ void EnvironmentForm::on_saveEnvironmentBtn_clicked()
 
         if (dialogResult == QDialog::Accepted)
         {
-            fileName = QString("%1.json").arg(nameDialog.getName());
+            fileName = nameDialog.getName();
         }
     }
 

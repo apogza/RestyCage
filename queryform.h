@@ -49,6 +49,8 @@ private slots:
 
     void on_reqFileSelectionBtn_clicked();
 
+    void on_saveQueryBtn_clicked();
+
 private:
     Ui::QueryForm *ui;
     QNetworkAccessManager *nam;

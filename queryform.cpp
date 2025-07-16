@@ -423,3 +423,9 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
         ui->reqFileSelectionLbl->setText(fileInfo.fileName());
     }
 }
+
+void QueryForm::on_saveQueryBtn_clicked()
+{
+
+}
+
