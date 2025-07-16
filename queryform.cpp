@@ -200,7 +200,7 @@ QNetworkReply *QueryForm::sendUrlEncodedFormRequest(QNetworkRequest &request, co
 QNetworkReply *QueryForm::sendRawRequest(QNetworkRequest &request, const QString &method)
 {
     QString body = ui->reqRawBodyTextEdit->toPlainText();
-    QString bodyType = ui->reqBodyTypeComboBox->currentText();
+    QString bodyType = ui->rawContentTypeComboBox->currentText();
 
     if (bodyType == "JSON")
     {
