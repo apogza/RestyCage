@@ -2,6 +2,8 @@
 #define RESTYCAGEWINDOW_H
 
 #include <QMainWindow>
+#include <QStandardItemModel>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,9 +29,13 @@ private slots:
 
     void on_addEnvironmentBtn_clicked();
 
+    void on_envsTreeView_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::RestyCageWindow *ui;
+    QStandardItemModel envModel;
     void addNewQuery();
+    void initEnvironments();
 
 };
 #endif // RESTYCAGEWINDOW_H

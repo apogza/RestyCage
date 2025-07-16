@@ -1,9 +1,10 @@
 #ifndef ENVIRONMENTFORM_H
 #define ENVIRONMENTFORM_H
 
+#include "keyvaluehandler.h"
+
 #include <QWidget>
 #include <QStandardItemModel>
-#include "keyvaluehandler.h"
 
 namespace Ui {
 class EnvironmentForm;
@@ -16,6 +17,8 @@ class EnvironmentForm : public QWidget
 public:
     explicit EnvironmentForm(QWidget *parent = nullptr);
     ~EnvironmentForm();
+
+    void initFromFile(QString &fileName);
 
 private slots:
     void on_addEnvironmentBtn_clicked();
@@ -30,6 +33,7 @@ private:
     Ui::EnvironmentForm *ui;
     QStandardItemModel envItemModel;
     KeyValueHandler *keyValueHandler;
+    QString fileName;
 
     void initModel();
 };

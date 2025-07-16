@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QJsonArray>
-
+#include <QStandardItemModel>
 
 class EnvironmentSerializer : public QObject
 {
@@ -11,7 +11,8 @@ class EnvironmentSerializer : public QObject
 public:
     explicit EnvironmentSerializer(QObject *parent = nullptr);
     void addVariable(QString name, QString value, QString description);
-    void saveToFile(QString fileName);
+    void saveToFile(const QString &fileName);
+    void loadModelFromFile(const QString &fileName, QStandardItemModel &model);
 
 private:
     QJsonArray jsonArray;

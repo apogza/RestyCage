@@ -2,6 +2,8 @@
 #include "queryform.h"
 #include "ui_queryform.h"
 #include "keyvaluefiletextdialog.h"
+#include "constants.h"
+
 #include <QFile>
 #include <QFileDialog>
 #include <QHttpPart>
@@ -17,7 +19,7 @@ QueryForm::QueryForm(QWidget *parent)
     keyValueHandler = new KeyValueHandler(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
-    ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << "Key" << "Value");
+    ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << keyHeader << valueHeader);
     ui->rawContentTypeComboBox->setVisible(false);
 
     initModels();
@@ -31,31 +33,31 @@ QueryForm::~QueryForm()
 void QueryForm::initModels()
 {
     reqParamsModel.insertColumns(0, 3);
-    reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
-    reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
-    reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
+    reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqParamsTableView->setModel(&reqParamsModel);
 
     reqHeadersModel.insertColumns(0, 3);
-    reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
-    reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
-    reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
+    reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqHeadersTableView->setModel(&reqHeadersModel);
 
     reqFormBodyModel.insertColumns(0, 4);
-    reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
-    reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Type"));
-    reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Value"));
-    reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr("Description"));
+    reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(typeHeader));
+    reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(valueHeader));
+    reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqBodyFormTableView->setModel(&reqFormBodyModel);
 
     reqUrlEncodedFormBodyModel.insertColumns(0, 3);
-    reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Key"));
-    reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Value"));
-    reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr("Description"));
+    reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqUrlEncodedBodyTableView->setModel(&reqUrlEncodedFormBodyModel);
 }
@@ -94,7 +96,7 @@ void QueryForm::setRequestAuth(QNetworkRequest &req)
     if (ui->authComboBox->currentText() == "Bearer Token")
     {
         QString bearerToken = ui->bearerTokenEdit->text();
-        req.setRawHeader("Authorization",  QString("Bearer %1").arg(bearerToken).toUtf8());
+        req.setRawHeader(authorizationHeader, QString("Bearer %1").arg(bearerToken).toUtf8());
     }
 
     if (ui->authComboBox->currentText() == "Basic Auth")
@@ -102,7 +104,7 @@ void QueryForm::setRequestAuth(QNetworkRequest &req)
         QString user = ui->authBasicUserEdit->text();
         QString password = ui->authBasicPasswordEdit->text();
 
-        req.setRawHeader("Authorization", QString("Basic %1:%2").arg(user, password).toUtf8());
+        req.setRawHeader(authorizationHeader, QString("Basic %1:%2").arg(user, password).toUtf8());
     }
 }
 
