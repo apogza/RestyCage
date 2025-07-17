@@ -12,8 +12,8 @@ class KeyValueHandler : public QObject
 public:
     explicit KeyValueHandler(QObject *parent = nullptr);
 
-    void addRowModel(QWidget *widget, QStandardItemModel &itemsModel);
-    void editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column);
+    bool addRowModel(QWidget *widget, QStandardItemModel &itemsModel);
+    bool editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column);
     void deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel);
 };
 

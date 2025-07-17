@@ -29,7 +29,7 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="collectionsPage">
            <property name="geometry">
@@ -135,7 +135,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="removeEnvironmentBtn">
+               <widget class="QPushButton" name="delEnvBtn">
                 <property name="text">
                  <string/>
                 </property>
@@ -175,7 +175,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QTabWidget" name="queryTabWidget">
+      <widget class="QTabWidget" name="tabWidget">
        <property name="tabsClosable">
         <bool>true</bool>
        </property>

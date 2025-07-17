@@ -20,6 +20,10 @@ public:
 
     void initFromFile(QString &fileName);
 
+signals:
+    void changedName(EnvironmentForm *form, QString newName);
+    void hasBeenModified(EnvironmentForm *form);
+
 private slots:
     void on_addEnvironmentBtn_clicked();
 

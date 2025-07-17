@@ -5,7 +5,7 @@ KeyValueHandler::KeyValueHandler(QObject *parent)
     : QObject{parent}
 {}
 
-void KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsModel)
+bool KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsModel)
 {
     KeyValueDialog *dialog = new KeyValueDialog(widget);
 
@@ -24,10 +24,13 @@ void KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsMode
                                  new QStandardItem(description)
                              }
                              );
+        return true;
     }
+
+    return false;
 }
 
-void KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column)
+bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column)
 {
     QStandardItem *keyItem = itemsModel.item(row, 0);
     QStandardItem *valueItem = itemsModel.item(row, 1);
@@ -50,7 +53,10 @@ void KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsMod
 
         item = itemsModel.item(row, 2);
         item->setData(keyValueDialog->getDescription(), Qt::EditRole);
+        return true;
     }
+
+    return false;
 }
 
 void KeyValueHandler::deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel)

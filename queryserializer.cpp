@@ -32,3 +32,6 @@ void QuerySerializer::addMethod(QString method)
 {
     jsonObject.insert("method", method);
 }
+
+
+

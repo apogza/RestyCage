@@ -21,9 +21,13 @@ public:
     RestyCageWindow(QWidget *parent = nullptr);
     ~RestyCageWindow();
 
+public slots:
+    void onTabHasChangedName(QWidget *widget, QString newName);
+    void onTabHasBeenModified(QWidget *widget);
+
 private slots:
 
-    void on_queryTabWidget_tabCloseRequested(int index);
+    void on_tabWidget_tabCloseRequested(int index);
 
     void on_newQueryBtn_clicked();
 
@@ -32,6 +36,8 @@ private slots:
     void on_envsTreeView_doubleClicked(const QModelIndex &index);
 
     void on_newCollectionBtn_clicked();
+
+    void on_delEnvBtn_clicked();
 
 private:
     Ui::RestyCageWindow *ui;

@@ -24,6 +24,10 @@ public:
     explicit QueryForm(QWidget *parent = nullptr);
     ~QueryForm();
 
+signals:
+    void changedName(QueryForm *form, QString newName);
+    void hasBeenModified(QueryForm *form);
+
 private slots:
     void on_sendButton_clicked();
     void on_authComboBox_currentIndexChanged(int index);

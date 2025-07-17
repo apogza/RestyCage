@@ -40,17 +40,28 @@ void EnvironmentForm::initModel()
 
 void EnvironmentForm::on_addEnvironmentBtn_clicked()
 {
-    keyValueHandler->addRowModel(this, envItemModel);
+    bool result = keyValueHandler->addRowModel(this, envItemModel);
+
+    if (result)
+    {
+        emit hasBeenModified(this);
+    }
 }
 
 void EnvironmentForm::on_tableView_doubleClicked(const QModelIndex &index)
 {
-    keyValueHandler->editRowModel(this, envItemModel, index.row(), index.column());
+    bool result = keyValueHandler->editRowModel(this, envItemModel, index.row(), index.column());
+
+    if (result)
+    {
+        emit hasBeenModified(this);
+    }
 }
 
 void EnvironmentForm::on_removeEnvironmentBtn_clicked()
 {
     keyValueHandler->deleteRowModel(ui->tableView, envItemModel);
+    emit hasBeenModified(this);
 }
 
 void EnvironmentForm::on_saveEnvironmentBtn_clicked()
@@ -78,5 +89,6 @@ void EnvironmentForm::on_saveEnvironmentBtn_clicked()
     }
 
     serializer.saveToFile(fileName);
+    emit changedName(this, fileName);
 }
 
