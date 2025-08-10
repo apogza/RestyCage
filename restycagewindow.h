@@ -45,11 +45,11 @@ private:
     QStandardItemModel collectionsModel;
     QMap<QString, QWidget*> tabs;
 
-
     void addNewQuery();
     void initEnvironments();
     void initCollections();
     void traverseCollectionsDir(QDir currentDir);
+    void initAppDataFolder();
 
 };
 #endif // RESTYCAGEWINDOW_H

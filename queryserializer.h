@@ -10,11 +10,12 @@ class QuerySerializer : public QObject
     Q_OBJECT
 public:
     explicit QuerySerializer(QObject *parent = nullptr);
-    void saveToFile(QString path, QString fileName);
-    void addName(QString name);
-    void addUrl(QString url);
-    void addMethod(QString method);
-    void addParameters(QStandardItemModel &parameters);
+    void saveToFile(const QString &path, const QString &fileName);
+    void addParameterArray(const QString &parameterName, const QStandardItemModel &parameters, const int numColumns);
+    void addParameter(const QString &parameterName, const QString &value);
+    void addBasicAuth(const QString &username, const QString &password);
+    void addBearerAuth(const QString &bearerToken);
+    void addBody(const QString &type, const QString &body);
 
 private:
     QJsonObject jsonObject;

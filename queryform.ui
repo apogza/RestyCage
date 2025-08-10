@@ -640,7 +640,11 @@
           <widget class="QWidget" name="page_7">
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
-             <widget class="QTextEdit" name="reqRawBodyTextEdit"/>
+             <widget class="QTextEdit" name="reqRawBodyTextEdit">
+              <property name="acceptRichText">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

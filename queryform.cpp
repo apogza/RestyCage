@@ -1,13 +1,16 @@
-#include "qjsonmodel.h"
-#include "queryform.h"
+#include "constants.h"
 #include "ui_queryform.h"
 #include "keyvaluefiletextdialog.h"
-#include "constants.h"
+#include "qjsonmodel.h"
+#include "queryform.h"
+#include "queryserializer.h"
+#include "namedialog.h"
 
 #include <QFile>
 #include <QFileDialog>
 #include <QHttpPart>
 #include <QHttpMultiPart>
+
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -295,6 +298,44 @@ void QueryForm::readReplyHeaders(QNetworkReply *reply)
     }
 }
 
+void QueryForm::saveToFile()
+{
+    QuerySerializer serializer;
+
+    serializer.addParameter(querySerializationName, name);
+    serializer.addParameter(querySerializationMethod, ui->methodComboBox->currentText());
+    serializer.addParameter(querySerializationUrl, ui->urlEdit->text());
+    if (reqParamsModel.rowCount() > 0)
+    {
+        serializer.addParameterArray(querySerializationParams, reqParamsModel, 3);
+    }
+
+    if (reqHeadersModel.rowCount() > 0)
+    {
+        serializer.addParameterArray(querySerializationHeaders, reqHeadersModel, 3);
+    }
+
+    QString authType = ui->authComboBox->currentText();
+    QString bodyType = ui->reqBodyTypeComboBox->currentText();
+
+    if (bodyType != "None")
+    {
+        serializer.addBody(bodyType.toLower(), ui->reqRawBodyTextEdit->toPlainText());
+    }
+
+    if (authType == "Basic")
+    {
+        serializer.addBasicAuth(ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text());
+    }
+
+    if (authType == "Bearer Token")
+    {
+        serializer.addBearerAuth(ui->bearerTokenEdit->text());
+    }
+
+    serializer.saveToFile(collectionDirPath, "test.json");
+}
+
 void QueryForm::on_authComboBox_currentIndexChanged(int index)
 {
     ui->authStackedWidget->setCurrentIndex(index);
@@ -426,6 +467,9 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
 
 void QueryForm::on_saveQueryBtn_clicked()
 {
+    NameDialog nameDialog;
 
+
+    saveToFile();
 }
 

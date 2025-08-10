@@ -18,8 +18,10 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     ui->envsTreeView->setModel(&envsModel);
 
     addNewQuery();
+    initAppDataFolder();
     initCollections();
     initEnvironments();
+    ui->toolBox->setCurrentIndex(0);
 }
 
 RestyCageWindow::~RestyCageWindow()
@@ -98,6 +100,16 @@ void RestyCageWindow::traverseCollectionsDir(QDir currentDir)
         {
             traverseCollectionsDir(QDir(info.filePath()));
         }
+    }
+}
+
+void RestyCageWindow::initAppDataFolder()
+{
+    QDir dataFolder = appDataFolder;
+
+    if (!dataFolder.exists())
+    {
+        QDir().mkdir(appDataFolder);
     }
 }
 

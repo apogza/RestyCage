@@ -59,8 +59,9 @@ void EnvironmentSerializer::loadModelFromFile(const QString &jsonFileName, QStan
     QJsonArray jsonVarArray = jsonDocument.array();
 
     int row = 0;
-    foreach (const QJsonValue &val, jsonVarArray)
+    for (int i = 0; i < jsonVarArray.size(); i++ )
     {
+        const QJsonValue &val = jsonVarArray[i];
         QJsonObject jsonObject = val.toObject();
 
         QStandardItem *nameItem = new QStandardItem();

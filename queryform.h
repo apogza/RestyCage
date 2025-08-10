@@ -63,6 +63,7 @@ private:
     QStandardItemModel reqUrlEncodedFormBodyModel;
     QStandardItemModel reqFormBodyModel;
     QString selectedBinaryBodyFilePath;
+    QString name;
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
 
@@ -83,6 +84,10 @@ private:
 
 
     void readReply();
-    void readReplyHeaders(QNetworkReply* reply);};
+    void readReplyHeaders(QNetworkReply* reply);
+    void saveToFile();
+};
+
+
 
 #endif // QUERYFORM_H
