@@ -380,7 +380,18 @@ void QueryForm::saveToFile()
 
     QuerySerializer serializer(&query, this);
 
-    serializer.saveToFile(collectionDirPath, "test.json");
+    if (query.name().isEmpty())
+    {
+        NameDialog nameDialog;
+        int dialogResult = nameDialog.exec();
+
+        if (dialogResult == QDialog::Accepted)
+        {
+            query.setName(nameDialog.getName());
+        }
+    }
+
+    serializer.saveToFile(collectionDirPath);
 }
 
 void QueryForm::on_authComboBox_currentIndexChanged(int index)

@@ -12,7 +12,7 @@ QuerySerializer::QuerySerializer(Query *query, QObject *parent)
     m_query = query;
 }
 
-void QuerySerializer::saveToFile(const QString &path, const QString &fileName)
+void QuerySerializer::saveToFile(const QString &path)
 {
     QJsonDocument jsonDocument = createJsonDocument();
 
@@ -29,7 +29,9 @@ void QuerySerializer::saveToFile(const QString &path, const QString &fileName)
         return;
     }
 
-    QFile jsonFile(QString("%1/%2").arg(path, fileName));
+    QString filename = QString("%1.json").arg(m_query->id().toString(QUuid::WithoutBraces));
+
+    QFile jsonFile(QString("%1/%2").arg(path, QString("%1.json").arg(filename)));
     jsonFile.open(QFile::WriteOnly);
     jsonFile.write(jsonDocument.toJson());
 }
@@ -83,11 +85,11 @@ void QuerySerializer::addBearerAuth()
     m_jsonObject.insert(querySerializationAuthorization, authObject);
 }
 
-void QuerySerializer::addRawBody(const QString &type, const QString &body)
+void QuerySerializer::addRawBody()
 {
     QJsonObject bodyObject;
-    bodyObject.insert(querySerializationType, type);
-    bodyObject.insert(querySerializationValue, body);
+    bodyObject.insert(querySerializationType, Query::bodyTypeToString(m_query->bodyType()));
+    bodyObject.insert(querySerializationValue, m_query->rawBodyValue());
 
     m_jsonObject.insert(querySerializationBody, bodyObject);
 }
@@ -183,7 +185,7 @@ QJsonDocument QuerySerializer::createJsonDocument()
 
     if (m_query->bodyType() == Query::BodyType::Raw)
     {
-        addRawBody(Query::bodyTypeToString(m_query->bodyType()), m_query->rawBodyValue());
+        addRawBody();
     }
 
     if (m_query->bodyType() == Query::BodyType::MultipartForm)
