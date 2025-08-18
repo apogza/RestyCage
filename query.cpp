@@ -1,11 +1,5 @@
 #include "query.h"
 
-Query::Query(QObject *parent)
-    : QObject{parent}
-{
-
-}
-
 QString &Query::name()
 {
     return m_name;
@@ -36,30 +30,109 @@ QString &Query::bearerToken()
     return m_bearerToken;
 }
 
-QList<ValueStore> &Query::parameters()
+QList<ParamValue> &Query::parameters()
 {
     return m_parameters;
 }
 
-QList<ValueStore> &Query::headers()
+QList<ParamValue> &Query::headers()
 {
     return m_headers;
 }
 
-QList<ValueStore> &Query::encodedForm()
+QList<ParamValue> &Query::encodedForm()
 {
-    return m_encodedForm;
+    return m_encodedFormParams;
 }
 
-QList<ValueStore> &Query::multipartForm()
+QList<ParamValue> &Query::multipartForm()
 {
-    return m_multipartForm;
+    return m_multipartFormParams;
 }
 
-
-Query::RawBodyType Query::rawBodyValue()
+QString &Query::binaryForm()
 {
-    return m_rawBodyType;
+    return m_binaryFilePath;
+}
+
+void Query::setName(QString name)
+{
+    m_name = name;
+}
+
+void Query::setMethod(QString method)
+{
+    m_method = method;
+}
+
+void Query::setUrl(QString url)
+{
+    m_url = url;
+}
+
+void Query::setAuthType(AuthType authType)
+{
+    m_authType = authType;
+}
+
+void Query::setUsername(QString username)
+{
+    m_username = username;
+}
+
+void Query::setPassword(QString password)
+{
+    m_password = password;
+}
+
+void Query::setBearerToken(QString bearerToken)
+{
+    m_bearerToken = bearerToken;
+}
+
+void Query::setBodyType(BodyType bodyType)
+{
+    m_bodyType = bodyType;
+}
+
+void Query::setRawBodyType(RawBodyType rawBodyType)
+{
+    m_rawBodyType = rawBodyType;
+}
+
+void Query::setRawBodyValue(QString rawBodyValue)
+{
+    m_rawBodyValue = rawBodyValue;
+}
+
+void Query::setParameters(QList<ParamValue> parameters)
+{
+    m_parameters = parameters;
+}
+
+void Query::setHeaders(QList<ParamValue> headers)
+{
+    m_headers = headers;
+}
+
+void Query::setEncodedForm(QList<ParamValue> encodedFormParams)
+{
+    m_encodedFormParams = encodedFormParams;
+}
+
+void Query::setMultipartForm(QList<ParamValue> multipartFormParams)
+{
+    m_multipartFormParams = multipartFormParams;
+}
+
+void Query::setBinaryForm(QString binaryFilePath)
+{
+    m_binaryFilePath = binaryFilePath;
+}
+
+QString &Query::rawBodyValue()
+{
+    return m_rawBodyValue;
 }
 
 Query::BodyType &Query::bodyType()

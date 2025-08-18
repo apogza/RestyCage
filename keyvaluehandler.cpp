@@ -18,12 +18,12 @@ bool KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsMode
         QString description = dialog->getDescription();
 
         itemsModel.insertRow(itemsModel.rowCount(),
-                             {
-                                 new QStandardItem(key),
-                                 new QStandardItem(value),
-                                 new QStandardItem(description)
-                             }
-                             );
+                            {
+                                new QStandardItem(key),
+                                new QStandardItem(value),
+                                new QStandardItem(description)
+                            }
+        );
         return true;
     }
 

@@ -2,6 +2,7 @@
 #include "ui_queryform.h"
 #include "keyvaluefiletextdialog.h"
 #include "qjsonmodel.h"
+#include "query.h"
 #include "queryform.h"
 #include "queryserializer.h"
 #include "namedialog.h"
@@ -18,7 +19,7 @@ QueryForm::QueryForm(QWidget *parent)
 {
     ui->setupUi(this);
 
-    nam = new QNetworkAccessManager(this);
+    m_nam = new QNetworkAccessManager(this);
     keyValueHandler = new KeyValueHandler(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
@@ -35,34 +36,34 @@ QueryForm::~QueryForm()
 
 void QueryForm::initModels()
 {
-    reqParamsModel.insertColumns(0, 3);
-    reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
-    reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
+    m_reqParamsModel.insertColumns(0, 3);
+    m_reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    m_reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
-    ui->reqParamsTableView->setModel(&reqParamsModel);
+    ui->reqParamsTableView->setModel(&m_reqParamsModel);
 
-    reqHeadersModel.insertColumns(0, 3);
-    reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
-    reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
+    m_reqHeadersModel.insertColumns(0, 3);
+    m_reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    m_reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
-    ui->reqHeadersTableView->setModel(&reqHeadersModel);
+    ui->reqHeadersTableView->setModel(&m_reqHeadersModel);
 
-    reqFormBodyModel.insertColumns(0, 4);
-    reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
-    reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(typeHeader));
-    reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(valueHeader));
-    reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr(descriptionHeader));
+    m_reqFormBodyModel.insertColumns(0, 4);
+    m_reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(typeHeader));
+    m_reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(valueHeader));
+    m_reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr(descriptionHeader));
 
-    ui->reqBodyFormTableView->setModel(&reqFormBodyModel);
+    ui->reqBodyFormTableView->setModel(&m_reqFormBodyModel);
 
-    reqUrlEncodedFormBodyModel.insertColumns(0, 3);
-    reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
-    reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
+    m_reqUrlEncodedFormBodyModel.insertColumns(0, 3);
+    m_reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
+    m_reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
-    ui->reqUrlEncodedBodyTableView->setModel(&reqUrlEncodedFormBodyModel);
+    ui->reqUrlEncodedBodyTableView->setModel(&m_reqUrlEncodedFormBodyModel);
 }
 
 void QueryForm::on_sendButton_clicked()
@@ -86,10 +87,10 @@ void QueryForm::on_sendButton_clicked()
 
 void QueryForm::setRequestParams(QUrlQuery &url)
 {
-    for (int i = 0; i < reqParamsModel.rowCount(); i++)
+    for (int i = 0; i < m_reqParamsModel.rowCount(); i++)
     {
-        QString key = reqParamsModel.item(i, 0)->text();
-        QString value = reqParamsModel.item(i, 1)->text();
+        QString key = m_reqParamsModel.item(i, 0)->text();
+        QString value = m_reqParamsModel.item(i, 1)->text();
         url.addQueryItem(key, value);
     }
 }
@@ -113,10 +114,10 @@ void QueryForm::setRequestAuth(QNetworkRequest &req)
 
 void QueryForm::setRequestHeaders(QNetworkRequest &req)
 {
-    for (int i = 0; i < reqHeadersModel.rowCount(); i++)
+    for (int i = 0; i < m_reqHeadersModel.rowCount(); i++)
     {
-        QString headerKey = reqHeadersModel.item(i, 0)->text();
-        QString headerValue = reqHeadersModel.item(i, 1)->text();
+        QString headerKey = m_reqHeadersModel.item(i, 0)->text();
+        QString headerValue = m_reqHeadersModel.item(i, 1)->text();
 
         req.headers().append(headerKey, headerValue);
     }
@@ -148,7 +149,7 @@ void QueryForm::sendRequest(QNetworkRequest &request, QUrlQuery &urlQuery)
     }
     else
     {
-        reply = nam->sendCustomRequest(request, method.toUtf8());
+        reply = m_nam->sendCustomRequest(request, method.toUtf8());
     }
 
     requestStartMs = QDateTime::currentMSecsSinceEpoch();
@@ -161,11 +162,11 @@ QNetworkReply *QueryForm::sendMultiPartRequest(QNetworkRequest &request, const Q
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("multipart/form-data"));
     QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
-    for (int i = 0; i < reqFormBodyModel.rowCount(); i++)
+    for (int i = 0; i < m_reqFormBodyModel.rowCount(); i++)
     {
-        QString key = reqFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
-        QString type = reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
-        QString value = reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
+        QString key = m_reqFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
+        QString type = m_reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
+        QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
 
         QHttpPart part;
         part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QString("form-data; name=\"%1\"").arg(key)));
@@ -186,20 +187,20 @@ QNetworkReply *QueryForm::sendMultiPartRequest(QNetworkRequest &request, const Q
         }
     }
 
-    return nam->sendCustomRequest(request, method.toUtf8(), multiPart);
+    return m_nam->sendCustomRequest(request, method.toUtf8(), multiPart);
 }
 
 QNetworkReply *QueryForm::sendUrlEncodedFormRequest(QNetworkRequest &request, const QString &method, QUrlQuery &urlQuery)
 {
-    for (int i = 0; i < reqUrlEncodedFormBodyModel.rowCount(); i++)
+    for (int i = 0; i < m_reqUrlEncodedFormBodyModel.rowCount(); i++)
     {
-        QString key = reqUrlEncodedFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
-        QString value = reqUrlEncodedFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
+        QString key = m_reqUrlEncodedFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
+        QString value = m_reqUrlEncodedFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
 
         urlQuery.addQueryItem(key, value);
     }
 
-    return nam->sendCustomRequest(request, method.toUtf8());
+    return m_nam->sendCustomRequest(request, method.toUtf8());
 }
 
 QNetworkReply *QueryForm::sendRawRequest(QNetworkRequest &request, const QString &method)
@@ -228,18 +229,93 @@ QNetworkReply *QueryForm::sendRawRequest(QNetworkRequest &request, const QString
         request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
     }
 
-    return nam->sendCustomRequest(request, method.toUtf8(), body.toUtf8());
+    return m_nam->sendCustomRequest(request, method.toUtf8(), body.toUtf8());
 }
 
 QNetworkReply *QueryForm::sendBinaryRequest(QNetworkRequest &request, const QString &method)
 {
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
 
-    QFile file(selectedBinaryBodyFilePath);
+    QFile file(m_binaryBodyFilePath);
     file.open(QIODevice::ReadOnly);
     QByteArray fileByteArray = file.readAll();
 
-    return nam->sendCustomRequest(request, method.toUtf8(), fileByteArray);
+    return m_nam->sendCustomRequest(request, method.toUtf8(), fileByteArray);
+}
+
+QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns)
+{
+    QList<ParamValue> parameters;
+    for (int i = 0; i < itemsModel.rowCount(); i++)
+    {
+        QMap<QString, QString> paramValueMap;
+
+        for (int j = 0; j < numColumns; j++)
+        {
+            QVariant headerData = itemsModel.headerData(j, Qt::Orientation::Horizontal, Qt::DisplayRole);
+
+            paramValueMap.insert(
+                headerData.toString(),
+                itemsModel.item(i, j)->data(Qt::DisplayRole).toString());
+        }
+
+        parameters.append(ParamValue(paramValueMap));
+    }
+
+    return parameters;
+}
+
+Query QueryForm::createQuery()
+{
+    Query query;
+    query.setName(m_name);
+    query.setMethod(ui->methodComboBox->currentText());
+    query.setUrl(ui->urlEdit->text());
+
+    if (m_reqParamsModel.rowCount() > 0)
+    {
+        query.setParameters(convertModelToParamValueList(m_reqParamsModel, 3));
+    }
+
+    if (m_reqHeadersModel.rowCount() > 0)
+    {
+        query.setHeaders(convertModelToParamValueList(m_reqHeadersModel, 3));
+    }
+
+    Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
+    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+
+    switch (bodyType) {
+    case Query::BodyType::Raw:
+        query.setRawBodyType(Query::rawBodyTypeFromString(ui->rawContentTypeComboBox->currentText()));
+        query.setRawBodyValue(ui->reqRawBodyTextEdit->toPlainText());
+        break;
+    case Query::BodyType::EncodedForm:
+        query.setEncodedForm(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        break;
+    case Query::BodyType::MultipartForm:
+        query.setMultipartForm(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        break;
+    case Query::BodyType::Binary:
+        query.setBinaryForm(m_binaryBodyFilePath);
+        break;
+    default:
+        break;
+    }
+
+    switch (authType){
+    case Query::AuthType::Basic:
+        query.setUsername(ui->authBasicUserEdit->text());
+        query.setPassword(ui->authBasicPasswordEdit->text());
+        break;
+    case Query::AuthType::BearerToken:
+        query.setBearerToken(ui->bearerTokenEdit->text());
+        break;
+    default:
+        break;
+    }
+
+    return query;
 }
 
 void QueryForm::readReply()
@@ -300,38 +376,9 @@ void QueryForm::readReplyHeaders(QNetworkReply *reply)
 
 void QueryForm::saveToFile()
 {
-    QuerySerializer serializer;
+    Query query = createQuery();
 
-    serializer.addParameter(querySerializationName, name);
-    serializer.addParameter(querySerializationMethod, ui->methodComboBox->currentText());
-    serializer.addParameter(querySerializationUrl, ui->urlEdit->text());
-    if (reqParamsModel.rowCount() > 0)
-    {
-        serializer.addParameterArray(querySerializationParams, reqParamsModel, 3);
-    }
-
-    if (reqHeadersModel.rowCount() > 0)
-    {
-        serializer.addParameterArray(querySerializationHeaders, reqHeadersModel, 3);
-    }
-
-    QString authType = ui->authComboBox->currentText();
-    QString bodyType = ui->reqBodyTypeComboBox->currentText();
-
-    if (bodyType != "None")
-    {
-        serializer.addBody(bodyType.toLower(), ui->reqRawBodyTextEdit->toPlainText());
-    }
-
-    if (authType == "Basic")
-    {
-        serializer.addBasicAuth(ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text());
-    }
-
-    if (authType == "Bearer Token")
-    {
-        serializer.addBearerAuth(ui->bearerTokenEdit->text());
-    }
+    QuerySerializer serializer(&query, this);
 
     serializer.saveToFile(collectionDirPath, "test.json");
 }
@@ -358,22 +405,22 @@ void QueryForm::removeModelRow(QTableView *tableView, QStandardItemModel &itemsM
 
 void QueryForm::on_reqAddParamBtn_clicked()
 {
-    addSimpleModelRow(reqParamsModel);
+    addSimpleModelRow(m_reqParamsModel);
 }
 
 void QueryForm::on_reqRemoveParamBtn_clicked()
 {
-    removeModelRow(ui->reqParamsTableView, reqParamsModel);
+    removeModelRow(ui->reqParamsTableView, m_reqParamsModel);
 }
 
 void QueryForm::on_reqHeadersAddBtn_clicked()
 {
-    addSimpleModelRow(reqHeadersModel);
+    addSimpleModelRow(m_reqHeadersModel);
 }
 
 void QueryForm::on_reqHeadersRemoveBtn_clicked()
 {
-    removeModelRow(ui->reqHeadersTableView, reqHeadersModel);
+    removeModelRow(ui->reqHeadersTableView, m_reqHeadersModel);
 }
 
 void QueryForm::on_reqBodyTypeComboBox_currentIndexChanged(int index)
@@ -384,7 +431,7 @@ void QueryForm::on_reqBodyTypeComboBox_currentIndexChanged(int index)
 
 void QueryForm::on_reqParamsTableView_doubleClicked(const QModelIndex &index)
 {
-    editSimpleRow(reqParamsModel, index.row(), index.column());
+    editSimpleRow(m_reqParamsModel, index.row(), index.column());
 }
 
 void QueryForm::on_reqBodyFormDataAddRowBtn_clicked()
@@ -423,33 +470,33 @@ void QueryForm::on_reqBodyFormDataAddRowBtn_clicked()
         QStandardItem *descriptionItem = new QStandardItem();
         descriptionItem->setData(description, Qt::EditRole);
 
-        reqFormBodyModel.insertRow(reqFormBodyModel.rowCount(), { keyItem, typeItem, valueItem, descriptionItem });
+        m_reqFormBodyModel.insertRow(m_reqFormBodyModel.rowCount(), { keyItem, typeItem, valueItem, descriptionItem });
     }
 }
 
 void QueryForm::on_reqHeadersTableView_doubleClicked(const QModelIndex &index)
 {
-    editSimpleRow(reqHeadersModel, index.row(), index.column());
+    editSimpleRow(m_reqHeadersModel, index.row(), index.column());
 }
 
 void QueryForm::on_pushButton_2_clicked()
 {
-    removeModelRow(ui->reqBodyFormTableView, reqFormBodyModel);
+    removeModelRow(ui->reqBodyFormTableView, m_reqFormBodyModel);
 }
 
 void QueryForm::on_reqAddUrlEncodedBodyRowBtn_clicked()
 {
-    addSimpleModelRow(reqUrlEncodedFormBodyModel);
+    addSimpleModelRow(m_reqUrlEncodedFormBodyModel);
 }
 
 void QueryForm::on_reqRemoveUrlEncodedBodyRowBtn_clicked()
 {
-    removeModelRow(ui->reqUrlEncodedBodyTableView, reqUrlEncodedFormBodyModel);
+    removeModelRow(ui->reqUrlEncodedBodyTableView, m_reqUrlEncodedFormBodyModel);
 }
 
 void QueryForm::on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index)
 {
-    editSimpleRow(reqUrlEncodedFormBodyModel, index.row(), index.column());
+    editSimpleRow(m_reqUrlEncodedFormBodyModel, index.row(), index.column());
 }
 
 void QueryForm::on_reqFileSelectionBtn_clicked()
@@ -459,8 +506,8 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
 
     if (result == QDialog::Accepted)
     {
-        selectedBinaryBodyFilePath = fileDialog.selectedFiles().at(0);
-        QFileInfo fileInfo(selectedBinaryBodyFilePath);
+        m_binaryBodyFilePath = fileDialog.selectedFiles().at(0);
+        QFileInfo fileInfo(m_binaryBodyFilePath);
         ui->reqFileSelectionLbl->setText(fileInfo.fileName());
     }
 }
@@ -468,7 +515,6 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
 void QueryForm::on_saveQueryBtn_clicked()
 {
     NameDialog nameDialog;
-
 
     saveToFile();
 }

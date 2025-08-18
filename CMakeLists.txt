@@ -28,7 +28,7 @@ qt_add_executable(RestyCage
     constants.h
     namedialog.h namedialog.cpp namedialog.ui
     query.h query.cpp
-    valuestore.h valuestore.cpp
+    paramvalue.h paramvalue.cpp
 )
 
 target_link_libraries(RestyCage

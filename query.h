@@ -1,23 +1,19 @@
 #ifndef QUERY_H
 #define QUERY_H
 
-#include <QObject>
 #include <QString>
 #include <QList>
 
-#include "valuestore.h"
-#include "queryserializer.h"
+#include "paramvalue.h"
 
-class Query : QObject
+
+class Query
 {
-    Q_OBJECT;
 
 public:
     enum AuthType { None, Basic, BearerToken };
-    enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary };
+    enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary   };
     enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
-
-    Query(QObject *parent = nullptr);
 
     QString &name();
     QString &method();
@@ -28,12 +24,31 @@ public:
     QString &password();
     QString &bearerToken();
     BodyType &bodyType();
-    RawBodyType rawBodyValue();
+    QString &rawBodyValue();
 
-    QList<ValueStore> &parameters();
-    QList<ValueStore> &headers();
-    QList<ValueStore> &encodedForm();
-    QList<ValueStore> &multipartForm();
+    QList<ParamValue> &parameters();
+    QList<ParamValue> &headers();
+    QList<ParamValue> &encodedForm();
+    QList<ParamValue> &multipartForm();
+    QString &binaryForm();
+
+    void setName(QString name);
+    void setMethod(QString method);
+    void setUrl(QString url);
+    void setAuthType(AuthType authType);
+
+    void setUsername(QString username);
+    void setPassword(QString password);
+    void setBearerToken(QString bearerToken);
+    void setBodyType(BodyType bodyType);
+    void setRawBodyType(RawBodyType rawBodyType);
+    void setRawBodyValue(QString rawBodyValue);
+
+    void setParameters(QList<ParamValue> parameters);
+    void setHeaders(QList<ParamValue> headers);
+    void setEncodedForm(QList<ParamValue> encodedFormParams);
+    void setMultipartForm(QList<ParamValue> multipartFormParams);
+    void setBinaryForm(QString binaryFilePath);
 
     static QString authTypeToString(const AuthType authType);
     static QString bodyTypeToString(const BodyType bodyType);
@@ -57,13 +72,11 @@ private:
     RawBodyType m_rawBodyType;
     QString m_rawBodyValue;
 
-    QList<ValueStore> m_parameters;
-    QList<ValueStore> m_headers;
-    QList<ValueStore> m_encodedForm;
-    QList<ValueStore> m_multipartForm;
-
-    QuerySerializer m_querySerializer = QuerySerializer(this);
-
+    QList<ParamValue> m_parameters;
+    QList<ParamValue> m_headers;
+    QList<ParamValue> m_encodedFormParams;
+    QList<ParamValue> m_multipartFormParams;
+    QString m_binaryFilePath;
 };
 
 #endif // QUERY_H

@@ -2,6 +2,8 @@
 #define QUERYFORM_H
 
 #include "keyvaluehandler.h"
+#include "paramvalue.h"
+#include "query.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -57,13 +59,14 @@ private slots:
 
 private:
     Ui::QueryForm *ui;
-    QNetworkAccessManager *nam;
-    QStandardItemModel reqParamsModel;
-    QStandardItemModel reqHeadersModel;
-    QStandardItemModel reqUrlEncodedFormBodyModel;
-    QStandardItemModel reqFormBodyModel;
-    QString selectedBinaryBodyFilePath;
-    QString name;
+    QNetworkAccessManager *m_nam;
+    QStandardItemModel m_reqParamsModel;
+    QStandardItemModel m_reqHeadersModel;
+    QStandardItemModel m_reqUrlEncodedFormBodyModel;
+    QStandardItemModel m_reqFormBodyModel;
+    QString m_binaryBodyFilePath;
+    QString m_name;
+
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
 
@@ -82,6 +85,8 @@ private:
     QNetworkReply *sendRawRequest(QNetworkRequest &request, const QString &method);
     QNetworkReply *sendBinaryRequest(QNetworkRequest &request, const QString &method);
 
+    QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
+    Query createQuery();
 
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);
