@@ -14,7 +14,6 @@ qt_add_executable(RestyCage
     forms/restycagewindow.ui
     qjsonmodel.h qjsonmodel.cpp
     qutf8.h
-
     dialogs/keyvaluedialog.h dialogs/keyvaluedialog.cpp dialogs/keyvaluedialog.ui
     dialogs/keyvaluefiletextdialog.h dialogs/keyvaluefiletextdialog.cpp dialogs/keyvaluefiletextdialog.ui
     forms/queryform.h forms/queryform.cpp forms/queryform.ui
@@ -28,6 +27,7 @@ qt_add_executable(RestyCage
     db/query.h db/query.cpp
     db/paramvalue.h db/paramvalue.cpp
     db/db.h db/db.cpp
+    db/environment.h db/environment.cpp
 )
 
 target_link_libraries(RestyCage

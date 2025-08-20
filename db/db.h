@@ -13,6 +13,8 @@ private:
     void initCollections();
     void initQueries();
 
+    void saveEnv();
+
     QSqlDatabase m_db;
 public:
     Db &operator=(const Db &) = delete;
