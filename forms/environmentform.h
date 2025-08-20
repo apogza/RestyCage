@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENTFORM_H
 #define ENVIRONMENTFORM_H
 
-#include "keyvaluehandler.h"
+#include "../keyvaluehandler.h"
 
 #include <QWidget>
 #include <QStandardItemModel>

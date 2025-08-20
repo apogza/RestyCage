@@ -29,7 +29,7 @@ void QuerySerializer::saveToFile(const QString &path)
         return;
     }
 
-    QString filename = QString("%1.json").arg(m_query->id().toString(QUuid::WithoutBraces));
+    QString filename = QString("%1.json").arg(m_query->name());
 
     QFile jsonFile(QString("%1/%2").arg(path, QString("%1.json").arg(filename)));
     jsonFile.open(QFile::WriteOnly);

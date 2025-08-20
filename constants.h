@@ -9,6 +9,13 @@
 const QString appDataFolder = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "resty_cage");
 const QString envDirPath = QString("%1/%2").arg(appDataFolder, "envs");
 const QString collectionDirPath = QString("%1/%2").arg(appDataFolder, "collections");
+const QString dbPath = QString("%1/%2").arg(appDataFolder, "resty_cage.db");
+const QString collectionsTable = "collections";
+const QString queriesTable = "queries";
+const QString queriesParamsTable = "queries_params";
+const QString queriesHeadersTable = "queries_headers";
+const QString collectionsQueriesTable = "collections_queries";
+const QString envsTable = "envs";
 const QString querySerializationType = "type";
 const QString querySerializationAuthorization = "authorization";
 const QString querySerializationUsername = "username";

@@ -1,13 +1,9 @@
 #include "query.h"
 
+
 Query::Query()
 {
-    m_id = QUuid::createUuidV7();
-}
 
-QUuid &Query::id()
-{
-    return m_id;
 }
 
 QString &Query::name()

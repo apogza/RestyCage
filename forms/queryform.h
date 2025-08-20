@@ -1,9 +1,9 @@
 #ifndef QUERYFORM_H
 #define QUERYFORM_H
 
-#include "keyvaluehandler.h"
-#include "paramvalue.h"
-#include "query.h"
+#include "../keyvaluehandler.h"
+#include "../db/paramvalue.h"
+#include "../db/query.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>

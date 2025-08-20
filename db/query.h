@@ -3,7 +3,6 @@
 
 #include <QString>
 #include <QList>
-#include <QUuid>
 
 #include "paramvalue.h"
 
@@ -17,7 +16,6 @@ public:
     enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
     explicit Query();
 
-    QUuid &id();
     QString &name();
     QString &method();
     QString &url();
@@ -61,8 +59,7 @@ public:
     static BodyType bodyTypeFromString(const QString &bodyType);
     static RawBodyType rawBodyTypeFromString(const QString &rawBodyType);
 
-private:
-    QUuid m_id;
+private:    
     QString m_name;
     QString m_method;
     QString m_url;

@@ -1,9 +1,9 @@
 #include "restycagewindow.h"
 #include "ui_restycagewindow.h"
-#include "queryform.h"
 #include "environmentform.h"
-#include "namedialog.h"
-#include "constants.h"
+#include "queryform.h"
+#include "../dialogs/namedialog.h"
+#include "../constants.h"
 
 #include <QDir>
 #include <QFileInfoList>

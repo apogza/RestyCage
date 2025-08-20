@@ -1,11 +1,12 @@
-#include "constants.h"
+#include "../constants.h"
 #include "ui_queryform.h"
-#include "keyvaluefiletextdialog.h"
-#include "qjsonmodel.h"
-#include "query.h"
+#include "../dialogs/keyvaluefiletextdialog.h"
+#include "../qjsonmodel.h"
+#include "../db/query.h"
 #include "queryform.h"
-#include "queryserializer.h"
-#include "namedialog.h"
+#include "../queryserializer.h"
+#include "../dialogs/namedialog.h"
+#include "../db/db.h"
 
 #include <QFile>
 #include <QFileDialog>
@@ -27,6 +28,7 @@ QueryForm::QueryForm(QWidget *parent)
     ui->rawContentTypeComboBox->setVisible(false);
 
     initModels();
+    Db &db = Db::instance();
 }
 
 QueryForm::~QueryForm()

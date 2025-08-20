@@ -1,5 +1,5 @@
 #include "keyvaluehandler.h"
-#include "keyvaluedialog.h"
+#include "dialogs/keyvaluedialog.h"
 
 KeyValueHandler::KeyValueHandler(QObject *parent)
     : QObject{parent}

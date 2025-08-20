@@ -1,7 +1,7 @@
 #ifndef QUERYSERIALIZER_H
 #define QUERYSERIALIZER_H
 
-#include "query.h"
+#include "db/query.h"
 
 #include <QObject>
 #include <QJsonObject>

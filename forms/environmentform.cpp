@@ -1,9 +1,9 @@
 #include "environmentform.h"
 #include "ui_environmentform.h"
-#include "environmentserializer.h"
-#include "constants.h"
+#include "../environmentserializer.h"
+#include "../constants.h"
 
-#include "namedialog.h"
+#include "../dialogs/namedialog.h"
 
 EnvironmentForm::EnvironmentForm(QWidget *parent)
     : QWidget(parent)

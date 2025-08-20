@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(RestyCage LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
@@ -11,24 +9,25 @@ qt_standard_project_setup()
 qt_add_executable(RestyCage
     WIN32 MACOSX_BUNDLE
     main.cpp
-    restycagewindow.cpp
-    restycagewindow.h
-    restycagewindow.ui
+    forms/restycagewindow.cpp
+    forms/restycagewindow.h
+    forms/restycagewindow.ui
     qjsonmodel.h qjsonmodel.cpp
     qutf8.h
 
-    keyvaluedialog.h keyvaluedialog.cpp keyvaluedialog.ui
-    keyvaluefiletextdialog.h keyvaluefiletextdialog.cpp keyvaluefiletextdialog.ui
-    queryform.h queryform.cpp queryform.ui
+    dialogs/keyvaluedialog.h dialogs/keyvaluedialog.cpp dialogs/keyvaluedialog.ui
+    dialogs/keyvaluefiletextdialog.h dialogs/keyvaluefiletextdialog.cpp dialogs/keyvaluefiletextdialog.ui
+    forms/queryform.h forms/queryform.cpp forms/queryform.ui
     Resources.qrc
-    environmentform.h environmentform.cpp environmentform.ui
+    forms/environmentform.h forms/environmentform.cpp forms/environmentform.ui
     keyvaluehandler.h keyvaluehandler.cpp
     queryserializer.h queryserializer.cpp
     environmentserializer.h environmentserializer.cpp
     constants.h
-    namedialog.h namedialog.cpp namedialog.ui
-    query.h query.cpp
-    paramvalue.h paramvalue.cpp
+    dialogs/namedialog.h dialogs/namedialog.cpp dialogs/namedialog.ui
+    db/query.h db/query.cpp
+    db/paramvalue.h db/paramvalue.cpp
+    db/db.h db/db.cpp
 )
 
 target_link_libraries(RestyCage
@@ -36,9 +35,8 @@ target_link_libraries(RestyCage
         Qt::Core
         Qt::Widgets
         Qt::Network
+        Qt6::Sql
 )
-target_link_libraries(RestyCage PRIVATE Qt6::Core)
-target_link_libraries(RestyCage PRIVATE Qt6::Core)
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
 include(GNUInstallDirs)
