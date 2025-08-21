@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QMap>
+#include <QVariant>
 
 class ParamValue
 {
@@ -14,6 +15,10 @@ public:
     static ParamValueType paramValueTypeFromString(const QString &paramValueType);
 
     explicit ParamValue(const QMap<QString, QString> &valueMap);
+    explicit ParamValue(int id, const QMap<QString, QString> &valueMap);
+
+    QVariant &id();
+    void setId(int id);
 
     ParamValueType getValueType();
     void setValueType(ParamValueType type);
@@ -27,9 +32,10 @@ public:
 
 private:
     ParamValueType m_type = ParamValueType::String;
-
+    QVariant m_id;
     QMap<QString, QString> m_valueMap;
     QString m_emptyResult = "";
+
 };
 
 #endif // PARAMVALUE_H

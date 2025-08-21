@@ -16,6 +16,7 @@ const QString queriesParamsTable = "queries_params";
 const QString queriesHeadersTable = "queries_headers";
 const QString collectionsQueriesTable = "collections_queries";
 const QString envsTable = "envs";
+const QString envsParamsTable = "envs_params";
 const QString querySerializationType = "type";
 const QString querySerializationAuthorization = "authorization";
 const QString querySerializationUsername = "username";

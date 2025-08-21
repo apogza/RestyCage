@@ -30,6 +30,22 @@ ParamValue::ParamValue(const QMap<QString, QString> &valueMap)
     setAllValues(valueMap);
 }
 
+ParamValue::ParamValue(int id, const QMap<QString, QString> &valueMap)
+    : ParamValue(valueMap)
+{
+    m_id.setValue(id);
+}
+
+QVariant &ParamValue::id()
+{
+    return m_id;
+}
+
+void ParamValue::setId(int id)
+{
+    m_id.setValue(id);
+}
+
 ParamValue::ParamValueType ParamValue::getValueType()
 {
     return m_type;
