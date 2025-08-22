@@ -80,9 +80,9 @@ void Db::initCollections()
         createCollectionsTable.prepare(
             "CREATE TABLE collections("
             "id INTEGER PRIMARY KEY,"
-            "collection_id INTEGER,"
+            "parent_id INTEGER,"
             "name TEXT,"
-            "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            "FOREIGN KEY (parent_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
         if (createCollectionsTable.exec())
@@ -194,6 +194,7 @@ bool Db::saveEnv(Environment &env)
     return result;
 }
 
+
 Db &Db::instance()
 {
     static Db db;
@@ -207,6 +208,94 @@ void Db::close()
     {
         m_db.close();
     }
+}
+
+QList<Collection> Db::getCollections(bool getQueries)
+{
+    QList<Collection> collections;
+
+    QSqlQuery collectionsQuery("SELECT id, name, parent_id from collections ORDER BY parent_id;");
+
+    while (collectionsQuery.next())
+    {
+        int id = collectionsQuery.value(0).toInt();
+        QString name = collectionsQuery.value(1).toString();
+        QVariant parentIdDbValue = collectionsQuery.value(2);
+
+        std::optional<int> parentId;
+        if (!parentIdDbValue.isNull())
+        {
+            parentId = parentIdDbValue.toInt();
+        }
+
+        if (getQueries)
+        {
+            QList<Query> queries = getCollectionQueries(id);
+            collections.append({id, name, parentId, queries});
+        }
+        else
+        {
+            collections.append({id, name, parentId});
+        }
+    }
+
+    return collections;
+}
+
+std::optional<Collection> Db::getCollection(int collectionId, bool getQueries)
+{
+    Collection collection;
+
+    QSqlQuery collectionQuery;
+    collectionQuery.prepare("SELECT id, name, parent_id from collections WHERE id = :collection_id;");
+    collectionQuery.bindValue(":collection_id", collectionId);
+
+    if (collectionQuery.exec() && collectionQuery.next())
+    {
+        int id = collectionQuery.value(0).toInt();
+        QString name = collectionQuery.value(1).toString();
+
+        std::optional<int> parentId;
+        QVariant parentIdDbValue = collectionQuery.value(2).toString();
+
+        if (!parentIdDbValue.isNull())
+        {
+            parentId = parentIdDbValue.toInt();
+        }
+
+        if (getQueries)
+        {
+            QList<Query> queries = getCollectionQueries(id);
+            return Collection(id, name, parentId, queries);
+        }
+        else
+        {
+            return Collection(id, name, parentId);
+        }
+    }
+
+    return std::nullopt;
+}
+
+QList<Query> Db::getCollectionQueries(int collectionId)
+{
+    QSqlQuery collectionsQueries;
+    collectionsQueries.prepare("SELECT id, name from queries WHERE collection_id = :collection_id;");
+
+    collectionsQueries.bindValue(":collection_id", collectionId);
+    collectionsQueries.exec();
+
+    QList<Query> result;
+
+    while(collectionsQueries.next())
+    {
+        int id = collectionsQueries.value(0).toInt();
+        QString name = collectionsQueries.value(1).toString();
+
+        result.append({id, name});
+    }
+
+    return result;
 }
 
 QList<Environment> Db::getEnvs()
@@ -230,7 +319,7 @@ QList<Environment> Db::getEnvs()
 std::optional<Environment> Db::getEnv(int envId)
 {
     QSqlQuery envQuery;
-    envQuery.prepare("SELECT id, name, active from envs WHERE id = :env_id");
+    envQuery.prepare("SELECT id, name, active from envs WHERE id = :env_id;");
     envQuery.bindValue(":env_id", envId);
 
     if (envQuery.exec() && envQuery.next())
@@ -258,7 +347,7 @@ bool Db::insertEnv(Environment &environment)
 
     QSqlQuery insertEnv;
     insertEnv.prepare("INSERT INTO envs(name, active) "
-                      "VALUES(:name, :active)");
+                      "VALUES(:name, :active);");
 
     int activeVal = environment.active() ? 1 : 0;
 
@@ -331,6 +420,31 @@ bool Db::deleteEnvParameters(const QList<int> &deletedParams)
     }
 
     return result;
+}
+
+bool Db::insertCollection(Collection &collection)
+{
+    QSqlQuery insertCollection;
+    insertCollection.prepare("INSERT INTO collections VALUES(:name, :parent_id);");
+    insertCollection.bindValue(":name", collection.name());
+
+    QVariant parentIdVariant;
+    if (collection.parent().has_value())
+    {
+        parentIdVariant.setValue(collection.parent().value());
+    }
+
+    insertCollection.bindValue(":parent_id", parentIdVariant);
+
+    return insertCollection.exec();
+}
+
+bool Db::deleteCollection(int collectionId)
+{
+    QSqlQuery deleteCollection;
+    deleteCollection.prepare("DELETE from collections WHERE id = :collection_id");
+
+    return deleteCollection.exec();
 }
 
 QList<ParamValue> Db::getEnvParams(int envId)

@@ -14,8 +14,10 @@ public:
     enum AuthType { None, Basic, BearerToken };
     enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary   };
     enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
-    explicit Query();
+    Query();
+    Query(std::optional<int> id, QString name);
 
+    std::optional<int> id();
     QString &name();
     QString &method();
     QString &url();
@@ -33,6 +35,7 @@ public:
     QList<ParamValue> &multipartForm();
     QString &binaryForm();
 
+    void setId(int id);
     void setName(QString name);
     void setMethod(QString method);
     void setUrl(QString url);
@@ -59,7 +62,8 @@ public:
     static BodyType bodyTypeFromString(const QString &bodyType);
     static RawBodyType rawBodyTypeFromString(const QString &rawBodyType);
 
-private:    
+private:
+    std::optional<int> m_id;
     QString m_name;
     QString m_method;
     QString m_url;

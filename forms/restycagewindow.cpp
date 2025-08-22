@@ -79,8 +79,14 @@ void RestyCageWindow::initEnvironments()
 
 void RestyCageWindow::initCollections()
 {
+    m_collectionsModel.clear();
+
+    QList<Collection> collections = m_db.getCollections();
+
+    /*
     QDir collectionDir(collectionDirPath);
     traverseCollectionsDir(collectionDir);
+    */
 
     ui->collectionsTreeView->setModel(&m_collectionsModel);
 }

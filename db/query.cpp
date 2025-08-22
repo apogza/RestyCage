@@ -3,7 +3,17 @@
 
 Query::Query()
 {
+}
 
+Query::Query(std::optional<int> id, QString name)
+{
+    m_id = id;
+    m_name = name;
+}
+
+std::optional<int> Query::id()
+{
+    return m_id;
 }
 
 QString &Query::name()
@@ -59,6 +69,11 @@ QList<ParamValue> &Query::multipartForm()
 QString &Query::binaryForm()
 {
     return m_binaryFilePath;
+}
+
+void Query::setId(int id)
+{
+    m_id = id;
 }
 
 void Query::setName(QString name)

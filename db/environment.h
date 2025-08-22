@@ -19,7 +19,7 @@ public:
     void addParam(ParamValue paramValue);
     void setDeletedParams(QList<int> deletedParams);
 
-    QString &name();
+    QString name();
     std::optional<int> id();
     bool active();
     QList<ParamValue> &params();

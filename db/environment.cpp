@@ -34,7 +34,7 @@ void Environment::setDeletedParams(QList<int> deletedParams)
     m_deletedParams = deletedParams;
 }
 
-QString &Environment::name()
+QString Environment::name()
 {
     return m_name;
 }

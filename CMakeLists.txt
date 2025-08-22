@@ -28,6 +28,8 @@ qt_add_executable(RestyCage
     db/paramvalue.h db/paramvalue.cpp
     db/db.h db/db.cpp
     db/environment.h db/environment.cpp
+    db/collection.h db/collection.cpp
+    forms/collectiondialog.h forms/collectiondialog.cpp forms/collectiondialog.ui
 )
 
 target_link_libraries(RestyCage
