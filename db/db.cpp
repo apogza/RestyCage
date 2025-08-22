@@ -177,16 +177,21 @@ void Db::initQueries()
 
 bool Db::saveEnv(Environment &env)
 {
-    QVariant &envId = env.id();
+    std::optional<int> envId = env.id();
+    bool result = true;
 
-    if (envId.isNull())
+    if (envId.has_value())
     {
-        return insertEnv(env);
+        result = updateEnv(env);
     }
     else
     {
-        return updateEnv(env);
+        result = insertEnv(env);
     }
+
+    result = result && deleteEnvParameters(env.deletedParams());
+
+    return result;
 }
 
 Db &Db::instance()
@@ -234,7 +239,15 @@ std::optional<Environment> Db::getEnv(int envId)
         QString name = envQuery.value(1).toString();
         bool active = envQuery.value(2).toBool();
 
-        return std::make_optional<Environment>({id, name, active});
+        Environment env(id, name, active);
+
+        QList<ParamValue> envParams = getEnvParams(id);
+        for (int i = 0; i < envParams.size(); i++)
+        {
+            env.addParam(envParams[i]);
+        }
+
+        return env;
     }
 
     return std::nullopt;
@@ -242,13 +255,22 @@ std::optional<Environment> Db::getEnv(int envId)
 
 bool Db::insertEnv(Environment &environment)
 {
+
     QSqlQuery insertEnv;
-    insertEnv.prepare("INSERT INTO envs(name, active)"
+    insertEnv.prepare("INSERT INTO envs(name, active) "
                       "VALUES(:name, :active)");
+
+    int activeVal = environment.active() ? 1 : 0;
+
     insertEnv.bindValue(":name", environment.name());
-    insertEnv.bindValue(":active", environment.active());
+    insertEnv.bindValue(":active", activeVal);
 
     bool result = insertEnv.exec();
+
+    if (!result)
+    {
+        return false;
+    }
 
     int envId = insertEnv.lastInsertId().toInt();
     environment.setId(envId);
@@ -267,29 +289,71 @@ bool Db::updateEnv(Environment &environment)
 {
     QSqlQuery updateEnv;
 
-    updateEnv.prepare("UPDATE envs SET"
+    updateEnv.prepare("UPDATE envs SET "
                       "name = :name,"
-                      "active= :active,"
+                      "active = :active "
                       "WHERE id = :id;");
 
     updateEnv.bindValue(":name", environment.name());
     updateEnv.bindValue(":active", environment.active());
-    updateEnv.bindValue(":id", environment.id());
+    updateEnv.bindValue(":id", environment.id().value());
 
     bool result = updateEnv.exec();
 
     QList<ParamValue> &params = environment.params();
-    int envId = environment.id().toInt();
+    int envId = environment.id().value();
 
     for (int i = 0; i < params.size(); i++)
     {
-        if (params[i].id().isNull())
+        std::optional<int> paramId = params[i].id();
+        bool paramResult = paramId.has_value() ?
+                               updateEnvParam(envId, params[i]) :
+                               insertEnvParam(envId, params[i]);
+
+        result = result && paramResult;
+    }
+
+    return result;
+}
+
+bool Db::deleteEnvParameters(const QList<int> &deletedParams)
+{
+    bool result = true;
+    for (int i = 0; i < deletedParams.size(); i++)
+    {
+        QSqlQuery deletedParam;
+        deletedParam.prepare("DELETE FROM envs_params WHERE id= :param_id ");
+        deletedParam.bindValue(":param_id", deletedParams[i]);
+
+        bool deleteResult = deletedParam.exec();
+
+        result = result && deleteResult;
+    }
+
+    return result;
+}
+
+QList<ParamValue> Db::getEnvParams(int envId)
+{
+    QSqlQuery getEnvParams;
+    getEnvParams.prepare("SELECT id, name, value, description "
+                         "FROM envs_params "
+                         "WHERE env_id = :env_id");
+
+    getEnvParams.bindValue(":env_id", envId);
+    QList<ParamValue> result;
+
+    if (getEnvParams.exec())
+    {
+        while(getEnvParams.next())
         {
-            result = result && insertEnvParam(envId, params[i]);
-        }
-        else
-        {
-            result = result && updateEnvParam(envId, params[i]);
+            int id = getEnvParams.value(0).toInt();
+            QString name = getEnvParams.value(1).toString();
+            QString value = getEnvParams.value(2).toString();
+            QString description = getEnvParams.value(3).toString();
+            ParamValue param(id, name, value, description);
+
+            result.append(param);
         }
     }
 
@@ -299,8 +363,8 @@ bool Db::updateEnv(Environment &environment)
 bool Db::insertEnvParam(int envId, ParamValue &paramValue)
 {
     QSqlQuery insertEnvParam;
-    insertEnvParam.prepare("INSERT envs_params(env_id, name, value, description) "
-                           "VALUES(:env_id, :name, :value, :description);");
+    insertEnvParam.prepare("INSERT INTO envs_params(env_id, name, value, description) "
+                           "VALUES (:env_id, :name, :value, :description);");
 
     insertEnvParam.bindValue(":env_id", envId);
     insertEnvParam.bindValue(":name", paramValue.getValue("name"));
@@ -317,15 +381,16 @@ bool Db::insertEnvParam(int envId, ParamValue &paramValue)
 bool Db::updateEnvParam(int envId, ParamValue &paramValue)
 {
     QSqlQuery updateEnvParam;
-    updateEnvParam.prepare("UPDATE envs_params SET"
+    updateEnvParam.prepare("UPDATE envs_params SET "
                            "name = :name,"
                            "value = :value,"
                            "description = :description "
-                           "WHERE env_id = :env_id;");
+                           "WHERE id = :param_id;");
 
     updateEnvParam.bindValue(":name", paramValue.getValue("name"));
     updateEnvParam.bindValue(":value", paramValue.getValue("value"));
     updateEnvParam.bindValue(":description", paramValue.getValue("description"));
+    updateEnvParam.bindValue(":param_id", paramValue.id().value());
 
     return updateEnvParam.exec();
 }

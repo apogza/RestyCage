@@ -58,7 +58,6 @@ void EnvironmentSerializer::loadModelFromFile(const QString &jsonFileName, QStan
     QJsonDocument jsonDocument = QJsonDocument::fromJson(file.readAll());
     QJsonArray jsonVarArray = jsonDocument.array();
 
-    int row = 0;
     for (int i = 0; i < jsonVarArray.size(); i++ )
     {
         const QJsonValue &val = jsonVarArray[i];
@@ -66,16 +65,15 @@ void EnvironmentSerializer::loadModelFromFile(const QString &jsonFileName, QStan
 
         QStandardItem *nameItem = new QStandardItem();
         nameItem->setText(jsonObject["name"].toString());
-        model.setItem(row, 0, nameItem);
+        model.setItem(i, 0, nameItem);
 
         QStandardItem *valueItem = new QStandardItem();
         valueItem->setText(jsonObject["value"].toString());
-        model.setItem(row, 1, valueItem);
+        model.setItem(i, 1, valueItem);
 
         QStandardItem *descriptionItem = new QStandardItem();
         descriptionItem->setText(jsonObject["description"].toString());
-        model.setItem(row, 2, descriptionItem);
+        model.setItem(i, 2, descriptionItem);
 
-        row++;
     }
 }

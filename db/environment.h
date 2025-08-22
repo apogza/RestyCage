@@ -17,17 +17,20 @@ public:
     void setActive(bool isActive);
     void setId(int id);
     void addParam(ParamValue paramValue);
+    void setDeletedParams(QList<int> deletedParams);
 
     QString &name();
-    QVariant &id();
+    std::optional<int> id();
     bool active();
     QList<ParamValue> &params();
+    QList<int> &deletedParams();
 
 private:
-    QVariant m_id;
+    std::optional<int> m_id;
     bool m_active;
     QString m_name;
     QList<ParamValue> m_params;
+    QList<int> m_deletedParams;
 
 };
 

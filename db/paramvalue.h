@@ -15,9 +15,10 @@ public:
     static ParamValueType paramValueTypeFromString(const QString &paramValueType);
 
     explicit ParamValue(const QMap<QString, QString> &valueMap);
+    explicit ParamValue(std::optional<int> id, QString name, QString value, QString description);
     explicit ParamValue(int id, const QMap<QString, QString> &valueMap);
 
-    QVariant &id();
+    std::optional<int> id();
     void setId(int id);
 
     ParamValueType getValueType();
@@ -29,10 +30,9 @@ public:
     void setAllValues(const QMap<QString, QString> &valueMap);
     QMap<QString, QString> &getAllValues();
 
-
 private:
     ParamValueType m_type = ParamValueType::String;
-    QVariant m_id;
+    std::optional<int> m_id;
     QMap<QString, QString> m_valueMap;
     QString m_emptyResult = "";
 

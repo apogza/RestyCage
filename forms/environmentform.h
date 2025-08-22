@@ -2,6 +2,7 @@
 #define ENVIRONMENTFORM_H
 
 #include "../keyvaluehandler.h"
+#include "../db/db.h"
 
 #include <QWidget>
 #include <QStandardItemModel>
@@ -19,6 +20,7 @@ public:
     ~EnvironmentForm();
 
     void initFromFile(QString &fileName);
+    void initFromDb(Environment &env);
 
 signals:
     void changedName(EnvironmentForm *form, QString newName);
@@ -35,9 +37,14 @@ private slots:
 
 private:
     Ui::EnvironmentForm *ui;
-    QStandardItemModel envItemModel;
-    KeyValueHandler *keyValueHandler;
-    QString fileName;
+    QStandardItemModel m_envItemModel;
+    KeyValueHandler *m_keyValueHandler;
+    QString m_envName;
+    std::optional<int> m_envId;
+    Db &m_db = Db::instance();
+
+    QList<int> m_deletedParams;
+
 
     void initModel();
 };

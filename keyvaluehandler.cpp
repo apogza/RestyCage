@@ -32,21 +32,24 @@ bool KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsMode
 
 bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column)
 {
-    QStandardItem *keyItem = itemsModel.item(row, 0);
+    QStandardItem *nameItem = itemsModel.item(row, 0);
     QStandardItem *valueItem = itemsModel.item(row, 1);
     QStandardItem *descriptionItem = itemsModel.item(row, 2);
 
-    QString key = keyItem->data(Qt::EditRole).toString();
+    QVariant paramId = nameItem->data(Qt::UserRole);
+
+    QString name = nameItem->data(Qt::EditRole).toString();
     QString value = valueItem->data(Qt::EditRole).toString();
     QString description = descriptionItem->data(Qt::EditRole).toString();
 
-    KeyValueDialog *keyValueDialog = new KeyValueDialog(widget, key, value, description);
+    KeyValueDialog *keyValueDialog = new KeyValueDialog(widget, name, value, description);
     int result = keyValueDialog->exec();
 
     if (result == QDialog::Accepted)
     {
         QStandardItem *item = itemsModel.item(row, 0);
         item->setData(keyValueDialog->getKey(), Qt::EditRole);
+        item->setData(paramId, Qt::UserRole);
 
         item = itemsModel.item(row, 1);
         item->setData(keyValueDialog->getValue(), Qt::EditRole);
@@ -59,13 +62,22 @@ bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsMod
     return false;
 }
 
-void KeyValueHandler::deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel)
+QList<QVariant> KeyValueHandler::deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel)
 {
     QItemSelectionModel *selectionModel = tableView->selectionModel();
     QModelIndexList indexlist = selectionModel->selectedIndexes();
 
+    QList<QVariant> userData;
     foreach (QModelIndex idx, indexlist)
     {
-        itemsModel.removeRow(idx.row());
+        QVariant data = itemsModel.item(idx.row(), 0)->data(Qt::UserRole);
+        if (!data.isNull())
+        {
+            userData.append(data);
+        }
+
+        itemsModel.removeRow(idx.row());        
     }
+
+    return userData;
 }

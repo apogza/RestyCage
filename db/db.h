@@ -14,21 +14,25 @@ private:
     void initCollections();
     void initQueries();
 
-    bool saveEnv(Environment &environment);
+    bool insertEnv(Environment &environment);
+    bool updateEnv(Environment &environment);
+    bool deleteEnvParameters(const QList<int> &deletedParams);
+
+    QList<ParamValue> getEnvParams(int envId);
+    bool insertEnvParam(int envId, ParamValue &paramValue);
+    bool updateEnvParam(int envId, ParamValue &paramValue);
 
     QSqlDatabase m_db;
 public:
     Db &operator=(const Db &) = delete;
     static Db &instance();
     void close();
+
     QList<Environment> getEnvs();
     std::optional<Environment> getEnv(int envId);
+    bool saveEnv(Environment &environment);
 
-    bool insertEnv(Environment &environment);
-    bool updateEnv(Environment &environment);
 
-    bool insertEnvParam(int envId, ParamValue &paramValue);
-    bool updateEnvParam(int envId, ParamValue &paramValue);
 };
 
 #endif // DB_H

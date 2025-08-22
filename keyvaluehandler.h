@@ -14,7 +14,7 @@ public:
 
     bool addRowModel(QWidget *widget, QStandardItemModel &itemsModel);
     bool editRowModel(QWidget *widget, QStandardItemModel &itemsModel, int row, int column);
-    void deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel);
+    QList<QVariant> deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel);
 };
 
 #endif // KEYVALUEHANDLER_H

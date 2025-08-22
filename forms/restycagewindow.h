@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QDir>
 
+#include "../db/db.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -41,9 +42,10 @@ private slots:
 
 private:
     Ui::RestyCageWindow *ui;
-    QStandardItemModel envsModel;
-    QStandardItemModel collectionsModel;
-    QMap<QString, QWidget*> tabs;
+    QStandardItemModel m_envsModel;
+    QStandardItemModel m_collectionsModel;
+    QMap<QString, QWidget*> m_tabs;
+    Db &m_db = Db::instance();
 
     void addNewQuery();
     void initEnvironments();

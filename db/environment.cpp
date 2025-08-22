@@ -21,7 +21,7 @@ void Environment::setActive(bool isActive)
 
 void Environment::setId(int id)
 {
-    m_id.setValue(id);
+    m_id = id;
 }
 
 void Environment::addParam(ParamValue paramValue)
@@ -29,12 +29,17 @@ void Environment::addParam(ParamValue paramValue)
     m_params.append(paramValue);
 }
 
+void Environment::setDeletedParams(QList<int> deletedParams)
+{
+    m_deletedParams = deletedParams;
+}
+
 QString &Environment::name()
 {
     return m_name;
 }
 
-QVariant &Environment::id()
+std::optional<int> Environment::id()
 {
     return m_id;
 }
@@ -47,4 +52,9 @@ bool Environment::active()
 QList<ParamValue> &Environment::params()
 {
     return m_params;
+}
+
+QList<int> &Environment::deletedParams()
+{
+    return m_deletedParams;
 }

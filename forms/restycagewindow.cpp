@@ -15,7 +15,7 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->splitter->setSizes({200, 500});
-    ui->envsTreeView->setModel(&envsModel);
+    ui->envsTreeView->setModel(&m_envsModel);
 
     addNewQuery();
     initAppDataFolder();
@@ -32,7 +32,7 @@ RestyCageWindow::~RestyCageWindow()
 void RestyCageWindow::on_tabWidget_tabCloseRequested(int index)
 {
     QString tabTitle = ui->tabWidget->tabText(index);
-    tabs.remove(tabTitle);
+    m_tabs.remove(tabTitle);
 
     ui->tabWidget->removeTab(index);
 }
@@ -64,17 +64,16 @@ void RestyCageWindow::addNewQuery()
 
 void RestyCageWindow::initEnvironments()
 {
-    envsModel.clear();
+    m_envsModel.clear();
 
-    QDir envDir(envDirPath);
-    QFileInfoList entries = envDir.entryInfoList(QDir::Files);
+    QList<Environment> envs = m_db.getEnvs();
 
-    foreach (QFileInfo info, entries)
+    for (int i = 0; i < envs.size(); i++)
     {
         QStandardItem *item = new QStandardItem();
-        item->setText(info.baseName());
-
-        envsModel.appendRow(item);
+        item->setText(envs[i].name());
+        item->setData(envs[i].id().value(), Qt::UserRole);
+        m_envsModel.appendRow(item);
     }
 }
 
@@ -83,7 +82,7 @@ void RestyCageWindow::initCollections()
     QDir collectionDir(collectionDirPath);
     traverseCollectionsDir(collectionDir);
 
-    ui->collectionsTreeView->setModel(&collectionsModel);
+    ui->collectionsTreeView->setModel(&m_collectionsModel);
 }
 
 void RestyCageWindow::traverseCollectionsDir(QDir currentDir)
@@ -94,7 +93,7 @@ void RestyCageWindow::traverseCollectionsDir(QDir currentDir)
     {
         QStandardItem *item = new QStandardItem();
         item->setText(info.baseName());
-        collectionsModel.appendRow(item);
+        m_collectionsModel.appendRow(item);
 
         if (info.isDir())
         {
@@ -120,8 +119,8 @@ void RestyCageWindow::onTabHasChangedName(QWidget *widget, QString newTitle)
 
     ui->tabWidget->setTabText(idx, newTitle);
 
-    tabs.remove(oldTitle);
-    tabs.insert(newTitle, widget);
+    m_tabs.remove(oldTitle);
+    m_tabs.insert(newTitle, widget);
 
     initEnvironments();
 }
@@ -134,28 +133,38 @@ void RestyCageWindow::onTabHasBeenModified(QWidget *widget)
 
     ui->tabWidget->setTabText(idx, newTitle);
 
-    tabs.remove(oldTitle);
-    tabs.insert(newTitle, widget);
+    m_tabs.remove(oldTitle);
+    m_tabs.insert(newTitle, widget);
 }
 
 void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
 {
-    QString fileName = envsModel.item(index.row(), index.column())->text();
+    QStandardItem *selectedEnvItem = m_envsModel.item(index.row(), index.column());
+    QString envName = selectedEnvItem->text();
 
-    if (tabs.contains(fileName))
+    int envId = selectedEnvItem->data(Qt::UserRole).toInt();
+    std::optional<Environment> env = m_db.getEnv(envId);
+
+    if (!env.has_value())
     {
-        ui->tabWidget->setCurrentWidget(tabs[fileName]);
+        return;
+    }
+
+    if (m_tabs.contains(envName))
+    {
+        ui->tabWidget->setCurrentWidget(m_tabs[envName]);
         return;
     }
 
     EnvironmentForm *environmentForm = new EnvironmentForm(ui->tabWidget);
-    int idx = ui->tabWidget->addTab(environmentForm, fileName);
-    environmentForm->initFromFile(fileName);
+    int idx = ui->tabWidget->addTab(environmentForm, envName);
+
+    environmentForm->initFromDb(env.value());
 
     connect(environmentForm, &EnvironmentForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
     connect(environmentForm, &EnvironmentForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
 
-    tabs.insert(fileName, environmentForm);
+    m_tabs.insert(envName, environmentForm);
     ui->tabWidget->setCurrentIndex(idx);
 }
 
@@ -184,7 +193,7 @@ void RestyCageWindow::on_delEnvBtn_clicked()
     QDir envDir(envDirPath);
     QModelIndex idx = ui->envsTreeView->currentIndex();
 
-    QStandardItem *selectedEnvItem = envsModel.itemFromIndex(idx);
+    QStandardItem *selectedEnvItem = m_envsModel.itemFromIndex(idx);
     QString fileName = QString("%1.json").arg(selectedEnvItem->text());
     bool delResult = envDir.remove(fileName);
 
