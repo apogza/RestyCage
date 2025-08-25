@@ -28,6 +28,9 @@ void Db::init()
     {
         qDebug() << tables[i];
     }
+
+    QSqlQuery pragmaForeignKeys(m_db);
+    pragmaForeignKeys.exec("PRAGMA foreign_keys = ON;");
 }
 
 void Db::initEnvs()
@@ -194,6 +197,27 @@ bool Db::saveEnv(Environment &env)
     return result;
 }
 
+bool Db::deleteEnv(int envId)
+{
+    QSqlQuery deleteEnvQuery(m_db);
+    deleteEnvQuery.prepare("DELETE from envs WHERE id = :env_id");
+    deleteEnvQuery.bindValue(":env_id", envId);
+
+    return deleteEnvQuery.exec();
+}
+
+bool Db::saveCollection(Collection &collection)
+{
+    if (collection.id().has_value())
+    {
+        return updateCollection(collection);
+    }
+    else
+    {
+        return insertCollection(collection);
+    }
+}
+
 
 Db &Db::instance()
 {
@@ -214,7 +238,7 @@ QList<Collection> Db::getCollections(bool getQueries)
 {
     QList<Collection> collections;
 
-    QSqlQuery collectionsQuery("SELECT id, name, parent_id from collections ORDER BY parent_id;");
+    QSqlQuery collectionsQuery("SELECT id, name, parent_id from collections ORDER BY parent_id;", m_db);
 
     while (collectionsQuery.next())
     {
@@ -246,7 +270,7 @@ std::optional<Collection> Db::getCollection(int collectionId, bool getQueries)
 {
     Collection collection;
 
-    QSqlQuery collectionQuery;
+    QSqlQuery collectionQuery(m_db);
     collectionQuery.prepare("SELECT id, name, parent_id from collections WHERE id = :collection_id;");
     collectionQuery.bindValue(":collection_id", collectionId);
 
@@ -279,7 +303,7 @@ std::optional<Collection> Db::getCollection(int collectionId, bool getQueries)
 
 QList<Query> Db::getCollectionQueries(int collectionId)
 {
-    QSqlQuery collectionsQueries;
+    QSqlQuery collectionsQueries(m_db);
     collectionsQueries.prepare("SELECT id, name from queries WHERE collection_id = :collection_id;");
 
     collectionsQueries.bindValue(":collection_id", collectionId);
@@ -302,7 +326,7 @@ QList<Environment> Db::getEnvs()
 {
     QList<Environment> result;
 
-    QSqlQuery envsQuery("SELECT id, name, active from envs;");
+    QSqlQuery envsQuery("SELECT id, name, active from envs;", m_db);
 
     while (envsQuery.next())
     {
@@ -318,7 +342,7 @@ QList<Environment> Db::getEnvs()
 
 std::optional<Environment> Db::getEnv(int envId)
 {
-    QSqlQuery envQuery;
+    QSqlQuery envQuery(m_db);
     envQuery.prepare("SELECT id, name, active from envs WHERE id = :env_id;");
     envQuery.bindValue(":env_id", envId);
 
@@ -344,10 +368,8 @@ std::optional<Environment> Db::getEnv(int envId)
 
 bool Db::insertEnv(Environment &environment)
 {
-
-    QSqlQuery insertEnv;
-    insertEnv.prepare("INSERT INTO envs(name, active) "
-                      "VALUES(:name, :active);");
+    QSqlQuery insertEnv(m_db);
+    insertEnv.prepare("INSERT INTO envs(name, active) VALUES(:name, :active);");
 
     int activeVal = environment.active() ? 1 : 0;
 
@@ -376,12 +398,9 @@ bool Db::insertEnv(Environment &environment)
 
 bool Db::updateEnv(Environment &environment)
 {
-    QSqlQuery updateEnv;
+    QSqlQuery updateEnv(m_db);
 
-    updateEnv.prepare("UPDATE envs SET "
-                      "name = :name,"
-                      "active = :active "
-                      "WHERE id = :id;");
+    updateEnv.prepare("UPDATE envs SET name = :name, active = :active WHERE id = :id;");
 
     updateEnv.bindValue(":name", environment.name());
     updateEnv.bindValue(":active", environment.active());
@@ -410,8 +429,8 @@ bool Db::deleteEnvParameters(const QList<int> &deletedParams)
     bool result = true;
     for (int i = 0; i < deletedParams.size(); i++)
     {
-        QSqlQuery deletedParam;
-        deletedParam.prepare("DELETE FROM envs_params WHERE id= :param_id ");
+        QSqlQuery deletedParam(m_db);
+        deletedParam.prepare("DELETE FROM envs_params WHERE id= :param_id;");
         deletedParam.bindValue(":param_id", deletedParams[i]);
 
         bool deleteResult = deletedParam.exec();
@@ -424,36 +443,54 @@ bool Db::deleteEnvParameters(const QList<int> &deletedParams)
 
 bool Db::insertCollection(Collection &collection)
 {
-    QSqlQuery insertCollection;
-    insertCollection.prepare("INSERT INTO collections VALUES(:name, :parent_id);");
-    insertCollection.bindValue(":name", collection.name());
+    QSqlQuery insertCollectionQuery(m_db);
+    insertCollectionQuery.prepare("INSERT INTO collections (name, parent_id) VALUES(:name, :parent_id);");
+    insertCollectionQuery.bindValue(":name", collection.name());
 
-    QVariant parentIdVariant;
     if (collection.parent().has_value())
     {
-        parentIdVariant.setValue(collection.parent().value());
+        insertCollectionQuery.bindValue(":parent_id", collection.parent().value());
+    }
+    else
+    {
+        // null value for parent
+        insertCollectionQuery.bindValue(":parent_id", QVariant(QMetaType::fromType<int>()));
     }
 
-    insertCollection.bindValue(":parent_id", parentIdVariant);
+    bool result = insertCollectionQuery.exec();
 
-    return insertCollection.exec();
+    if (!result)
+    {
+        qDebug() << insertCollectionQuery.lastError().text();
+    }
+
+
+    return result;
+}
+
+bool Db::updateCollection(Collection &collection)
+{
+    QSqlQuery updateCollectionQuery(m_db);
+    updateCollectionQuery.prepare("UPDATE collections SET name = :name WHERE id = :id;");
+    updateCollectionQuery.bindValue(":name", collection.name());
+    updateCollectionQuery.bindValue(":id", collection.id().value());
+
+    return updateCollectionQuery.exec();
 }
 
 bool Db::deleteCollection(int collectionId)
 {
-    QSqlQuery deleteCollection;
-    deleteCollection.prepare("DELETE from collections WHERE id = :collection_id");
+    QSqlQuery deleteCollection(m_db);
+    deleteCollection.prepare("DELETE from collections WHERE id = :collection_id;");
+    deleteCollection.bindValue(":collection_id", collectionId);
 
     return deleteCollection.exec();
 }
 
 QList<ParamValue> Db::getEnvParams(int envId)
 {
-    QSqlQuery getEnvParams;
-    getEnvParams.prepare("SELECT id, name, value, description "
-                         "FROM envs_params "
-                         "WHERE env_id = :env_id");
-
+    QSqlQuery getEnvParams(m_db);
+    getEnvParams.prepare("SELECT id, name, value, description FROM envs_params WHERE env_id = :env_id;");
     getEnvParams.bindValue(":env_id", envId);
     QList<ParamValue> result;
 
@@ -476,7 +513,7 @@ QList<ParamValue> Db::getEnvParams(int envId)
 
 bool Db::insertEnvParam(int envId, ParamValue &paramValue)
 {
-    QSqlQuery insertEnvParam;
+    QSqlQuery insertEnvParam(m_db);
     insertEnvParam.prepare("INSERT INTO envs_params(env_id, name, value, description) "
                            "VALUES (:env_id, :name, :value, :description);");
 
@@ -494,7 +531,7 @@ bool Db::insertEnvParam(int envId, ParamValue &paramValue)
 
 bool Db::updateEnvParam(int envId, ParamValue &paramValue)
 {
-    QSqlQuery updateEnvParam;
+    QSqlQuery updateEnvParam(m_db);
     updateEnvParam.prepare("UPDATE envs_params SET "
                            "name = :name,"
                            "value = :value,"

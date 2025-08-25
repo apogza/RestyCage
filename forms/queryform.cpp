@@ -376,26 +376,6 @@ void QueryForm::readReplyHeaders(QNetworkReply *reply)
     }
 }
 
-void QueryForm::saveToFile()
-{
-    Query query = createQuery();
-
-    QuerySerializer serializer(&query, this);
-
-    if (query.name().isEmpty())
-    {
-        NameDialog nameDialog;
-        int dialogResult = nameDialog.exec();
-
-        if (dialogResult == QDialog::Accepted)
-        {
-            query.setName(nameDialog.getName());
-        }
-    }
-
-    serializer.saveToFile(collectionDirPath);
-}
-
 void QueryForm::on_authComboBox_currentIndexChanged(int index)
 {
     ui->authStackedWidget->setCurrentIndex(index);
@@ -529,6 +509,6 @@ void QueryForm::on_saveQueryBtn_clicked()
 {
     NameDialog nameDialog;
 
-    saveToFile();
+
 }
 

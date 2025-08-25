@@ -7,8 +7,6 @@
 #include <QStandardPaths>
 
 const QString appDataFolder = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "resty_cage");
-const QString envDirPath = QString("%1/%2").arg(appDataFolder, "envs");
-const QString collectionDirPath = QString("%1/%2").arg(appDataFolder, "collections");
 const QString dbPath = QString("%1/%2").arg(appDataFolder, "resty_cage.db");
 const QString collectionsTable = "collections";
 const QString queriesTable = "queries";

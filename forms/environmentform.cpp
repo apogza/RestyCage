@@ -1,6 +1,5 @@
 #include "environmentform.h"
 #include "ui_environmentform.h"
-#include "../environmentserializer.h"
 #include "../constants.h"
 #include "../db/paramvalue.h"
 #include "../db/environment.h"
@@ -21,14 +20,6 @@ EnvironmentForm::EnvironmentForm(QWidget *parent)
 EnvironmentForm::~EnvironmentForm()
 {
     delete ui;
-}
-
-void EnvironmentForm::initFromFile(QString &fileName)
-{
-    m_envName = QString(fileName);
-
-    EnvironmentSerializer serializer;
-    serializer.loadModelFromFile(fileName, m_envItemModel);
 }
 
 void EnvironmentForm::initFromDb(Environment &env)

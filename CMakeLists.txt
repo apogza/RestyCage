@@ -20,8 +20,8 @@ qt_add_executable(RestyCage
     Resources.qrc
     forms/environmentform.h forms/environmentform.cpp forms/environmentform.ui
     keyvaluehandler.h keyvaluehandler.cpp
-    queryserializer.h queryserializer.cpp
-    environmentserializer.h environmentserializer.cpp
+
+
     constants.h
     dialogs/namedialog.h dialogs/namedialog.cpp dialogs/namedialog.ui
     db/query.h db/query.cpp
@@ -29,7 +29,7 @@ qt_add_executable(RestyCage
     db/db.h db/db.cpp
     db/environment.h db/environment.cpp
     db/collection.h db/collection.cpp
-    forms/collectiondialog.h forms/collectiondialog.cpp forms/collectiondialog.ui
+    dialogs/collectiondialog.h dialogs/collectiondialog.cpp dialogs/collectiondialog.ui
 )
 
 target_link_libraries(RestyCage

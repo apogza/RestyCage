@@ -2,7 +2,7 @@
 #include "ui_restycagewindow.h"
 #include "environmentform.h"
 #include "queryform.h"
-#include "../dialogs/namedialog.h"
+#include "../dialogs/collectiondialog.h"
 #include "../constants.h"
 
 #include <QDir>
@@ -49,7 +49,6 @@ void RestyCageWindow::on_addEnvironmentBtn_clicked()
 
     ui->tabWidget->setCurrentIndex(idx);
 
-
     connect(environmentForm, &EnvironmentForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
     connect(environmentForm, &EnvironmentForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
 }
@@ -81,31 +80,51 @@ void RestyCageWindow::initCollections()
 {
     m_collectionsModel.clear();
 
-    QList<Collection> collections = m_db.getCollections();
+    QList<Collection> collections = m_db.getCollections(true);
+    QMap<int, QStandardItem*> collectionsItemMap;
 
-    /*
-    QDir collectionDir(collectionDirPath);
-    traverseCollectionsDir(collectionDir);
-    */
-
-    ui->collectionsTreeView->setModel(&m_collectionsModel);
-}
-
-void RestyCageWindow::traverseCollectionsDir(QDir currentDir)
-{
-    QFileInfoList entries = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-
-    foreach (QFileInfo info, entries)
+    // create the hierarchy for the collections
+    for (int i = 0; i < collections.size(); i++)
     {
-        QStandardItem *item = new QStandardItem();
-        item->setText(info.baseName());
-        m_collectionsModel.appendRow(item);
+        Collection &currentCollection = collections[i];
 
-        if (info.isDir())
+        QStandardItem *collectionItem = new QStandardItem();
+        collectionItem->setText(currentCollection.name());
+        collectionItem->setData(currentCollection.id().value(), Qt::UserRole);
+        collectionItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::FolderOpen));
+
+        std::optional<int> parentId = currentCollection.parent();
+        if (parentId.has_value() && collectionsItemMap.contains(parentId.value()))
         {
-            traverseCollectionsDir(QDir(info.filePath()));
+            QStandardItem *parentItem = collectionsItemMap[parentId.value()];
+            parentItem->setChild(parentItem->rowCount(), collectionItem);
+        }
+        else
+        {
+            m_collectionsModel.appendRow(collectionItem);
+        }
+
+        collectionsItemMap.insert(currentCollection.id().value(), collectionItem);
+    }
+
+    // add the queries
+    for (int i = 0; i < collections.size(); i++)
+    {
+        Collection &currentCollection = collections[i];
+        QList<Query> &queries = currentCollection.queries();
+        QStandardItem *collectionItem = collectionsItemMap[currentCollection.id().value()];
+
+        for (int j = 0; j < queries.size(); i++)
+        {
+            QStandardItem *queryItem = new QStandardItem();
+            queryItem->setText(queries[i].name());
+            queryItem->setData(queries[i].id().value(), Qt::UserRole);
+            queryItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen));
+            collectionItem->setChild(collectionItem->rowCount(), queryItem);
         }
     }
+
+    ui->collectionsTreeView->setModel(&m_collectionsModel);
 }
 
 void RestyCageWindow::initAppDataFolder()
@@ -176,36 +195,51 @@ void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
 
 void RestyCageWindow::on_newCollectionBtn_clicked()
 {
-    NameDialog nameDialog;
-    int dialogResult = nameDialog.exec();
+    QList<Collection> collectionsList = m_db.getCollections();
+    CollectionDialog collectionDialog;
+    collectionDialog.setCollectionList(collectionsList);
+
+    int dialogResult = collectionDialog.exec();
 
     if (dialogResult == QDialog::Accepted)
     {
-        QDir mainDir(collectionDirPath);
+        QString collectionName = collectionDialog.name();
+        std::optional<int> parent = collectionDialog.parent();
+        Collection newCollection(collectionName, parent);
+        m_db.saveCollection(newCollection);
 
-        if (!mainDir.exists())
-        {
-            QDir().mkdir(collectionDirPath);
-        }
-
-        QString newCollectionName = nameDialog.getName();
-        mainDir.mkdir(newCollectionName);
+        initCollections();
     }
 }
 
 
 void RestyCageWindow::on_delEnvBtn_clicked()
 {
-    QDir envDir(envDirPath);
     QModelIndex idx = ui->envsTreeView->currentIndex();
-
     QStandardItem *selectedEnvItem = m_envsModel.itemFromIndex(idx);
-    QString fileName = QString("%1.json").arg(selectedEnvItem->text());
-    bool delResult = envDir.remove(fileName);
+
+    int envId = selectedEnvItem->data(Qt::UserRole).toInt();
+    std::optional<Environment> env = m_db.getEnv(envId);
+
+    bool delResult = m_db.deleteEnv(envId);
 
     if (delResult)
     {
         initEnvironments();
+    }
+}
+
+
+void RestyCageWindow::on_removeCollectionBtn_clicked()
+{
+    QModelIndex idx = ui->collectionsTreeView->currentIndex();
+    QStandardItem *selectedCollectionItem = m_collectionsModel.itemFromIndex(idx);
+    int collectionId = selectedCollectionItem->data(Qt::UserRole).toInt();
+
+    bool delResult = m_db.deleteCollection(collectionId);
+    if (delResult)
+    {
+        initCollections();
     }
 }
 

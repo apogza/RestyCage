@@ -19,7 +19,6 @@ public:
     explicit EnvironmentForm(QWidget *parent = nullptr);
     ~EnvironmentForm();
 
-    void initFromFile(QString &fileName);
     void initFromDb(Environment &env);
 
 signals:

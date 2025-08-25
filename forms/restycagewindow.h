@@ -40,6 +40,8 @@ private slots:
 
     void on_delEnvBtn_clicked();
 
+    void on_removeCollectionBtn_clicked();
+
 private:
     Ui::RestyCageWindow *ui;
     QStandardItemModel m_envsModel;
@@ -50,7 +52,7 @@ private:
     void addNewQuery();
     void initEnvironments();
     void initCollections();
-    void traverseCollectionsDir(QDir currentDir);
+
     void initAppDataFolder();
 
 };

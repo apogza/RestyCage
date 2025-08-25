@@ -22,7 +22,7 @@ private:
     bool deleteEnvParameters(const QList<int> &deletedParams);
 
     bool insertCollection(Collection &collection);
-    bool deleteCollection(int collectionId);
+    bool updateCollection(Collection &collection);
 
     QList<ParamValue> getEnvParams(int envId);
     bool insertEnvParam(int envId, ParamValue &paramValue);
@@ -41,8 +41,10 @@ public:
     QList<Environment> getEnvs();
     std::optional<Environment> getEnv(int envId);
     bool saveEnv(Environment &environment);
+    bool deleteEnv(int envId);
 
-
+    bool saveCollection(Collection &collection);
+    bool deleteCollection(int collectionId);
 
 };
 

@@ -9,6 +9,7 @@ class Collection
 {
 public:
     Collection();
+    Collection (QString name, std::optional<int> parentId);
     Collection (std::optional<int> id, QString name, std::optional<int> parentId);
     Collection (std::optional<int> id, QString name, std::optional<int> parentId, QList<Query> queries);
 

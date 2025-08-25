@@ -2,11 +2,16 @@
 
 Collection::Collection() {}
 
-Collection::Collection(std::optional<int> id, QString name, std::optional<int> parentId)
+Collection::Collection(QString name, std::optional<int> parentId)
 {
-    m_id = id;
     m_name = name;
     m_parentId = parentId;
+}
+
+Collection::Collection(std::optional<int> id, QString name, std::optional<int> parentId)
+    :Collection(name, parentId)
+{
+    m_id = id;
 }
 
 Collection::Collection(std::optional<int> id, QString name, std::optional<int> parentId, QList<Query> queries)

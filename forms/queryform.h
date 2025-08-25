@@ -90,7 +90,6 @@ private:
 
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);
-    void saveToFile();
 };
 
 
