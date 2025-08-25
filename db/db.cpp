@@ -40,14 +40,14 @@ void Db::initEnvs()
     if (!tables.contains(envsTable))
     {
         QSqlQuery createEnvsTable(m_db);
-        createEnvsTable.prepare(
+        bool execResult = createEnvsTable.exec(
             "CREATE TABLE envs("
             "id INTEGER PRIMARY KEY,"
             "name TEXT NOT NULL,"
             "active INTEGER);"
             );
 
-        if (createEnvsTable.exec())
+        if (execResult)
         {
             qDebug() << "Created envs table";
         }
@@ -56,7 +56,7 @@ void Db::initEnvs()
     if (!tables.contains(envsParamsTable))
     {
         QSqlQuery createEnvsParamsTable(m_db);
-        createEnvsParamsTable.prepare(
+        bool execResult = createEnvsParamsTable.exec(
             "CREATE TABLE envs_params("
             "id INTEGER PRIMARY KEY,"
             "env_id INTEGER,"
@@ -66,7 +66,7 @@ void Db::initEnvs()
             "FOREIGN KEY (env_id) REFERENCES envs on DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
-        if (createEnvsParamsTable.exec())
+        if (execResult)
         {
             qDebug() << "Created envs parameter table";
         }
@@ -80,7 +80,7 @@ void Db::initCollections()
     if (!tables.contains(collectionsTable))
     {
         QSqlQuery createCollectionsTable(m_db);
-        createCollectionsTable.prepare(
+        bool execResult = createCollectionsTable.exec(
             "CREATE TABLE collections("
             "id INTEGER PRIMARY KEY,"
             "parent_id INTEGER,"
@@ -88,7 +88,7 @@ void Db::initCollections()
             "FOREIGN KEY (parent_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
-        if (createCollectionsTable.exec())
+        if (execResult)
         {
             qDebug() << "Created collections table";
         }
@@ -102,19 +102,17 @@ void Db::initQueries()
     if (!tables.contains(queriesTable))
     {
         QSqlQuery createQueriesTable(m_db);
-        createQueriesTable.prepare(
+        bool execResult = createQueriesTable.exec(
             "CREATE TABLE queries("
             "id INTEGER PRIMARY KEY,"
             "collection_id INTEGER,"
             "name TEXT,"
             "method TEXT,"
             "url TEXT,"
-            "auth_type INTEGER,"
-            "auth TEXT,"
             "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
-        if (createQueriesTable.exec())
+        if (execResult)
         {
             qDebug() << "Created queries table";
         }
@@ -124,7 +122,7 @@ void Db::initQueries()
     if (!tables.contains(queriesParamsTable))
     {
         QSqlQuery createQueriesParamsTable(m_db);
-        createQueriesParamsTable.prepare(
+        bool execResult = createQueriesParamsTable.exec(
             "CREATE TABLE queries_params("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
@@ -134,7 +132,7 @@ void Db::initQueries()
             "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
-        if (createQueriesParamsTable.exec())
+        if (execResult)
         {
             qDebug() << "Create queries params table";
         }
@@ -144,9 +142,9 @@ void Db::initQueries()
     {
         QSqlQuery createQueriesHeadersTable(m_db);
 
-        createQueriesHeadersTable.prepare(
+        bool execResult = createQueriesHeadersTable.exec(
             "CREATE TABLE queries_headers("
-            "ID INTEGER PRIMARY KEY,"
+            "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
             "key TEXT,"
             "value TEXT,"
@@ -154,26 +152,102 @@ void Db::initQueries()
             "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
             );
 
-        if (createQueriesHeadersTable.exec())
+        if (execResult)
         {
             qDebug() << "Create queries headers table";
         }
     }
 
-    if (!tables.contains(collectionsQueriesTable))
+    if (!tables.contains(queriesAuthTable))
     {
-        QSqlQuery createCollectionsQueriesTable(m_db);
-
-        createCollectionsQueriesTable.prepare(
-            "CREATE TABLE collections_queries("
-            "collection_id INTEGER,"
+        QSqlQuery createQueriesAuthTable(m_db);
+        bool execResult = createQueriesAuthTable.exec(
+            "CREATE TABLE queries_auth("
+            "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
+            "auth_type INTEGER,"
+            "username TEXT,"
+            "password TEXT,"
+            "bearer_token TEXT,"
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            );
 
-        if (createCollectionsQueriesTable.exec())
+        if (execResult)
         {
-            qDebug() << "Create collections queries table";
+            qDebug() << "Create queries auth table";
+        }
+    }
+
+    if (!tables.contains(queriesFormDataBodyTable))
+    {
+        QSqlQuery createQueriesFormDatabodyTable(m_db);
+        bool execResult = createQueriesFormDatabodyTable.exec(
+            "CREATE TABLE queries_form_data_body("
+            "id INTEGER PRIMARY KEY,"
+            "query_id INTEGER,"
+            "key TEXT,"
+            "type INTEGER,"
+            "value TEXT,"
+            "description TEXT,"
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            );
+
+        if (execResult)
+        {
+            qDebug() << "Create queries form data body table";
+        }
+    }
+
+    if (!tables.contains(queriesEncodedFormBodyTable))
+    {
+        QSqlQuery createQueriesEncodedFormBody(m_db);
+        bool execResult = createQueriesEncodedFormBody.exec(
+            "CREATE TABLE queries_encoded_form_body("
+            "id INTEGER PRIMARY KEY,"
+            "query_id INTEGER,"
+            "key TEXT,"
+            "value TEXT,"
+            "description TEXT,"
+            "FOREIGN KEY(query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            );
+
+        if (execResult)
+        {
+            qDebug() << "Create queries encode form data body table";
+        }
+    }
+
+    if (!tables.contains(queriesRawBodyTable))
+    {
+        QSqlQuery createQueriesRawBody(m_db);
+        bool execResult = createQueriesRawBody.exec(
+            "CREATE TABLE queries_raw_body("
+            "id INTEGER PRIMARY KEY,"
+            "query_id INTEGER,"
+            "type INTEGER,"
+            "value TEXT,"
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            );
+        if (execResult)
+        {
+            qDebug() << "Create queries raw body table";
+        }
+    }
+
+    if (!tables.contains(queriesBinaryBodyTable))
+    {
+        QSqlQuery createQueriesBinaryBody(m_db);
+        bool execResult = createQueriesBinaryBody.exec(
+            "CREATE TABLE queries_binary_body("
+            "id INTEGER PRIMARY KEY,"
+            "query_id INTEGER,"
+            "file_path TEXT,"
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
+            );
+
+        if (execResult)
+        {
+            qDebug() << "Create queries binary body table";
         }
     }
 }
@@ -463,7 +537,11 @@ bool Db::insertCollection(Collection &collection)
     {
         qDebug() << insertCollectionQuery.lastError().text();
     }
-
+    else
+    {
+        int collectionId = insertCollectionQuery.lastInsertId().toInt();
+        collection.setId(collectionId);
+    }
 
     return result;
 }

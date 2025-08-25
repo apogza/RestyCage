@@ -14,11 +14,13 @@ public:
     Collection (std::optional<int> id, QString name, std::optional<int> parentId, QList<Query> queries);
 
     std::optional<int> id();
+    void setId(std::optional<int> id);
+
     QString name();
     std::optional<int> parent();
-
     QList<Query>& queries();
     void setQueries(QList<Query> queries);
+
 
 private:
     std::optional<int> m_id;

@@ -25,6 +25,11 @@ std::optional<int> Collection::id()
     return m_id;
 }
 
+void Collection::setId(std::optional<int> id)
+{
+    m_id = id;
+}
+
 QString Collection::name()
 {
     return m_name;
