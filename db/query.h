@@ -5,27 +5,25 @@
 #include <QList>
 
 #include "paramvalue.h"
+#include "query_auth.h"
 
 
 class Query
 {
 
 public:
-    enum AuthType { None, Basic, BearerToken };
-    enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary   };
+    enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary };
     enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
     Query();
     Query(std::optional<int> id, QString name);
 
     std::optional<int> id();
+    std::optional<int> collectionId();
     QString &name();
     QString &method();
     QString &url();
-    AuthType authType();
+    QueryAuth &auth();
 
-    QString &username();
-    QString &password();
-    QString &bearerToken();
     BodyType &bodyType();
     QString &rawBodyValue();
 
@@ -36,14 +34,12 @@ public:
     QString &binaryForm();
 
     void setId(int id);
+    void setCollectionId(int collectionId);
     void setName(QString name);
     void setMethod(QString method);
     void setUrl(QString url);
-    void setAuthType(AuthType authType);
 
-    void setUsername(QString username);
-    void setPassword(QString password);
-    void setBearerToken(QString bearerToken);
+    void setAuth(QueryAuth auth);
     void setBodyType(BodyType bodyType);
     void setRawBodyType(RawBodyType rawBodyType);
     void setRawBodyValue(QString rawBodyValue);
@@ -54,24 +50,20 @@ public:
     void setMultipartForm(QList<ParamValue> multipartFormParams);
     void setBinaryForm(QString binaryFilePath);
 
-    static QString authTypeToString(const AuthType authType);
     static QString bodyTypeToString(const BodyType bodyType);
     static QString rawBodyToString(const RawBodyType rawBodyType);
 
-    static AuthType authTypeFromString(const QString &authType);
     static BodyType bodyTypeFromString(const QString &bodyType);
     static RawBodyType rawBodyTypeFromString(const QString &rawBodyType);
 
 private:
     std::optional<int> m_id;
+    int m_collectionId;
     QString m_name;
     QString m_method;
     QString m_url;
 
-    AuthType m_authType;
-    QString m_username;
-    QString m_password;
-    QString m_bearerToken;
+    QueryAuth m_auth;
 
     BodyType m_bodyType;
     RawBodyType m_rawBodyType;

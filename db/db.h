@@ -28,6 +28,20 @@ private:
     bool insertEnvParam(int envId, ParamValue &paramValue);
     bool updateEnvParam(int envId, ParamValue &paramValue);
 
+    bool insertQuery(Query &query);
+    bool updateQuery(Query &query);
+
+    bool insertQueryAuth(Query &query);
+    bool updateQueryAuth(Query &query);
+
+    bool saveQueryHeaders(Query &query);
+    bool insertQueryHeader(int queryid, ParamValue &paramValue);
+    bool updateQueryHeader(ParamValue &paramValue);
+
+    bool saveQueryParams(Query &query);
+    bool insertQueryParam(int queryId, ParamValue &paramValue);
+    bool updateQueryParam(ParamValue &paramvalue);
+
     QSqlDatabase m_db;
 public:
     Db &operator=(const Db &) = delete;
@@ -45,6 +59,9 @@ public:
 
     bool saveCollection(Collection &collection);
     bool deleteCollection(int collectionId);
+
+    bool saveQuery(Query &query);
+    bool deleteQuery(int queryId);
 
 };
 

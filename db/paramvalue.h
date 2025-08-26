@@ -33,6 +33,7 @@ public:
 private:
     ParamValueType m_type = ParamValueType::String;
     std::optional<int> m_id;
+    std::optional<int> m_queryId;
     QMap<QString, QString> m_valueMap;
     QString m_emptyResult = "";
 

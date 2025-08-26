@@ -16,6 +16,11 @@ std::optional<int> Query::id()
     return m_id;
 }
 
+std::optional<int> Query::collectionId()
+{
+    return m_collectionId;
+}
+
 QString &Query::name()
 {
     return m_name;
@@ -31,19 +36,9 @@ QString &Query::url()
     return m_url;
 }
 
-QString &Query::username()
+QueryAuth &Query::auth()
 {
-    return m_username;
-}
-
-QString &Query::password()
-{
-    return m_password;
-}
-
-QString &Query::bearerToken()
-{
-    return m_bearerToken;
+    return m_auth;
 }
 
 QList<ParamValue> &Query::parameters()
@@ -76,6 +71,11 @@ void Query::setId(int id)
     m_id = id;
 }
 
+void Query::setCollectionId(int collectionId)
+{
+    m_collectionId = collectionId;
+}
+
 void Query::setName(QString name)
 {
     m_name = name;
@@ -91,24 +91,9 @@ void Query::setUrl(QString url)
     m_url = url;
 }
 
-void Query::setAuthType(AuthType authType)
+void Query::setAuth(QueryAuth auth)
 {
-    m_authType = authType;
-}
-
-void Query::setUsername(QString username)
-{
-    m_username = username;
-}
-
-void Query::setPassword(QString password)
-{
-    m_password = password;
-}
-
-void Query::setBearerToken(QString bearerToken)
-{
-    m_bearerToken = bearerToken;
+    m_auth = auth;
 }
 
 void Query::setBodyType(BodyType bodyType)
@@ -161,26 +146,7 @@ Query::BodyType &Query::bodyType()
     return m_bodyType;
 }
 
-QString Query::authTypeToString(const AuthType authType)
-{
-    QString result;
 
-    switch (authType) {
-    case AuthType::None:
-        result = "None";
-        break;
-    case AuthType::Basic:
-        result = "Basic";
-        break;
-    case AuthType::BearerToken:
-        result = "Bearer";
-        break;
-    default:
-        break;
-    }
-
-    return result;
-}
 
 QString Query::bodyTypeToString(const BodyType bodyType)
 {
@@ -283,23 +249,3 @@ Query::RawBodyType Query::rawBodyTypeFromString(const QString &rawBodyType)
     }
 }
 
-Query::AuthType Query::authTypeFromString(const QString &authType)
-{
-    if (authType == "Bearer")
-    {
-        return AuthType::BearerToken;
-    }
-    else if (authType == "Basic")
-    {
-        return AuthType::Basic;
-    }
-    else
-    {
-        return AuthType::None;
-    }
-}
-
-Query::AuthType Query::authType()
-{
-    return m_authType;
-}

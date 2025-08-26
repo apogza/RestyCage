@@ -285,7 +285,7 @@ Query QueryForm::createQuery()
     }
 
     Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
-    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+    QueryAuth::AuthType authType = QueryAuth::authTypeFromString(ui->authComboBox->currentText());
 
     switch (bodyType) {
     case Query::BodyType::Raw:
@@ -306,12 +306,11 @@ Query QueryForm::createQuery()
     }
 
     switch (authType){
-    case Query::AuthType::Basic:
-        query.setUsername(ui->authBasicUserEdit->text());
-        query.setPassword(ui->authBasicPasswordEdit->text());
+    case QueryAuth::AuthType::Basic:
+        query.setAuth({ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text()});
         break;
-    case Query::AuthType::BearerToken:
-        query.setBearerToken(ui->bearerTokenEdit->text());
+    case QueryAuth::AuthType::BearerToken:
+        query.setAuth({ui->bearerTokenEdit->text()});
         break;
     default:
         break;

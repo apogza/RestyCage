@@ -44,8 +44,7 @@ void Db::initEnvs()
             "CREATE TABLE envs("
             "id INTEGER PRIMARY KEY,"
             "name TEXT NOT NULL,"
-            "active INTEGER);"
-            );
+            "active INTEGER);");
 
         if (execResult)
         {
@@ -63,8 +62,7 @@ void Db::initEnvs()
             "name TEXT,"
             "value TEXT,"
             "description TEXT,"
-            "FOREIGN KEY (env_id) REFERENCES envs on DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (env_id) REFERENCES envs on DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -85,8 +83,7 @@ void Db::initCollections()
             "id INTEGER PRIMARY KEY,"
             "parent_id INTEGER,"
             "name TEXT,"
-            "FOREIGN KEY (parent_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (parent_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -109,8 +106,7 @@ void Db::initQueries()
             "name TEXT,"
             "method TEXT,"
             "url TEXT,"
-            "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -126,11 +122,10 @@ void Db::initQueries()
             "CREATE TABLE queries_params("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "key TEXT,"
+            "name TEXT,"
             "value TEXT,"
             "description TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -146,11 +141,10 @@ void Db::initQueries()
             "CREATE TABLE queries_headers("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "key TEXT,"
+            "name TEXT,"
             "value TEXT,"
             "description TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -169,8 +163,7 @@ void Db::initQueries()
             "username TEXT,"
             "password TEXT,"
             "bearer_token TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -185,12 +178,11 @@ void Db::initQueries()
             "CREATE TABLE queries_form_data_body("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "key TEXT,"
+            "name TEXT,"
             "type INTEGER,"
             "value TEXT,"
             "description TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -205,11 +197,10 @@ void Db::initQueries()
             "CREATE TABLE queries_encoded_form_body("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "key TEXT,"
+            "name TEXT,"
             "value TEXT,"
             "description TEXT,"
-            "FOREIGN KEY(query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY(query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -226,8 +217,7 @@ void Db::initQueries()
             "query_id INTEGER,"
             "type INTEGER,"
             "value TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
         if (execResult)
         {
             qDebug() << "Create queries raw body table";
@@ -242,8 +232,7 @@ void Db::initQueries()
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
             "file_path TEXT,"
-            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);"
-            );
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
@@ -291,7 +280,6 @@ bool Db::saveCollection(Collection &collection)
         return insertCollection(collection);
     }
 }
-
 
 Db &Db::instance()
 {
@@ -565,6 +553,11 @@ bool Db::deleteCollection(int collectionId)
     return deleteCollection.exec();
 }
 
+bool Db::saveQuery(Query &query)
+{
+    return false;
+}
+
 QList<ParamValue> Db::getEnvParams(int envId)
 {
     QSqlQuery getEnvParams(m_db);
@@ -622,4 +615,265 @@ bool Db::updateEnvParam(int envId, ParamValue &paramValue)
     updateEnvParam.bindValue(":param_id", paramValue.id().value());
 
     return updateEnvParam.exec();
+}
+
+bool Db::insertQuery(Query &query)
+{
+    if (!query.collectionId().has_value())
+    {
+        return false;
+    }
+
+    QSqlQuery insert(m_db);
+    insert.prepare("INSERT INTO queries(collection_id, name, method, url) "
+                   "VALUES(:collection_id, :name, :method, :url);");
+
+    insert.bindValue(":collection_id", query.collectionId().value());
+    insert.bindValue(":name", query.name());
+    insert.bindValue(":method", query.method());
+    insert.bindValue(":url", query.url());
+
+    bool insertResult = insert.exec();
+    int id = insert.lastInsertId().toInt();
+
+    query.setId(id);
+
+    // TODO add queries for all the other sections of the query
+    insertResult = insertResult && saveQueryParams(query);
+    insertResult = insertResult && saveQueryHeaders(query);
+
+    return insertResult;
+}
+
+bool Db::updateQuery(Query &query)
+{
+    if (!query.collectionId().has_value() || !query.id().has_value())
+    {
+        return false;
+    }
+
+    QSqlQuery update(m_db);
+    update.prepare("UPDATE queries SET "
+                   "collection_id = :collection_id,"
+                   "name = :name,"
+                   "method = :method,"
+                   "url = :url "
+                   "WHERE id = :query_id;");
+
+    update.bindValue(":collection_id", query.collectionId().value());
+    update.bindValue(":name", query.name());
+    update.bindValue(":method", query.method());
+    update.bindValue(":url", query.url());
+    update.bindValue(":id", query.id().value());
+
+    //TODO add queries for all other sections of the query
+
+    bool updateResult = update.exec();
+
+    updateResult = updateResult && saveQueryParams(query);
+    updateResult = updateResult && saveQueryParams(query);
+
+    return updateResult;
+}
+
+bool Db::insertQueryAuth(Query &query)
+{
+    if (!query.id().has_value())
+    {
+        return false;
+    }
+
+    QueryAuth &auth = query.auth();
+
+    if (auth.authType() == QueryAuth::AuthType::None)
+    {
+        return true;
+    }
+
+    QSqlQuery insertQueryAuth(m_db);
+    insertQueryAuth.prepare("INSERT INTO queries_auth(query_id, username, password, bearer_token) "
+                            "VALUES (:query_id, :username, :password, :bearer_token);");
+
+    insertQueryAuth.bindValue(":query_id", query.id().value());
+
+    if (auth.authType() == QueryAuth::AuthType::Basic)
+    {
+        insertQueryAuth.bindValue(":username", auth.username());
+        insertQueryAuth.bindValue(":password", auth.password());
+        insertQueryAuth.bindValue(":bearer_token", QVariant(QMetaType::fromType<QString>()));
+    }
+    else
+    {
+        insertQueryAuth.bindValue(":username", QVariant(QMetaType::fromType<QString>()));
+        insertQueryAuth.bindValue(":password", QVariant(QMetaType::fromType<QString>()));
+        insertQueryAuth.bindValue(":bearer_token", auth.bearerToken());
+    }
+
+    bool insertResult = insertQueryAuth.exec();
+    int authId = insertQueryAuth.lastInsertId().toInt();
+    auth.setId(authId);
+
+    return insertResult;
+}
+
+bool Db::updateQueryAuth(Query &query)
+{
+    if (!query.id().has_value())
+    {
+        return false;
+    }
+
+    QueryAuth &auth = query.auth();
+
+    if (auth.authType() == QueryAuth::AuthType::None)
+    {
+        QSqlQuery deleteAuth(m_db);
+        deleteAuth.prepare("DELETE FROM queries_auth WHERE query_id = :query_id");
+        deleteAuth.bindValue(":query_id", query.id().value());
+
+        return deleteAuth.exec();
+    }
+
+    QSqlQuery updateAuth(m_db);
+    updateAuth.prepare("UPDATE queries_auth SET "
+                       "username = :username,"
+                       "password = :password,"
+                       "bearer_token = :bearer_token "
+                       "WHERE id = :id;");
+
+
+    if (auth.authType() == QueryAuth::AuthType::Basic)
+    {
+        updateAuth.bindValue(":username", auth.username());
+        updateAuth.bindValue(":password", auth.password());
+        updateAuth.bindValue(":bearer_token", QVariant(QMetaType::fromType<QString>()));
+    }
+    else
+    {
+        updateAuth.bindValue(":username", QVariant(QMetaType::fromType<QString>()));
+        updateAuth.bindValue(":password", QVariant(QMetaType::fromType<QString>()));
+        updateAuth.bindValue(":bearer_token", auth.bearerToken());
+    }
+
+    return updateAuth.exec();
+}
+
+bool Db::saveQueryHeaders(Query &query)
+{
+    bool result = true;
+
+    QList<ParamValue> &headers = query.headers();
+    for (int i = 0; i < headers.size(); i++)
+    {
+        ParamValue &header = headers[i];
+        if (header.id().has_value())
+        {
+            result = result && updateQueryHeader(header);
+        }
+        else
+        {
+            result = result && insertQueryHeader(query.id().value(), header);
+        }
+    }
+
+    return result;
+}
+
+bool Db::insertQueryHeader(int queryId, ParamValue &header)
+{
+    QSqlQuery insertHeader(m_db);
+    insertHeader.prepare("INSERT INTO queries_headers(query_id, name, value, description) "
+                         "VALUES (:query_id, :name, :value, :description);");
+    insertHeader.bindValue(":query_id", queryId);
+    insertHeader.bindValue(":name", header.getValue("name"));
+    insertHeader.bindValue(":value", header.getValue("value"));
+    insertHeader.bindValue(":description", header.getValue("description"));
+
+    bool insertResult = insertHeader.exec();
+    int headerId = insertHeader.lastInsertId().toInt();
+    header.setId(headerId);
+
+    return insertResult;
+}
+
+bool Db::updateQueryHeader(ParamValue &header)
+{
+    if (!header.id().has_value())
+    {
+        return false;
+    }
+
+    QSqlQuery updateHeader(m_db);
+    updateHeader.prepare("UPDATE queries_headers SET "
+                         "name = :name,"
+                         "value= :value,"
+                         "description = :description "
+                         "WHERE id = :id");
+
+    updateHeader.bindValue(":name", header.getValue("name"));
+    updateHeader.bindValue(":value", header.getValue("value"));
+    updateHeader.bindValue(":description", header.getValue("description"));
+    updateHeader.bindValue(":id", header.id().value());
+
+    return updateHeader.exec();
+}
+
+bool Db::saveQueryParams(Query &query)
+{
+    if (!query.id().has_value())
+    {
+        return false;
+    }
+
+    bool result = true;
+    QList<ParamValue>& params = query.parameters();
+    for (int i = 0; i < params.size(); i++)
+    {
+        ParamValue &param = params[i];
+        if (param.id().has_value())
+        {
+            result = result && updateQueryParam(param);
+        }
+        else
+        {
+            result = result && insertQueryParam(query.id().value(), param);
+        }
+    }
+
+    return result;
+}
+
+bool Db::insertQueryParam(int queryId, ParamValue &paramValue)
+{
+    QSqlQuery insertQueryParam(m_db);
+    insertQueryParam.prepare("INSERT INTO queries_params(query_id, name, value, description) "
+                             "VALUES(:query_id, :name, :value, :description);");
+
+    insertQueryParam.bindValue(":query_id", queryId);
+    insertQueryParam.bindValue(":name", paramValue.getValue("name"));
+    insertQueryParam.bindValue(":value", paramValue.getValue("value"));
+    insertQueryParam.bindValue(":description", paramValue.getValue("description"));
+
+    bool execResult = insertQueryParam.exec();
+    int id = insertQueryParam.lastInsertId().toInt();
+
+    paramValue.setId(id);
+    return execResult;
+}
+
+bool Db::updateQueryParam(ParamValue &paramValue)
+{
+    QSqlQuery updateQueryParam(m_db);
+    updateQueryParam.prepare("UPDATE queries_params SET "
+                             "name = :name,"
+                             "value = :value,"
+                             "description = :description "
+                             "WHERE id = :param_id");
+    updateQueryParam.bindValue(":name", paramValue.getValue("name"));
+    updateQueryParam.bindValue(":value", paramValue.getValue("value"));
+    updateQueryParam.bindValue(":description", paramValue.getValue("description"));
+
+    bool execResult = updateQueryParam.exec();
+
+    return execResult;
 }
