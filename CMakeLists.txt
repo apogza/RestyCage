@@ -39,7 +39,7 @@ target_link_libraries(RestyCage
         Qt::Core
         Qt::Widgets
         Qt::Network
-        Qt6::Sql
+        Qt::Sql
 )
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
