@@ -69,6 +69,11 @@ QueryAuth::AuthType QueryAuth::authType()
     return AuthType::None;
 }
 
+std::optional<int> &QueryAuth::id()
+{
+    return m_id;
+}
+
 QString &QueryAuth::username()
 {
     return m_username;

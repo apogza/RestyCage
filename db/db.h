@@ -31,6 +31,7 @@ private:
     bool insertQuery(Query &query);
     bool updateQuery(Query &query);
 
+    bool saveQueryAuth(Query &query);
     bool insertQueryAuth(Query &query);
     bool updateQueryAuth(Query &query);
 

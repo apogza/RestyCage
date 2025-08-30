@@ -350,6 +350,7 @@ void QueryForm::readReplyHeaders(QNetworkReply *reply)
     ui->respHeadersTableWidget->setRowCount(0);
 
     int j = 0;
+
     for (int i = 0; i < replyHeaders.size(); i++)
     {
         QString headerKey = replyHeaders.nameAt(i);
@@ -508,6 +509,6 @@ void QueryForm::on_saveQueryBtn_clicked()
 {
     NameDialog nameDialog;
 
-
+    Query query = createQuery();
+    m_db.saveQuery(query);
 }
-

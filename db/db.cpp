@@ -22,11 +22,9 @@ void Db::init()
 
     m_db.open();
 
-    QStringList tables = m_db.tables();
-
-    for (int i = 0; i < tables.size(); i++)
+    for (QString &table: m_db.tables())
     {
-        qDebug() << tables[i];
+        qDebug() << table;
     }
 
     QSqlQuery pragmaForeignKeys(m_db);
@@ -417,9 +415,9 @@ std::optional<Environment> Db::getEnv(int envId)
         Environment env(id, name, active);
 
         QList<ParamValue> envParams = getEnvParams(id);
-        for (int i = 0; i < envParams.size(); i++)
+        for (ParamValue param: envParams)
         {
-            env.addParam(envParams[i]);
+            env.addParam(param);
         }
 
         return env;
@@ -450,9 +448,9 @@ bool Db::insertEnv(Environment &environment)
 
     QList<ParamValue> &params = environment.params();
 
-    for (int i = 0 ; i < params.size(); i++)
+    for (ParamValue &param: params)
     {
-        result = result && insertEnvParam(envId, params[i]);
+        result = result && insertEnvParam(envId, param);
     }
 
     return result;
@@ -473,14 +471,15 @@ bool Db::updateEnv(Environment &environment)
     QList<ParamValue> &params = environment.params();
     int envId = environment.id().value();
 
-    for (int i = 0; i < params.size(); i++)
+    for (ParamValue &param: params)
     {
-        std::optional<int> paramId = params[i].id();
+        std::optional<int> paramId = param.id();
         bool paramResult = paramId.has_value() ?
-                               updateEnvParam(envId, params[i]) :
-                               insertEnvParam(envId, params[i]);
+                               updateEnvParam(envId, param) :
+                               insertEnvParam(envId, param);
 
         result = result && paramResult;
+
     }
 
     return result;
@@ -555,8 +554,26 @@ bool Db::deleteCollection(int collectionId)
 
 bool Db::saveQuery(Query &query)
 {
-    return false;
+    if (query.id().has_value())
+    {
+        return updateQuery(query);
+    }
+    else
+    {
+        return insertQuery(query);
+    }
 }
+
+bool Db::deleteQuery(int queryId)
+{
+    QSqlQuery deleteQuery(m_db);
+
+    deleteQuery.prepare("DELETE from queries WHERE id = :query_id");
+    deleteQuery.bindValue(":query_id", queryId);
+
+    return deleteQuery.exec();
+}
+
 
 QList<ParamValue> Db::getEnvParams(int envId)
 {
@@ -641,6 +658,7 @@ bool Db::insertQuery(Query &query)
     // TODO add queries for all the other sections of the query
     insertResult = insertResult && saveQueryParams(query);
     insertResult = insertResult && saveQueryHeaders(query);
+    insertResult = insertResult && saveQueryAuth(query);
 
     return insertResult;
 }
@@ -664,16 +682,28 @@ bool Db::updateQuery(Query &query)
     update.bindValue(":name", query.name());
     update.bindValue(":method", query.method());
     update.bindValue(":url", query.url());
-    update.bindValue(":id", query.id().value());
+    update.bindValue(":query_id", query.id().value());
 
     //TODO add queries for all other sections of the query
 
     bool updateResult = update.exec();
 
     updateResult = updateResult && saveQueryParams(query);
-    updateResult = updateResult && saveQueryParams(query);
+    updateResult = updateResult && saveQueryHeaders(query);
+    updateResult = updateResult && saveQueryAuth(query);
 
     return updateResult;
+}
+
+bool Db::saveQueryAuth(Query &query)
+{
+    if (query.auth().id().has_value())
+    {
+        return updateQueryAuth(query);
+    }
+    {
+        return insertQuery(query);
+    }
 }
 
 bool Db::insertQueryAuth(Query &query)
@@ -827,9 +857,8 @@ bool Db::saveQueryParams(Query &query)
 
     bool result = true;
     QList<ParamValue>& params = query.parameters();
-    for (int i = 0; i < params.size(); i++)
+    for (ParamValue& param : params)
     {
-        ParamValue &param = params[i];
         if (param.id().has_value())
         {
             result = result && updateQueryParam(param);

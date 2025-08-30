@@ -13,7 +13,7 @@ public:
     enum AuthType { None, Basic, BearerToken };
 
     QueryAuth::AuthType authType();
-
+    std::optional<int> &id();
     QString &username();
     QString &password();
     QString &bearerToken();

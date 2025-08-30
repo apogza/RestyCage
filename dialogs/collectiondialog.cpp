@@ -24,10 +24,8 @@ void CollectionDialog::setCollectionList(QList<Collection> &collectionList)
     ui->parentComboBox->clear();
     ui->parentComboBox->addItem("");
 
-    for (int i = 0; i < collectionList.size(); i++)
+    for (Collection &collection : collectionList)
     {
-        Collection &collection = collectionList[i];
-
         ui->parentComboBox->addItem(collection.name(), collection.id().value());
     }
 }

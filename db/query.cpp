@@ -146,8 +146,6 @@ Query::BodyType &Query::bodyType()
     return m_bodyType;
 }
 
-
-
 QString Query::bodyTypeToString(const BodyType bodyType)
 {
     QString result;

@@ -67,11 +67,11 @@ void RestyCageWindow::initEnvironments()
 
     QList<Environment> envs = m_db.getEnvs();
 
-    for (int i = 0; i < envs.size(); i++)
+    for (Environment &env : envs)
     {
         QStandardItem *item = new QStandardItem();
-        item->setText(envs[i].name());
-        item->setData(envs[i].id().value(), Qt::UserRole);
+        item->setText(env.name());
+        item->setData(env.id().value(), Qt::UserRole);
         m_envsModel.appendRow(item);
     }
 }
@@ -84,10 +84,8 @@ void RestyCageWindow::initCollections()
     QMap<int, QStandardItem*> collectionsItemMap;
 
     // create the hierarchy for the collections
-    for (int i = 0; i < collections.size(); i++)
+    for (Collection &currentCollection : collections)
     {
-        Collection &currentCollection = collections[i];
-
         QStandardItem *collectionItem = new QStandardItem();
         collectionItem->setText(currentCollection.name());
         collectionItem->setData(currentCollection.id().value(), Qt::UserRole);
@@ -108,17 +106,16 @@ void RestyCageWindow::initCollections()
     }
 
     // add the queries
-    for (int i = 0; i < collections.size(); i++)
+    for (Collection &currentCollection : collections)
     {
-        Collection &currentCollection = collections[i];
         QList<Query> &queries = currentCollection.queries();
         QStandardItem *collectionItem = collectionsItemMap[currentCollection.id().value()];
 
-        for (int j = 0; j < queries.size(); i++)
+        for (Query &query : queries)
         {
             QStandardItem *queryItem = new QStandardItem();
-            queryItem->setText(queries[i].name());
-            queryItem->setData(queries[i].id().value(), Qt::UserRole);
+            queryItem->setText(query.name());
+            queryItem->setData(query.id().value(), Qt::UserRole);
             queryItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen));
             collectionItem->setChild(collectionItem->rowCount(), queryItem);
         }

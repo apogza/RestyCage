@@ -4,6 +4,7 @@
 #include "../keyvaluehandler.h"
 #include "../db/paramvalue.h"
 #include "../db/query.h"
+#include "../db/db.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -66,6 +67,7 @@ private:
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
     QString m_name;
+    Db &m_db = Db::instance();
 
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;

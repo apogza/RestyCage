@@ -27,23 +27,26 @@ void EnvironmentForm::initFromDb(Environment &env)
     m_envName = QString(env.name());
     m_envId = env.id();
 
-    QList<ParamValue> params = env.params();
+    QList<ParamValue> &params = env.params();
 
-    for (int i = 0; i < params.size(); i++)
+    int i = 0;
+
+    for (ParamValue &param: params)
     {
         QStandardItem *nameItem = new QStandardItem();
-        nameItem->setText(params[i].getValue("name"));
-        nameItem->setData(params[i].id().value(), Qt::UserRole);
+        nameItem->setText(param.getValue("name"));
+        nameItem->setData(param.id().value(), Qt::UserRole);
 
         QStandardItem *valueItem = new QStandardItem();
-        valueItem->setText(params[i].getValue("value"));
+        valueItem->setText(param.getValue("value"));
 
         QStandardItem *descriptionItem = new QStandardItem();
-        descriptionItem->setText(params[i].getValue("description"));
+        descriptionItem->setText(param.getValue("description"));
 
         m_envItemModel.setItem(i, 0, nameItem);
         m_envItemModel.setItem(i, 1, valueItem);
         m_envItemModel.setItem(i, 2, descriptionItem);
+        i++;
     }
 }
 
@@ -81,9 +84,9 @@ void EnvironmentForm::on_removeEnvironmentBtn_clicked()
 {
     QList<QVariant> userData = m_keyValueHandler->deleteRowModel(ui->tableView, m_envItemModel);
 
-    for (int i = 0; i < userData.size(); i++)
+    for (QVariant &data : userData)
     {
-        m_deletedParams.append(userData[i].toInt());
+        m_deletedParams.append(data.toInt());
     }
 
     emit hasBeenModified(this);
