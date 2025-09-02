@@ -1,11 +1,48 @@
 #include "query.h"
 
 
+Query::AuthType Query::authTypeFromString(const QString &authType)
+{
+    if (authType == "Bearer")
+    {
+        return AuthType::BearerToken;
+    }
+    else if (authType == "Basic")
+    {
+        return AuthType::Basic;
+    }
+    else
+    {
+        return AuthType::None;
+    }
+}
+
+QString Query::authTypeToString(const AuthType authType)
+{
+    QString result;
+
+    switch (authType) {
+    case AuthType::None:
+        result = "None";
+        break;
+    case AuthType::Basic:
+        result = "Basic";
+        break;
+    case AuthType::BearerToken:
+        result = "Bearer";
+        break;
+    default:
+        break;
+    }
+
+    return result;
+}
+
 Query::Query()
 {
 }
 
-Query::Query(std::optional<int> id, QString name)
+Query::Query(std::optional<int> id, QString &name)
 {
     m_id = id;
     m_name = name;
@@ -36,9 +73,19 @@ QString &Query::url()
     return m_url;
 }
 
-QueryAuth &Query::auth()
+Query::AuthType Query::authType()
 {
-    return m_auth;
+    return m_authType;
+}
+
+BasicQueryAuth &Query::basicAuth()
+{
+    return m_basicAuth;
+}
+
+BearerQueryAuth &Query::bearerAuth()
+{
+    return m_bearerAuth;
 }
 
 QList<ParamValue> &Query::parameters()
@@ -91,9 +138,19 @@ void Query::setUrl(QString url)
     m_url = url;
 }
 
-void Query::setAuth(QueryAuth auth)
+void Query::setAuthType(AuthType authType)
 {
-    m_auth = auth;
+    m_authType = authType;
+}
+
+void Query::setBasicAuth(BasicQueryAuth& auth)
+{
+    m_basicAuth = auth;
+}
+
+void Query::setBearerAuth(BearerQueryAuth &auth)
+{
+    m_bearerAuth = auth;
 }
 
 void Query::setBodyType(BodyType bodyType)

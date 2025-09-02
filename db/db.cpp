@@ -60,6 +60,7 @@ void Db::initEnvs()
             "name TEXT,"
             "value TEXT,"
             "description TEXT,"
+            "auth_type INTEGER,"
             "FOREIGN KEY (env_id) REFERENCES envs on DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
@@ -150,22 +151,37 @@ void Db::initQueries()
         }
     }
 
-    if (!tables.contains(queriesAuthTable))
+    if (!tables.contains(queriesBasicAuthTable))
     {
-        QSqlQuery createQueriesAuthTable(m_db);
-        bool execResult = createQueriesAuthTable.exec(
-            "CREATE TABLE queries_auth("
+        QSqlQuery createQueriesBasicAuthTable(m_db);
+        bool execResult = createQueriesBasicAuthTable.exec(
+            "CREATE TABLE queries_auth_basic("
+            "id INTEGER PRIMARY KEY,"
+            "query_id INTEGER,"            
+            "username TEXT,"
+            "password TEXT,"            
+            "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
+
+        if (execResult)
+        {
+            qDebug() << "Create queries basic auth table";
+        }
+    }
+
+    if (!tables.contains(queriesBearerAuthTable))
+    {
+        QSqlQuery createQueriesBearerAuthTable(m_db);
+
+        bool execResult = createQueriesBearerAuthTable.exec(
+            "CREATE TABLE queries_auth_bearer("
             "id INTEGER PRIMARY KEY,"
             "query_id INTEGER,"
-            "auth_type INTEGER,"
-            "username TEXT,"
-            "password TEXT,"
             "bearer_token TEXT,"
             "FOREIGN KEY (query_id) REFERENCES queries(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
         {
-            qDebug() << "Create queries auth table";
+            qDebug() << "Create queries bearer auth table";
         }
     }
 
@@ -642,13 +658,14 @@ bool Db::insertQuery(Query &query)
     }
 
     QSqlQuery insert(m_db);
-    insert.prepare("INSERT INTO queries(collection_id, name, method, url) "
-                   "VALUES(:collection_id, :name, :method, :url);");
+    insert.prepare("INSERT INTO queries(collection_id, name, method, url, auth_type) "
+                   "VALUES(:collection_id, :name, :method, :url, :auth_type);");
 
     insert.bindValue(":collection_id", query.collectionId().value());
     insert.bindValue(":name", query.name());
     insert.bindValue(":method", query.method());
     insert.bindValue(":url", query.url());
+    insert.bindValue(":auth_type", query.authType());
 
     bool insertResult = insert.exec();
     int id = insert.lastInsertId().toInt();
@@ -697,7 +714,7 @@ bool Db::updateQuery(Query &query)
 
 bool Db::saveQueryAuth(Query &query)
 {
-    if (query.auth().id().has_value())
+    if (query.basicAuth().id().has_value())
     {
         return updateQueryAuth(query);
     }
@@ -713,35 +730,46 @@ bool Db::insertQueryAuth(Query &query)
         return false;
     }
 
-    QueryAuth &auth = query.auth();
-
-    if (auth.authType() == QueryAuth::AuthType::None)
+    if (query.authType() == Query::AuthType::None)
     {
         return true;
     }
 
     QSqlQuery insertQueryAuth(m_db);
-    insertQueryAuth.prepare("INSERT INTO queries_auth(query_id, username, password, bearer_token) "
-                            "VALUES (:query_id, :username, :password, :bearer_token);");
+    bool insertResult = false;
 
-    insertQueryAuth.bindValue(":query_id", query.id().value());
-
-    if (auth.authType() == QueryAuth::AuthType::Basic)
+    if (query.authType() == Query::AuthType::Basic)
     {
-        insertQueryAuth.bindValue(":username", auth.username());
-        insertQueryAuth.bindValue(":password", auth.password());
-        insertQueryAuth.bindValue(":bearer_token", QVariant(QMetaType::fromType<QString>()));
+
+        insertQueryAuth.prepare("INSERT INTO queries_auth_bascic(query_id, username, password, bearer_token) "
+                                "VALUES (:query_id, :username, :password, :bearer_token);");
+
+        insertQueryAuth.bindValue(":query_id", query.id().value());
+
+        BasicQueryAuth &basicAuth = query.basicAuth();
+
+        insertQueryAuth.bindValue(":username", basicAuth.username());
+        insertQueryAuth.bindValue(":password", basicAuth.password());
+
+        insertResult = insertQueryAuth.exec();
+
+        int authId = insertQueryAuth.lastInsertId().toInt();
+        basicAuth.setId(authId);
     }
     else
     {
-        insertQueryAuth.bindValue(":username", QVariant(QMetaType::fromType<QString>()));
-        insertQueryAuth.bindValue(":password", QVariant(QMetaType::fromType<QString>()));
-        insertQueryAuth.bindValue(":bearer_token", auth.bearerToken());
-    }
+        BearerQueryAuth &bearerAuth = query.bearerAuth();
+        insertQueryAuth.prepare("INSERT INTO queries_auth_bearer(query_id, bearer_token) "
+                                "VALUES (:query_id, :bearer_token);");
 
-    bool insertResult = insertQueryAuth.exec();
-    int authId = insertQueryAuth.lastInsertId().toInt();
-    auth.setId(authId);
+        insertQueryAuth.bindValue(":query_id", query.id().value());
+        insertQueryAuth.bindValue(":bearer_token", bearerAuth.bearerToken());
+
+        insertResult = insertQueryAuth.exec();
+
+        int authId = insertQueryAuth.lastInsertId().toInt();
+        bearerAuth.setId(authId);
+    }
 
     return insertResult;
 }
@@ -753,9 +781,8 @@ bool Db::updateQueryAuth(Query &query)
         return false;
     }
 
-    QueryAuth &auth = query.auth();
 
-    if (auth.authType() == QueryAuth::AuthType::None)
+    if (query.authType() == Query::AuthType::None)
     {
         QSqlQuery deleteAuth(m_db);
         deleteAuth.prepare("DELETE FROM queries_auth WHERE query_id = :query_id");
@@ -772,17 +799,17 @@ bool Db::updateQueryAuth(Query &query)
                        "WHERE id = :id;");
 
 
-    if (auth.authType() == QueryAuth::AuthType::Basic)
+    if (query.authType() == Query::AuthType::Basic)
     {
-        updateAuth.bindValue(":username", auth.username());
-        updateAuth.bindValue(":password", auth.password());
-        updateAuth.bindValue(":bearer_token", QVariant(QMetaType::fromType<QString>()));
+        BasicQueryAuth &basicAuth = query.basicAuth();
+
+        updateAuth.bindValue(":username", basicAuth.username());
+        updateAuth.bindValue(":password", basicAuth.password());
     }
     else
     {
-        updateAuth.bindValue(":username", QVariant(QMetaType::fromType<QString>()));
-        updateAuth.bindValue(":password", QVariant(QMetaType::fromType<QString>()));
-        updateAuth.bindValue(":bearer_token", auth.bearerToken());
+        BearerQueryAuth &bearerAuth = query.bearerAuth();
+        updateAuth.bindValue(":bearer_token", bearerAuth.bearerToken());
     }
 
     return updateAuth.exec();

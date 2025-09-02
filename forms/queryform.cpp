@@ -285,7 +285,7 @@ Query QueryForm::createQuery()
     }
 
     Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
-    QueryAuth::AuthType authType = QueryAuth::authTypeFromString(ui->authComboBox->currentText());
+    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
 
     switch (bodyType) {
     case Query::BodyType::Raw:
@@ -305,15 +305,24 @@ Query QueryForm::createQuery()
         break;
     }
 
-    switch (authType){
-    case QueryAuth::AuthType::Basic:
-        query.setAuth({ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text()});
-        break;
-    case QueryAuth::AuthType::BearerToken:
-        query.setAuth({ui->bearerTokenEdit->text()});
-        break;
-    default:
-        break;
+    if (authType == Query::AuthType::Basic)
+    {
+        query.setAuthType(Query::AuthType::Basic);
+
+        BasicQueryAuth basicAuth(ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text());
+        query.setBasicAuth(basicAuth);
+    }
+    else if (authType == Query::AuthType::BearerToken)
+    {
+        query.setAuthType(Query::AuthType::BearerToken);
+
+        QString bearerToken = ui->bearerTokenEdit->text();
+        BearerQueryAuth bearerAuth(bearerToken);
+        query.setBearerAuth(bearerAuth);
+    }
+    else
+    {
+        query.setAuthType(Query::AuthType::None);
     }
 
     return query;

@@ -5,7 +5,8 @@
 #include <QList>
 
 #include "paramvalue.h"
-#include "query_auth.h"
+#include "basic_query_auth.h"
+#include "bearer_query_auth.h"
 
 
 class Query
@@ -14,15 +15,22 @@ class Query
 public:
     enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary };
     enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
+    enum AuthType { None, Basic, BearerToken };
+
+    static AuthType authTypeFromString(const QString &authType);
+    static QString authTypeToString(const AuthType authType);
+
     Query();
-    Query(std::optional<int> id, QString name);
+    Query(std::optional<int> id, QString &name);
 
     std::optional<int> id();
     std::optional<int> collectionId();
     QString &name();
     QString &method();
     QString &url();
-    QueryAuth &auth();
+    AuthType authType();
+    BasicQueryAuth &basicAuth();
+    BearerQueryAuth &bearerAuth();
 
     BodyType &bodyType();
     QString &rawBodyValue();
@@ -39,7 +47,10 @@ public:
     void setMethod(QString method);
     void setUrl(QString url);
 
-    void setAuth(QueryAuth auth);
+    void setAuthType(AuthType authType);
+    void setBasicAuth(BasicQueryAuth& auth);
+    void setBearerAuth(BearerQueryAuth& auth);
+
     void setBodyType(BodyType bodyType);
     void setRawBodyType(RawBodyType rawBodyType);
     void setRawBodyValue(QString rawBodyValue);
@@ -62,8 +73,10 @@ private:
     QString m_name;
     QString m_method;
     QString m_url;
+    AuthType m_authType;
 
-    QueryAuth m_auth;
+    BasicQueryAuth m_basicAuth;
+    BearerQueryAuth m_bearerAuth;
 
     BodyType m_bodyType;
     RawBodyType m_rawBodyType;
