@@ -2,7 +2,7 @@
 
 Collection::Collection() {}
 
-Collection::Collection(QString name, std::optional<int> parentId)
+Collection::Collection(QString &name, std::optional<int> parentId)
 {
     m_name = name;
     m_parentId = parentId;
@@ -30,7 +30,7 @@ void Collection::setId(std::optional<int> id)
     m_id = id;
 }
 
-QString Collection::name()
+QString &Collection::name()
 {
     return m_name;
 }

@@ -4,7 +4,7 @@ BasicQueryAuth::BasicQueryAuth()
 {
 }
 
-BasicQueryAuth::BasicQueryAuth(QString username, QString password)
+BasicQueryAuth::BasicQueryAuth(QString &username, QString &password)
 {
     m_username = username;
     m_password = password;
@@ -38,6 +38,16 @@ void BasicQueryAuth::setId(int id)
 void BasicQueryAuth::setQueryId(int queryId)
 {
     m_queryId = queryId;
+}
+
+void BasicQueryAuth::setUsername(QString &username)
+{
+    m_username = username;
+}
+
+void BasicQueryAuth::setPassword(QString &password)
+{
+    m_password = password;
 }
 
 

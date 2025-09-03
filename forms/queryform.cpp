@@ -318,7 +318,10 @@ Query QueryForm::createQuery()
 
     if (authType == Query::AuthType::Basic)
     {
-        BasicQueryAuth basicAuth(ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text());
+        QString username = ui->authBasicUserEdit->text();
+        QString password = ui->authBasicPasswordEdit->text();
+
+        BasicQueryAuth basicAuth(username, password);
         query.setBasicAuth(basicAuth);
     }
     else if (authType == Query::AuthType::BearerToken)

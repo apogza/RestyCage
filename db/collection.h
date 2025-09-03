@@ -9,14 +9,14 @@ class Collection
 {
 public:
     Collection();
-    Collection (QString name, std::optional<int> parentId);
+    Collection (QString &name, std::optional<int> parentId);
     Collection (std::optional<int> id, QString name, std::optional<int> parentId);
     Collection (std::optional<int> id, QString name, std::optional<int> parentId, QList<Query> queries);
 
     std::optional<int> id();
     void setId(std::optional<int> id);
 
-    QString name();
+    QString &name();
     std::optional<int> parent();
     QList<Query>& queries();
     void setQueries(QList<Query> queries);
