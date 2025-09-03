@@ -127,8 +127,8 @@ void EnvironmentForm::on_saveEnvironmentBtn_clicked()
         {
             id = paramId.toInt();
         }
-
-        env.addParam(ParamValue(id, nameItem->text(), valueItem->text(), descriptionItem->text()));
+        ParamValue newParam(id, nameItem->text(), valueItem->text(), descriptionItem->text());
+        env.addParam(newParam);
     }
 
     m_db.saveEnv(env);

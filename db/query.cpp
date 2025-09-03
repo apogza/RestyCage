@@ -98,19 +98,44 @@ QList<ParamValue> &Query::headers()
     return m_headers;
 }
 
-QList<ParamValue> &Query::encodedForm()
+QList<ParamValue> &Query::encodedFormBody()
 {
     return m_encodedFormParams;
 }
 
-QList<ParamValue> &Query::multipartForm()
+QList<ParamValue> &Query::multipartFormBody()
 {
     return m_multipartFormParams;
 }
 
-QString &Query::binaryForm()
+QueryRawBody &Query::rawBody()
 {
-    return m_binaryFilePath;
+    return m_queryRawBody;
+}
+
+QueryBinaryBody &Query::binaryBody()
+{
+    return m_queryBinaryBody;
+}
+
+QList<int> &Query::deletedParams()
+{
+    return m_deletedParams;
+}
+
+QList<int> &Query::deletedHeaders()
+{
+    return m_deletedHeaders;
+}
+
+QList<int> &Query::deletedMultipartParams()
+{
+    return m_deletedMultiPartFormParams;
+}
+
+QList<int> &Query::deletedEncodedFormParams()
+{
+    return m_deletedEncodedFormParams;
 }
 
 void Query::setId(int id)
@@ -158,16 +183,6 @@ void Query::setBodyType(BodyType bodyType)
     m_bodyType = bodyType;
 }
 
-void Query::setRawBodyType(RawBodyType rawBodyType)
-{
-    m_rawBodyType = rawBodyType;
-}
-
-void Query::setRawBodyValue(QString rawBodyValue)
-{
-    m_rawBodyValue = rawBodyValue;
-}
-
 void Query::setParameters(QList<ParamValue> parameters)
 {
     m_parameters = parameters;
@@ -178,24 +193,44 @@ void Query::setHeaders(QList<ParamValue> headers)
     m_headers = headers;
 }
 
-void Query::setEncodedForm(QList<ParamValue> encodedFormParams)
+void Query::setEncodedFormBody(QList<ParamValue> encodedFormParams)
 {
     m_encodedFormParams = encodedFormParams;
 }
 
-void Query::setMultipartForm(QList<ParamValue> multipartFormParams)
+void Query::setMultipartFormBody(QList<ParamValue> multipartFormParams)
 {
     m_multipartFormParams = multipartFormParams;
 }
 
-void Query::setBinaryForm(QString binaryFilePath)
+void Query::setRawBody(QueryRawBody &rawBody)
 {
-    m_binaryFilePath = binaryFilePath;
+    m_queryRawBody = rawBody;
 }
 
-QString &Query::rawBodyValue()
+void Query::setBinaryBody(QueryBinaryBody &binaryBody)
 {
-    return m_rawBodyValue;
+    m_queryBinaryBody = binaryBody;
+}
+
+void Query::setDeletedParameters(QList<int> &deletedParams)
+{
+    m_deletedParams = deletedParams;
+}
+
+void Query::setDeletedHeaders(QList<int> &deletedHeaders)
+{
+    m_deletedHeaders = deletedHeaders;
+}
+
+void Query::setDeletedMultipartParams(QList<int> &deletedMultipartParams)
+{
+    m_deletedMultiPartFormParams = deletedMultipartParams;
+}
+
+void Query::setDeletedEncodedFormParams(QList<int> &deletedEncodedFormParams)
+{
+    m_deletedEncodedFormParams = deletedEncodedFormParams;
 }
 
 Query::BodyType &Query::bodyType()
@@ -253,54 +288,3 @@ Query::BodyType Query::bodyTypeFromString(const QString &bodyType)
         return BodyType::Empty;
     }
 }
-
-QString Query::rawBodyToString(const RawBodyType rawBodyType)
-{
-    QString result;
-
-    switch (rawBodyType){
-    case RawBodyType::JSON:
-        result = "JSON";
-        break;
-    case RawBodyType::Plain:
-        result = "Plain";
-        break;
-
-    case RawBodyType::XML:
-        result = "XML";
-        break;
-    case RawBodyType::HTML:
-        result = "HTML";
-        break;
-    case RawBodyType::JavaScript:
-        result = "JavaScript";
-        break;
-    }
-
-    return result;
-}
-
-Query::RawBodyType Query::rawBodyTypeFromString(const QString &rawBodyType)
-{
-    if (rawBodyType == "JSON")
-    {
-        return RawBodyType::JSON;
-    }
-    else if (rawBodyType == "Plain")
-    {
-        return RawBodyType::Plain;
-    }
-    else if (rawBodyType == "XML")
-    {
-        return RawBodyType::XML;
-    }
-    else if (rawBodyType == "HTML")
-    {
-        return RawBodyType::HTML;
-    }
-    else
-    {
-        return RawBodyType::JavaScript;
-    }
-}
-

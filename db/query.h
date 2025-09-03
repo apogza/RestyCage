@@ -7,14 +7,14 @@
 #include "paramvalue.h"
 #include "basic_query_auth.h"
 #include "bearer_query_auth.h"
-
+#include "query_raw_body.h"
+#include "query_binary_body.h"
 
 class Query
 {
 
 public:
     enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary };
-    enum RawBodyType { JSON, Plain, XML, HTML, JavaScript };
     enum AuthType { None, Basic, BearerToken };
 
     static AuthType authTypeFromString(const QString &authType);
@@ -33,13 +33,18 @@ public:
     BearerQueryAuth &bearerAuth();
 
     BodyType &bodyType();
-    QString &rawBodyValue();
 
     QList<ParamValue> &parameters();
     QList<ParamValue> &headers();
-    QList<ParamValue> &encodedForm();
-    QList<ParamValue> &multipartForm();
-    QString &binaryForm();
+    QList<ParamValue> &encodedFormBody();
+    QList<ParamValue> &multipartFormBody();
+    QueryRawBody &rawBody();
+    QueryBinaryBody &binaryBody();
+
+    QList<int> &deletedParams();
+    QList<int> &deletedHeaders();
+    QList<int> &deletedMultipartParams();
+    QList<int> &deletedEncodedFormParams();
 
     void setId(int id);
     void setCollectionId(int collectionId);
@@ -52,20 +57,21 @@ public:
     void setBearerAuth(BearerQueryAuth& auth);
 
     void setBodyType(BodyType bodyType);
-    void setRawBodyType(RawBodyType rawBodyType);
-    void setRawBodyValue(QString rawBodyValue);
 
     void setParameters(QList<ParamValue> parameters);
     void setHeaders(QList<ParamValue> headers);
-    void setEncodedForm(QList<ParamValue> encodedFormParams);
-    void setMultipartForm(QList<ParamValue> multipartFormParams);
-    void setBinaryForm(QString binaryFilePath);
+    void setEncodedFormBody(QList<ParamValue> encodedFormParams);
+    void setMultipartFormBody(QList<ParamValue> multipartFormParams);
+    void setRawBody(QueryRawBody &rawBody);
+    void setBinaryBody(QueryBinaryBody &binaryBody);
+
+    void setDeletedParameters(QList<int> &deletedParams);
+    void setDeletedHeaders(QList<int> &deletedHeaders);
+    void setDeletedMultipartParams(QList<int> &deletedMultipartParams);
+    void setDeletedEncodedFormParams(QList<int> &deletedEncodedFormParams);
 
     static QString bodyTypeToString(const BodyType bodyType);
-    static QString rawBodyToString(const RawBodyType rawBodyType);
-
     static BodyType bodyTypeFromString(const QString &bodyType);
-    static RawBodyType rawBodyTypeFromString(const QString &rawBodyType);
 
 private:
     std::optional<int> m_id;
@@ -79,14 +85,18 @@ private:
     BearerQueryAuth m_bearerAuth;
 
     BodyType m_bodyType;
-    RawBodyType m_rawBodyType;
-    QString m_rawBodyValue;
+    QueryRawBody m_queryRawBody;
+    QueryBinaryBody m_queryBinaryBody;
 
     QList<ParamValue> m_parameters;
     QList<ParamValue> m_headers;
     QList<ParamValue> m_encodedFormParams;
     QList<ParamValue> m_multipartFormParams;
-    QString m_binaryFilePath;
+
+    QList<int> m_deletedParams;
+    QList<int> m_deletedHeaders;
+    QList<int> m_deletedMultiPartFormParams;
+    QList<int> m_deletedEncodedFormParams;
 };
 
 #endif // QUERY_H

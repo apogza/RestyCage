@@ -25,7 +25,7 @@ QString &BasicQueryAuth::password()
     return m_password;
 }
 
-int BasicQueryAuth::queryId()
+std::optional<int> BasicQueryAuth::queryId()
 {
     return m_queryId;
 }
@@ -33,6 +33,11 @@ int BasicQueryAuth::queryId()
 void BasicQueryAuth::setId(int id)
 {
     m_id = id;
+}
+
+void BasicQueryAuth::setQueryId(int queryId)
+{
+    m_queryId = queryId;
 }
 
 

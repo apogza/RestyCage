@@ -11,15 +11,15 @@ class Environment
 {
 public:
     Environment();
-    Environment(int id, QString name, bool active);
+    Environment(int id, QString &name, bool active);
 
-    void setName(QString name);
+    void setName(QString &name);
     void setActive(bool isActive);
     void setId(int id);
-    void addParam(ParamValue paramValue);
-    void setDeletedParams(QList<int> deletedParams);
+    void addParam(ParamValue &paramValue);
+    void setDeletedParams(QList<int> &deletedParams);
 
-    QString name();
+    QString &name();
     std::optional<int> id();
     bool active();
     QList<ParamValue> &params();

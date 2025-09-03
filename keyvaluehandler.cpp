@@ -68,7 +68,7 @@ QList<QVariant> KeyValueHandler::deleteRowModel(QTableView *tableView, QStandard
     QModelIndexList indexlist = selectionModel->selectedIndexes();
 
     QList<QVariant> userData;
-    foreach (QModelIndex idx, indexlist)
+    for (QModelIndex &idx : indexlist)
     {
         QVariant data = itemsModel.item(idx.row(), 0)->data(Qt::UserRole);
         if (!data.isNull())

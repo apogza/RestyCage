@@ -74,7 +74,7 @@
      </property>
      <widget class="QTabWidget" name="requestTabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="reqParamsTab">
        <attribute name="title">
@@ -482,7 +482,7 @@
         <item>
          <widget class="QStackedWidget" name="reqBodyStackedWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page_5">
            <layout class="QGridLayout" name="gridLayout_5">
@@ -526,7 +526,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="reqBodyFormDataRemoveRowBtn">
                 <property name="text">
                  <string/>
                 </property>

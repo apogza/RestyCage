@@ -2,14 +2,14 @@
 
 Environment::Environment() {}
 
-Environment::Environment(int id, QString name, bool active)
+Environment::Environment(int id, QString &name, bool active)
 {
     m_id = id;
     m_name = name;
     m_active = active;
 }
 
-void Environment::setName(QString name)
+void Environment::setName(QString &name)
 {
     m_name = name;
 }
@@ -24,17 +24,17 @@ void Environment::setId(int id)
     m_id = id;
 }
 
-void Environment::addParam(ParamValue paramValue)
+void Environment::addParam(ParamValue &paramValue)
 {
     m_params.append(paramValue);
 }
 
-void Environment::setDeletedParams(QList<int> deletedParams)
+void Environment::setDeletedParams(QList<int> &deletedParams)
 {
     m_deletedParams = deletedParams;
 }
 
-QString Environment::name()
+QString &Environment::name()
 {
     return m_name;
 }

@@ -44,9 +44,9 @@ private slots:
 
     void on_reqBodyFormDataAddRowBtn_clicked();
 
-    void on_reqHeadersTableView_doubleClicked(const QModelIndex &index);
+    void on_reqBodyFormDataRemoveRowBtn_clicked();
 
-    void on_pushButton_2_clicked();
+    void on_reqHeadersTableView_doubleClicked(const QModelIndex &index);
 
     void on_reqAddUrlEncodedBodyRowBtn_clicked();
 
@@ -57,6 +57,8 @@ private slots:
     void on_reqFileSelectionBtn_clicked();
 
     void on_saveQueryBtn_clicked();
+
+
 
 private:
     Ui::QueryForm *ui;
@@ -69,13 +71,18 @@ private:
     QString m_name;
     Db &m_db = Db::instance();
 
+    QList<int> m_deletedParams;
+    QList<int> m_deletedHeaders;
+    QList<int> m_deletedMultiPartParams;
+    QList<int> m_deletedEncodedFormParams;
+
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
 
     void initModels();
     void addSimpleModelRow(QStandardItemModel &itemsModel);
     void editSimpleRow(QStandardItemModel &itemsModel, int row, int column);
-    void removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel);
+    QList<QVariant> removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel);
 
     void setRequestParams(QUrlQuery &url);
     void setRequestAuth(QNetworkRequest &req);
@@ -89,6 +96,7 @@ private:
 
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
     Query createQuery();
+
 
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);

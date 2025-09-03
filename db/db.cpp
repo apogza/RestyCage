@@ -60,7 +60,6 @@ void Db::initEnvs()
             "name TEXT,"
             "value TEXT,"
             "description TEXT,"
-            "auth_type INTEGER,"
             "FOREIGN KEY (env_id) REFERENCES envs on DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
@@ -105,6 +104,8 @@ void Db::initQueries()
             "name TEXT,"
             "method TEXT,"
             "url TEXT,"
+            "auth_type INTEGER,"
+            "body_type INTEGER,"
             "FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
         if (execResult)
@@ -112,7 +113,6 @@ void Db::initQueries()
             qDebug() << "Created queries table";
         }
     }
-
 
     if (!tables.contains(queriesParamsTable))
     {
@@ -269,7 +269,7 @@ bool Db::saveEnv(Environment &env)
         result = insertEnv(env);
     }
 
-    result = result && deleteEnvParameters(env.deletedParams());
+    result = result && deleteEnvParams(env.deletedParams());
 
     return result;
 }
@@ -431,7 +431,7 @@ std::optional<Environment> Db::getEnv(int envId)
         Environment env(id, name, active);
 
         QList<ParamValue> envParams = getEnvParams(id);
-        for (ParamValue param: envParams)
+        for (ParamValue &param: envParams)
         {
             env.addParam(param);
         }
@@ -501,23 +501,6 @@ bool Db::updateEnv(Environment &environment)
     return result;
 }
 
-bool Db::deleteEnvParameters(const QList<int> &deletedParams)
-{
-    bool result = true;
-    for (int i = 0; i < deletedParams.size(); i++)
-    {
-        QSqlQuery deletedParam(m_db);
-        deletedParam.prepare("DELETE FROM envs_params WHERE id= :param_id;");
-        deletedParam.bindValue(":param_id", deletedParams[i]);
-
-        bool deleteResult = deletedParam.exec();
-
-        result = result && deleteResult;
-    }
-
-    return result;
-}
-
 bool Db::insertCollection(Collection &collection)
 {
     QSqlQuery insertCollectionQuery(m_db);
@@ -568,16 +551,47 @@ bool Db::deleteCollection(int collectionId)
     return deleteCollection.exec();
 }
 
+std::optional<Query> Db::getQuery(int queryId)
+{
+    QSqlQuery getQuery(m_db);
+    getQuery.prepare("SELECT id, collection_id, name, method, url, auth_type, body_type "
+                     "FROM queries "
+                     "WHERE id = :id;");
+
+    if (getQuery.exec() && getQuery.next())
+    {
+        Query query;
+        query.setId(getQuery.value(0).toInt());
+        query.setCollectionId(getQuery.value(1).toInt());
+        query.setName(getQuery.value(2).toString());
+        query.setMethod(getQuery.value(3).toString());
+        query.setUrl(getQuery.value(4).toString());
+        query.setAuthType(static_cast<Query::AuthType>(getQuery.value(5).toInt()));
+        query.setBodyType(static_cast<Query::BodyType>(getQuery.value(6).toInt()));
+
+
+        return query;
+    }
+
+    return std::nullopt;
+}
+
 bool Db::saveQuery(Query &query)
 {
+    bool result = true;
+
     if (query.id().has_value())
     {
-        return updateQuery(query);
+        result = updateQuery(query);
     }
     else
     {
-        return insertQuery(query);
+        result = insertQuery(query);
     }
+
+    result = result && deleteQueryDeletedParams(query);
+
+    return result;
 }
 
 bool Db::deleteQuery(int queryId)
@@ -650,6 +664,22 @@ bool Db::updateEnvParam(int envId, ParamValue &paramValue)
     return updateEnvParam.exec();
 }
 
+bool Db::deleteEnvParams(QList<int> &idList)
+{
+    bool result = true;
+
+    for (int &id : idList)
+    {
+        QSqlQuery deleteEnvParams(m_db);
+        deleteEnvParams.prepare("DELETE FROM envs_params WHERE id = :id;");
+        deleteEnvParams.bindValue(":id", id);
+
+        result = result && deleteEnvParams.exec();
+    }
+
+    return result;
+}
+
 bool Db::insertQuery(Query &query)
 {
     if (!query.collectionId().has_value())
@@ -676,6 +706,7 @@ bool Db::insertQuery(Query &query)
     insertResult = insertResult && saveQueryParams(query);
     insertResult = insertResult && saveQueryHeaders(query);
     insertResult = insertResult && saveQueryAuth(query);
+    insertResult = insertResult && saveQueryBody(query);
 
     return insertResult;
 }
@@ -708,111 +739,113 @@ bool Db::updateQuery(Query &query)
     updateResult = updateResult && saveQueryParams(query);
     updateResult = updateResult && saveQueryHeaders(query);
     updateResult = updateResult && saveQueryAuth(query);
+    updateResult = updateResult && saveQueryBody(query);
 
     return updateResult;
 }
 
-bool Db::saveQueryAuth(Query &query)
+bool Db::saveBasicQueryAuth(BasicQueryAuth &basicQueryAuth)
 {
-    if (query.basicAuth().id().has_value())
+    if (basicQueryAuth.id().has_value())
     {
-        return updateQueryAuth(query);
+        return updateBasicQueryAuth(basicQueryAuth);
     }
     {
-        return insertQuery(query);
+        return insertBasicQueryAuth(basicQueryAuth);
     }
 }
 
-bool Db::insertQueryAuth(Query &query)
+bool Db::insertBasicQueryAuth(BasicQueryAuth &basicQueryAuth)
 {
-    if (!query.id().has_value())
-    {
-        return false;
-    }
-
-    if (query.authType() == Query::AuthType::None)
-    {
-        return true;
-    }
-
     QSqlQuery insertQueryAuth(m_db);
     bool insertResult = false;
+    insertQueryAuth.prepare("INSERT INTO queries_auth_bascic(query_id, username, password) "
+                            "VALUES (:query_id, :username, :password);");
+    insertQueryAuth.bindValue(":query_id", basicQueryAuth.queryId().value());
+    insertQueryAuth.bindValue(":username", basicQueryAuth.username());
+    insertQueryAuth.bindValue(":password", basicQueryAuth.password());
 
-    if (query.authType() == Query::AuthType::Basic)
-    {
+    insertResult = insertQueryAuth.exec();
 
-        insertQueryAuth.prepare("INSERT INTO queries_auth_bascic(query_id, username, password, bearer_token) "
-                                "VALUES (:query_id, :username, :password, :bearer_token);");
+    int authId = insertQueryAuth.lastInsertId().toInt();
 
-        insertQueryAuth.bindValue(":query_id", query.id().value());
-
-        BasicQueryAuth &basicAuth = query.basicAuth();
-
-        insertQueryAuth.bindValue(":username", basicAuth.username());
-        insertQueryAuth.bindValue(":password", basicAuth.password());
-
-        insertResult = insertQueryAuth.exec();
-
-        int authId = insertQueryAuth.lastInsertId().toInt();
-        basicAuth.setId(authId);
-    }
-    else
-    {
-        BearerQueryAuth &bearerAuth = query.bearerAuth();
-        insertQueryAuth.prepare("INSERT INTO queries_auth_bearer(query_id, bearer_token) "
-                                "VALUES (:query_id, :bearer_token);");
-
-        insertQueryAuth.bindValue(":query_id", query.id().value());
-        insertQueryAuth.bindValue(":bearer_token", bearerAuth.bearerToken());
-
-        insertResult = insertQueryAuth.exec();
-
-        int authId = insertQueryAuth.lastInsertId().toInt();
-        bearerAuth.setId(authId);
-    }
+    basicQueryAuth.setId(authId);
 
     return insertResult;
 }
 
-bool Db::updateQueryAuth(Query &query)
+bool Db::updateBasicQueryAuth(BasicQueryAuth &basicqQueryAuth)
 {
-    if (!query.id().has_value())
-    {
-        return false;
-    }
-
-
-    if (query.authType() == Query::AuthType::None)
-    {
-        QSqlQuery deleteAuth(m_db);
-        deleteAuth.prepare("DELETE FROM queries_auth WHERE query_id = :query_id");
-        deleteAuth.bindValue(":query_id", query.id().value());
-
-        return deleteAuth.exec();
-    }
-
     QSqlQuery updateAuth(m_db);
     updateAuth.prepare("UPDATE queries_auth SET "
                        "username = :username,"
                        "password = :password,"
-                       "bearer_token = :bearer_token "
                        "WHERE id = :id;");
 
+    updateAuth.bindValue(":username", basicqQueryAuth.username());
+    updateAuth.bindValue(":password", basicqQueryAuth.password());
+    updateAuth.bindValue(":id", basicqQueryAuth.id().value());
 
-    if (query.authType() == Query::AuthType::Basic)
+    return updateAuth.exec();
+}
+
+bool Db::saveBearerQueryAuth(BearerQueryAuth &bearerQueryAuth)
+{
+    if (bearerQueryAuth.id().has_value())
     {
-        BasicQueryAuth &basicAuth = query.basicAuth();
-
-        updateAuth.bindValue(":username", basicAuth.username());
-        updateAuth.bindValue(":password", basicAuth.password());
+        return updateBearerQueryAuth(bearerQueryAuth);
     }
     else
     {
-        BearerQueryAuth &bearerAuth = query.bearerAuth();
-        updateAuth.bindValue(":bearer_token", bearerAuth.bearerToken());
+        return insertBearerQueryAuth(bearerQueryAuth);
+    }
+}
+
+bool Db::insertBearerQueryAuth(BearerQueryAuth &bearerQueryAuth)
+{
+    QSqlQuery insertBearerAuth(m_db);
+
+    insertBearerAuth.prepare("INSERT INTO queries_auth_bearer (query_id, bearer_token)"
+                             "VALUES(:query_id, :bearer_token);");
+
+    insertBearerAuth.bindValue(":query_id", bearerQueryAuth.id().value());
+    insertBearerAuth.bindValue(":bearer_token", bearerQueryAuth.bearerToken());
+
+    bool execResult = insertBearerAuth.exec();
+
+    int id = insertBearerAuth.lastInsertId().toInt();
+    bearerQueryAuth.setId(id);
+
+    return execResult;
+}
+
+bool Db::updateBearerQueryAuth(BearerQueryAuth &bearerQueryAuth)
+{
+    QSqlQuery updateBearerAuth(m_db);
+
+    updateBearerAuth.prepare("UPDATE queries_auth_bearer SET "
+                             "bearer_token = :bearer_token"
+                             "WHERE id = :id");
+
+    updateBearerAuth.bindValue(":bearer_token", bearerQueryAuth.bearerToken());
+    updateBearerAuth.bindValue(":id", bearerQueryAuth.id().value());
+
+    return updateBearerAuth.exec();
+}
+
+bool Db::saveQueryAuth(Query &query)
+{
+    if (query.authType() == Query::AuthType::Basic)
+    {
+        return saveBasicQueryAuth(query.basicAuth());
     }
 
-    return updateAuth.exec();
+    if (query.authType() == Query::AuthType::BearerToken)
+    {
+        return saveBearerQueryAuth(query.bearerAuth());
+    }
+
+    return true;
 }
 
 bool Db::saveQueryHeaders(Query &query)
@@ -875,6 +908,21 @@ bool Db::updateQueryHeader(ParamValue &header)
     return updateHeader.exec();
 }
 
+bool Db::deleteQueryHeaders(QList<int> &idList)
+{
+    bool result = true;
+
+    for (int &id : idList)
+    {
+        QSqlQuery deleteHeader(m_db);
+        deleteHeader.prepare("DELETE FROM queries_headers WHERE id = :id;");
+        deleteHeader.bindValue(":id", id);
+        result = result && deleteHeader.exec();
+    }
+
+    return result;
+}
+
 bool Db::saveQueryParams(Query &query)
 {
     if (!query.id().has_value())
@@ -932,4 +980,308 @@ bool Db::updateQueryParam(ParamValue &paramValue)
     bool execResult = updateQueryParam.exec();
 
     return execResult;
+}
+
+bool Db::deleteQueryParams(QList<int> &idList)
+{
+    bool result = true;
+
+    for (int &id : idList)
+    {
+        QSqlQuery deleteParam(m_db);
+        deleteParam.prepare("DELETE FROM queries_params WHERE id = :id;");
+        deleteParam.bindValue(":id", id);
+        result = result && deleteParam.exec();
+    }
+
+    return result;
+}
+
+bool Db::saveQueryBody(Query &query)
+{
+    bool result = false;
+
+    switch (query.bodyType())
+    {
+    case Query::BodyType::MultipartForm:
+        result = saveQueryBodyFormData(query);
+        break;
+    case Query::BodyType::EncodedForm:
+        result = saveQueryBodyEncodedFormData(query);
+        break;
+    case Query::BodyType::Raw:
+        result = saveQueryRawBody(query);
+        break;
+    case Query::BodyType::Binary:
+        result = saveQueryBinaryBody(query);
+        break;
+    case Query::BodyType::Empty:
+        result = true;
+        break;
+    default:
+        result = false;
+        break;
+    }
+
+    return result;
+}
+
+bool Db::saveQueryBodyFormData(Query &query)
+{
+    bool result = true;
+
+    for (ParamValue &paramValue : query.multipartFormBody())
+    {
+        if (paramValue.id().has_value())
+        {
+            result = result && updateQueryBodyFormDataParam(paramValue);
+        }
+        else
+        {
+            result = result && insertQueryBodyFormDataParam(query.id().value(), paramValue);
+        }
+    }
+
+    return result;
+}
+
+bool Db::insertQueryBodyFormDataParam(int queryId, ParamValue &paramValue)
+{
+    QSqlQuery insertBodyFormDataParam(m_db);
+    insertBodyFormDataParam.prepare("INSERT INTO queries_form_data_body(query_id, name, type, value, description)"
+                                    "VALUES(:query_id, :name, :type, :value, :description);");
+
+    insertBodyFormDataParam.bindValue(":query_id", queryId);
+    insertBodyFormDataParam.bindValue(":name", paramValue.getValue("name"));
+    insertBodyFormDataParam.bindValue(":type", paramValue.getValueType());
+    insertBodyFormDataParam.bindValue(":value", paramValue.getValue("value"));
+    insertBodyFormDataParam.bindValue(":description", paramValue.getValue("description"));
+
+    bool execResult = insertBodyFormDataParam.exec();
+
+    int id = insertBodyFormDataParam.lastInsertId().toInt();
+    paramValue.setId(id);
+
+    return execResult;
+}
+
+bool Db::updateQueryBodyFormDataParam(ParamValue &paramValue)
+{
+    QSqlQuery updateBodyFormDataParam(m_db);
+    updateBodyFormDataParam.prepare("UPDATE queries_form_data_body SET"
+                                    "name = :name,"
+                                    "type = :type,"
+                                    "value = :value,"
+                                    "description = :description "
+                                    "WHERE id = :id");
+
+    updateBodyFormDataParam.bindValue(":name", paramValue.getValue("name"));
+    updateBodyFormDataParam.bindValue(":type", paramValue.getValueType());
+    updateBodyFormDataParam.bindValue(":value", paramValue.getValue("value"));
+    updateBodyFormDataParam.bindValue(":description", paramValue.getValue("description"));
+    updateBodyFormDataParam.bindValue(":id", paramValue.id().value());
+
+    return updateBodyFormDataParam.exec();
+}
+
+bool Db::deleteQueryBodyMultipartParams(QList<int> &idParams)
+{
+    bool result = true;
+
+    for (int &id: idParams)
+    {
+        QSqlQuery deleteParam(m_db);
+        deleteParam.prepare("DELETE FROM queries_form_data_body WHERE id = :id;");
+        deleteParam.bindValue(":id", id);
+        result = result && deleteParam.exec();
+    }
+
+    return result;
+}
+
+bool Db::saveQueryBodyEncodedFormData(Query &query)
+{
+    bool result = true;
+
+    for (ParamValue &paramValue : query.encodedFormBody())
+    {
+        if (paramValue.id().has_value())
+        {
+            result = result && updateQueryEncodedFormData(paramValue);
+        }
+        else
+        {
+            result = result && insertQueryEncodedFormData(query.id().value(), paramValue);
+        }
+    }
+
+    return result;
+}
+
+bool Db::insertQueryEncodedFormData(int queryId, ParamValue &paramValue)
+{
+    QSqlQuery insertEncodedFormData(m_db);
+
+    insertEncodedFormData.prepare("INSERT INTO queries_encoded_form_body(query_id, name, value, description)"
+                                  "VALUES(:query_id, :name, :value, :description);");
+
+    insertEncodedFormData.bindValue(":query_id", queryId);
+    insertEncodedFormData.bindValue(":name", paramValue.getValue("name"));
+    insertEncodedFormData.bindValue(":value", paramValue.getValue("value"));
+    insertEncodedFormData.bindValue(":description", paramValue.getValue("description"));
+
+    bool execResult = insertEncodedFormData.exec();
+
+    int id = insertEncodedFormData.lastInsertId().toInt();
+    paramValue.setId(id);
+
+    return execResult;
+}
+
+bool Db::updateQueryEncodedFormData(ParamValue &paramValue)
+{
+    QSqlQuery updateEncodedFormData(m_db);
+
+    updateEncodedFormData.prepare("UPDATE queries_encoded_form_body SET "
+                                  "name = :name,"
+                                  "value = :value,"
+                                  "description = :description "
+                                  "WHERE id = :id;");
+
+    updateEncodedFormData.bindValue(":name", paramValue.getValue("name"));
+    updateEncodedFormData.bindValue(":value", paramValue.getValue("value"));
+    updateEncodedFormData.bindValue(":description", paramValue.getValue("description"));
+    updateEncodedFormData.bindValue(":id", paramValue.id().value());
+
+    return updateEncodedFormData.exec();
+}
+
+bool Db::deleteQueryEncodedForm(QList<int> &idParams)
+{
+    bool result = true;
+    for (int &id : idParams)
+    {
+        QSqlQuery deleteParam(m_db);
+        deleteParam.prepare("DELETE FROM queries_encoded_form_body WHERE id = :id;");
+        deleteParam.bindValue(":id", id);
+
+        result = result && deleteParam.exec();
+    }
+
+    return result;
+}
+
+bool Db::saveQueryRawBody(Query &query)
+{
+    if (query.rawBody().id().has_value())
+    {
+        return updateQueryRawBody(query.rawBody());
+    }
+    else
+    {
+        return insertQueryRawBody(query.rawBody());
+    }
+}
+
+bool Db::insertQueryRawBody(QueryRawBody &rawBody)
+{
+    QSqlQuery insertRawBody(m_db);
+    insertRawBody.prepare("INSERT INTO queries_raw_body(query_id, type, value) "
+                          "VALUES(:query_id, :type, :value);");
+    insertRawBody.bindValue(":query_id", rawBody.queryId().value());
+    insertRawBody.bindValue(":type", rawBody.rawBodyType());
+    insertRawBody.bindValue(":value", rawBody.value());
+
+    bool execResult = insertRawBody.exec();
+
+    int id = insertRawBody.lastInsertId().toInt();
+
+    rawBody.setId(id);
+
+    return execResult;
+}
+
+bool Db::updateQueryRawBody(QueryRawBody &rawBody)
+{
+    QSqlQuery updateRawBody(m_db);
+
+    updateRawBody.prepare("UPDATE queries_raw_body SET "
+                          "type = :type,"
+                          "value = :value "
+                          "WHERE id = :id;");
+    updateRawBody.bindValue(":type", rawBody.rawBodyType());
+    updateRawBody.bindValue(":value", rawBody.value());
+    updateRawBody.bindValue(":id", rawBody.id().value());
+
+    return updateRawBody.exec();
+}
+
+bool Db::saveQueryBinaryBody(Query &query)
+{
+    if (query.binaryBody().id().has_value())
+    {
+        return updateQueryBinaryBody(query.binaryBody());
+    }
+    else
+    {
+        return insertQueryBinaryBody(query.binaryBody());
+    }
+}
+
+bool Db::insertQueryBinaryBody(QueryBinaryBody &binaryBody)
+{
+    QSqlQuery insertBinaryBody(m_db);
+
+    insertBinaryBody.prepare("INSERT into queries_binary_body(query_id, file_path)"
+                             "VALUES(:query_id, :filepath);");
+    insertBinaryBody.bindValue(":query_id", binaryBody.queryId().value());
+    insertBinaryBody.bindValue(":file_path", binaryBody.filepath());
+
+    bool execResult = insertBinaryBody.exec();
+
+    int id = insertBinaryBody.lastInsertId().toInt();
+
+    binaryBody.setId(id);
+
+    return execResult;
+}
+
+bool Db::updateQueryBinaryBody(QueryBinaryBody &binaryBody)
+{
+    QSqlQuery updateBinaryBody(m_db);
+
+    updateBinaryBody.prepare("UPDATE queries_binary_body SET "
+                             "file_path = :file_path "
+                             "WHERE id = :id;");
+    updateBinaryBody.bindValue(":file_path", binaryBody.filepath());
+    updateBinaryBody.bindValue(":id", binaryBody.id().value());
+
+    return updateBinaryBody.exec();
+}
+
+bool Db::deleteQueryDeletedParams(Query &query)
+{
+    bool result = true;
+
+    if (!query.deletedParams().empty())
+    {
+        result = result && deleteQueryParams(query.deletedParams());
+    }
+
+    if (!query.deletedHeaders().empty())
+    {
+        result = result && deleteQueryHeaders(query.deletedHeaders());
+    }
+
+    if (!query.deletedMultipartParams().empty())
+    {
+        result = result && deleteQueryBodyMultipartParams(query.deletedMultipartParams());
+    }
+
+    if (!query.deletedEncodedFormParams().empty())
+    {
+        result = result && deleteQueryEncodedForm(query.deletedEncodedFormParams());
+    }
+
+    return result;
 }

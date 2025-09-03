@@ -285,45 +285,53 @@ Query QueryForm::createQuery()
     }
 
     Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
-    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+    query.setBodyType(bodyType);
 
     switch (bodyType) {
     case Query::BodyType::Raw:
-        query.setRawBodyType(Query::rawBodyTypeFromString(ui->rawContentTypeComboBox->currentText()));
-        query.setRawBodyValue(ui->reqRawBodyTextEdit->toPlainText());
+    {
+        QueryRawBody::RawBodyType rawBodyType = QueryRawBody::rawBodyTypeFromString(ui->rawContentTypeComboBox->currentText());
+        QString value = ui->reqRawBodyTextEdit->toPlainText();
+        QueryRawBody rawBody(rawBodyType, value);
+
+        query.setRawBody(rawBody);
         break;
+    }
     case Query::BodyType::EncodedForm:
-        query.setEncodedForm(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        query.setEncodedFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
         break;
     case Query::BodyType::MultipartForm:
-        query.setMultipartForm(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        query.setMultipartFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
         break;
     case Query::BodyType::Binary:
-        query.setBinaryForm(m_binaryBodyFilePath);
+    {
+        QueryBinaryBody binaryBody(m_binaryBodyFilePath);
+        query.setBinaryBody(binaryBody);
         break;
+    }
     default:
         break;
     }
 
+    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+    query.setAuthType(authType);
+
     if (authType == Query::AuthType::Basic)
     {
-        query.setAuthType(Query::AuthType::Basic);
-
         BasicQueryAuth basicAuth(ui->authBasicUserEdit->text(), ui->authBasicPasswordEdit->text());
         query.setBasicAuth(basicAuth);
     }
     else if (authType == Query::AuthType::BearerToken)
     {
-        query.setAuthType(Query::AuthType::BearerToken);
-
         QString bearerToken = ui->bearerTokenEdit->text();
         BearerQueryAuth bearerAuth(bearerToken);
         query.setBearerAuth(bearerAuth);
     }
-    else
-    {
-        query.setAuthType(Query::AuthType::None);
-    }
+
+    query.setDeletedParameters(m_deletedParams);
+    query.setDeletedHeaders(m_deletedHeaders);
+    query.setDeletedMultipartParams(m_deletedMultiPartParams);
+    query.setDeletedEncodedFormParams(m_deletedEncodedFormParams);
 
     return query;
 }
@@ -400,9 +408,9 @@ void QueryForm::editSimpleRow(QStandardItemModel &itemsModel, int row, int colum
     keyValueHandler->editRowModel(this, itemsModel, row, column);
 }
 
-void QueryForm::removeModelRow(QTableView *tableView, QStandardItemModel &itemsModel)
+QList<QVariant> QueryForm::removeModelRow(QTableView *tableView, QStandardItemModel &itemsModel)
 {
-    keyValueHandler->deleteRowModel(tableView, itemsModel);
+    return keyValueHandler->deleteRowModel(tableView, itemsModel);
 }
 
 void QueryForm::on_reqAddParamBtn_clicked()
@@ -412,7 +420,15 @@ void QueryForm::on_reqAddParamBtn_clicked()
 
 void QueryForm::on_reqRemoveParamBtn_clicked()
 {
-    removeModelRow(ui->reqParamsTableView, m_reqParamsModel);
+    QList<QVariant> removedItems = removeModelRow(ui->reqParamsTableView, m_reqParamsModel);
+
+    for (QVariant &idVal : removedItems)
+    {
+        if (!idVal.isNull() && idVal.isValid())
+        {
+            m_deletedParams.append(idVal.toInt());
+        }
+    }
 }
 
 void QueryForm::on_reqHeadersAddBtn_clicked()
@@ -422,7 +438,15 @@ void QueryForm::on_reqHeadersAddBtn_clicked()
 
 void QueryForm::on_reqHeadersRemoveBtn_clicked()
 {
-    removeModelRow(ui->reqHeadersTableView, m_reqHeadersModel);
+    QList<QVariant> removedItems = removeModelRow(ui->reqHeadersTableView, m_reqHeadersModel);
+
+    for (QVariant &idVal: removedItems)
+    {
+        if (!idVal.isNull() && idVal.isValid())
+        {
+            m_deletedHeaders.append(idVal.toInt());
+        }
+    }
 }
 
 void QueryForm::on_reqBodyTypeComboBox_currentIndexChanged(int index)
@@ -481,11 +505,6 @@ void QueryForm::on_reqHeadersTableView_doubleClicked(const QModelIndex &index)
     editSimpleRow(m_reqHeadersModel, index.row(), index.column());
 }
 
-void QueryForm::on_pushButton_2_clicked()
-{
-    removeModelRow(ui->reqBodyFormTableView, m_reqFormBodyModel);
-}
-
 void QueryForm::on_reqAddUrlEncodedBodyRowBtn_clicked()
 {
     addSimpleModelRow(m_reqUrlEncodedFormBodyModel);
@@ -493,7 +512,15 @@ void QueryForm::on_reqAddUrlEncodedBodyRowBtn_clicked()
 
 void QueryForm::on_reqRemoveUrlEncodedBodyRowBtn_clicked()
 {
-    removeModelRow(ui->reqUrlEncodedBodyTableView, m_reqUrlEncodedFormBodyModel);
+    QList<QVariant> removedItems = removeModelRow(ui->reqUrlEncodedBodyTableView, m_reqUrlEncodedFormBodyModel);
+
+    for (QVariant &idVal : removedItems)
+    {
+        if (!idVal.isNull() && idVal.isValid())
+        {
+            m_deletedMultiPartParams.append(idVal.toInt());
+        }
+    }
 }
 
 void QueryForm::on_reqUrlEncodedBodyTableView_doubleClicked(const QModelIndex &index)
@@ -519,5 +546,27 @@ void QueryForm::on_saveQueryBtn_clicked()
     NameDialog nameDialog;
 
     Query query = createQuery();
-    m_db.saveQuery(query);
+    bool saveResult = m_db.saveQuery(query);
+
+    if (saveResult)
+    {
+        m_deletedParams.clear();
+        m_deletedHeaders.clear();
+        m_deletedMultiPartParams.clear();
+        m_deletedEncodedFormParams.clear();
+    }
 }
+
+void QueryForm::on_reqBodyFormDataRemoveRowBtn_clicked()
+{
+    QList<QVariant> removedItems = removeModelRow(ui->reqBodyFormTableView, m_reqFormBodyModel);
+
+    for (QVariant &idVal : removedItems)
+    {
+        if (!idVal.isNull() && idVal.isValid())
+        {
+            m_deletedMultiPartParams.append(idVal.toInt());
+        }
+    }
+}
+

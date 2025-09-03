@@ -32,6 +32,8 @@ qt_add_executable(RestyCage
     dialogs/collectiondialog.h dialogs/collectiondialog.cpp dialogs/collectiondialog.ui
     db/basic_query_auth.h db/basic_query_auth.cpp
     db/bearer_query_auth.h db/bearer_query_auth.cpp
+    db/query_binary_body.h db/query_binary_body.cpp
+    db/query_raw_body.h db/query_raw_body.cpp
 
 
 )

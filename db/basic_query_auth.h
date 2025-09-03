@@ -13,13 +13,14 @@ public:
     std::optional<int> id();
     QString &username();
     QString &password();
-    int queryId();
+    std::optional<int> queryId();
 
     void setId(int id);
+    void setQueryId(int queryId);
 
 private:
     std::optional<int> m_id;
-    int m_queryId;
+    std::optional<int> m_queryId;
     QString m_username;
     QString m_password;
 };
