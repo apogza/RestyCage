@@ -599,34 +599,21 @@ std::optional<Query> Db::getQuery(int queryId)
         }
     }
 
-    if (query.bodyType() == Query::BodyType::MultipartForm)
+    query.setMultipartFormBody(getQueryMultiPartBody(queryId));
+    query.setEncodedFormBody(getQueryEncodedFormBody(queryId));
+
+    std::optional<QueryBinaryBody> binaryBody = getQueryBinaryBody(queryId);
+
+    if (binaryBody.has_value())
     {
-        query.setMultipartFormBody(getQueryMultiPartBody(queryId));
+        query.setBinaryBody(binaryBody.value());
     }
 
-    if (query.bodyType() == Query::BodyType::EncodedForm)
+    std::optional<QueryRawBody> rawBody = getQueryRawBody(queryId);
+
+    if (rawBody.has_value())
     {
-        query.setEncodedFormBody(getQueryEncodedFormBody(queryId));
-    }
-
-    if (query.bodyType() == Query::Binary)
-    {
-        std::optional<QueryBinaryBody> binaryBody = getQueryBinaryBody(queryId);
-
-        if (binaryBody.has_value())
-        {
-            query.setBinaryBody(binaryBody.value());
-        }
-    }
-
-    if (query.bodyType() == Query::Raw)
-    {
-        std::optional<QueryRawBody> rawBody = getQueryRawBody(queryId);
-
-        if (rawBody.has_value())
-        {
-            query.setRawBody(rawBody.value());
-        }
+        query.setRawBody(rawBody.value());
     }
 
     return query;
