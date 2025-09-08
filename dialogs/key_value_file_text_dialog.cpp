@@ -1,5 +1,5 @@
-#include "keyvaluefiletextdialog.h"
-#include "ui_keyvaluefiletextdialog.h"
+#include "key_value_file_text_dialog.h"
+#include "ui_key_value_file_text_dialog.h"
 #include <QFileDialog>
 
 KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent)

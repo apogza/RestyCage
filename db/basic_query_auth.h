@@ -8,6 +8,7 @@ class BasicQueryAuth
 public:
     BasicQueryAuth();
     BasicQueryAuth(QString &username, QString &password);
+    BasicQueryAuth(int id, int queryId, QString &username, QString &password);
 
 
     std::optional<int> id();

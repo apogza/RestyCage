@@ -1,5 +1,5 @@
-#ifndef COLLECTIONDIALOG_H
-#define COLLECTIONDIALOG_H
+#ifndef COLLECTION_DIALOG_H
+#define COLLECTION_DIALOG_H
 
 #include <QDialog>
 #include "../db/collection.h"
@@ -19,11 +19,11 @@ public:
     void setCollectionList(QList<Collection>& collectionList);
 
     QString name();
-    std::optional<int> parent();
+    std::optional<int> collectionId();
 
 private:
     Ui::CollectionDialog *ui;
     QList<Collection> m_collectionsList;
 };
 
-#endif // COLLECTIONDIALOG_H
+#endif // COLLECTION_DIALOG_H

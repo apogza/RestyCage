@@ -1,5 +1,5 @@
-#ifndef KEYVALUEHANDLER_H
-#define KEYVALUEHANDLER_H
+#ifndef KEY_VALUE_HANDLER_H
+#define KEY_VALUE_HANDLER_H
 
 #include <QObject>
 #include <QWidget>
@@ -17,4 +17,4 @@ public:
     QList<QVariant> deleteRowModel(QTableView *tableView, QStandardItemModel &itemsModel);
 };
 
-#endif // KEYVALUEHANDLER_H
+#endif // KEY_VALUE_HANDLER_H

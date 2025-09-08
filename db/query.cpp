@@ -108,12 +108,12 @@ QList<ParamValue> &Query::multipartFormBody()
     return m_multipartFormParams;
 }
 
-QueryRawBody &Query::rawBody()
+std::optional<QueryRawBody> &Query::rawBody()
 {
     return m_queryRawBody;
 }
 
-QueryBinaryBody &Query::binaryBody()
+std::optional<QueryBinaryBody> &Query::binaryBody()
 {
     return m_queryBinaryBody;
 }
@@ -141,6 +141,16 @@ QList<int> &Query::deletedEncodedFormParams()
 void Query::setId(int id)
 {
     m_id = id;
+
+    if (m_queryRawBody.has_value())
+    {
+        m_queryRawBody.value().setQueryId(id);
+    }
+
+    if (m_queryBinaryBody.has_value())
+    {
+        m_queryBinaryBody.value().setQueryId(id);
+    }
 }
 
 void Query::setCollectionId(int collectionId)
@@ -148,17 +158,17 @@ void Query::setCollectionId(int collectionId)
     m_collectionId = collectionId;
 }
 
-void Query::setName(QString name)
+void Query::setName(QString &name)
 {
     m_name = name;
 }
 
-void Query::setMethod(QString method)
+void Query::setMethod(QString &method)
 {
     m_method = method;
 }
 
-void Query::setUrl(QString url)
+void Query::setUrl(QString &url)
 {
     m_url = url;
 }

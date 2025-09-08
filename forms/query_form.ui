@@ -74,7 +74,7 @@
      </property>
      <widget class="QTabWidget" name="requestTabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="reqParamsTab">
        <attribute name="title">

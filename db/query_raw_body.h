@@ -23,6 +23,7 @@ public:
     QString &value();
 
     void setId(int id);
+    void setQueryId(int queryId);
 
 private:
     std::optional<int> m_id;

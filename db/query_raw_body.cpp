@@ -5,6 +5,7 @@ QueryRawBody::QueryRawBody() {}
 QueryRawBody::QueryRawBody(RawBodyType rawBodyType, QString &value)
 {
     m_rawBodyType = rawBodyType;
+    m_value = value;
 }
 
 QueryRawBody::QueryRawBody(int id, int queryId, RawBodyType rawBodyType, QString &value)
@@ -58,6 +59,11 @@ QString &QueryRawBody::value()
 void QueryRawBody::setId(int id)
 {
     m_id = id;
+}
+
+void QueryRawBody::setQueryId(int queryId)
+{
+    m_queryId = queryId;
 }
 
 QueryRawBody::RawBodyType QueryRawBody::rawBodyType()

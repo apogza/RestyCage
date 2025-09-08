@@ -1,9 +1,9 @@
-#include "environmentform.h"
-#include "ui_environmentform.h"
+#include "environment_form.h"
+#include "ui_environment_form.h"
 #include "../constants.h"
-#include "../db/paramvalue.h"
+#include "../db/param_value.h"
 #include "../db/environment.h"
-#include "../dialogs/namedialog.h"
+#include "../dialogs/name_dialog.h"
 
 #include <QVariant>
 

@@ -1,7 +1,7 @@
-#ifndef ENVIRONMENTFORM_H
-#define ENVIRONMENTFORM_H
+#ifndef ENVIRONMENT_FORM_H
+#define ENVIRONMENT_FORM_H
 
-#include "../keyvaluehandler.h"
+#include "../key_value_handler.h"
 #include "../db/db.h"
 
 #include <QWidget>
@@ -48,4 +48,4 @@ private:
     void initModel();
 };
 
-#endif // ENVIRONMENTFORM_H
+#endif // ENVIRONMENT_FORM_H

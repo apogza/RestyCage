@@ -557,20 +557,260 @@ std::optional<Query> Db::getQuery(int queryId)
     getQuery.prepare("SELECT id, collection_id, name, method, url, auth_type, body_type "
                      "FROM queries "
                      "WHERE id = :id;");
+    getQuery.bindValue(":id", queryId);
 
-    if (getQuery.exec() && getQuery.next())
+    if (!getQuery.exec() || !getQuery.next())
     {
-        Query query;
-        query.setId(getQuery.value(0).toInt());
-        query.setCollectionId(getQuery.value(1).toInt());
-        query.setName(getQuery.value(2).toString());
-        query.setMethod(getQuery.value(3).toString());
-        query.setUrl(getQuery.value(4).toString());
-        query.setAuthType(static_cast<Query::AuthType>(getQuery.value(5).toInt()));
-        query.setBodyType(static_cast<Query::BodyType>(getQuery.value(6).toInt()));
+        return std::nullopt;
+    }
 
+    Query query;
+    query.setId(getQuery.value(0).toInt());
+    query.setCollectionId(getQuery.value(1).toInt());
+    QString name = getQuery.value(2).toString();
+    QString method = getQuery.value(3).toString();
+    QString url = getQuery.value(4).toString();
+    query.setName(name);
+    query.setMethod(method);
+    query.setUrl(url);
+    query.setAuthType(static_cast<Query::AuthType>(getQuery.value(5).toInt()));
+    query.setBodyType(static_cast<Query::BodyType>(getQuery.value(6).toInt()));
 
-        return query;
+    query.setParameters(getQueryParams(queryId));
+    query.setHeaders(getQueryHeaders(queryId));
+
+    if (query.authType() == Query::AuthType::Basic)
+    {
+        std::optional<BasicQueryAuth> basicAuth = getQueryBasicAuth(queryId);
+
+        if (basicAuth.has_value())
+        {
+            query.setBasicAuth(basicAuth.value());
+        }
+    }
+
+    if (query.authType() == Query::AuthType::BearerToken)
+    {
+        std::optional<BearerQueryAuth> bearerAuth = getQueryBearerAuth(queryId);
+
+        if (bearerAuth.has_value())
+        {
+            query.setBearerAuth(bearerAuth.value());
+        }
+    }
+
+    if (query.bodyType() == Query::BodyType::MultipartForm)
+    {
+        query.setMultipartFormBody(getQueryMultiPartBody(queryId));
+    }
+
+    if (query.bodyType() == Query::BodyType::EncodedForm)
+    {
+        query.setEncodedFormBody(getQueryEncodedFormBody(queryId));
+    }
+
+    if (query.bodyType() == Query::Binary)
+    {
+        std::optional<QueryBinaryBody> binaryBody = getQueryBinaryBody(queryId);
+
+        if (binaryBody.has_value())
+        {
+            query.setBinaryBody(binaryBody.value());
+        }
+    }
+
+    if (query.bodyType() == Query::Raw)
+    {
+        std::optional<QueryRawBody> rawBody = getQueryRawBody(queryId);
+
+        if (rawBody.has_value())
+        {
+            query.setRawBody(rawBody.value());
+        }
+    }
+
+    return query;
+}
+
+QList<ParamValue> Db::getQueryParams(int queryId)
+{
+    QList<ParamValue> result;
+
+    QSqlQuery getParams(m_db);
+    getParams.prepare("SELECT id, name, value, description FROM query_params WHERE query_id = :query_id;");
+    getParams.bindValue(":query_id", queryId);
+
+    getParams.exec();
+    while (getParams.next())
+    {
+        int id = getParams.value(0).toInt();
+        QString name = getParams.value(1).toString();
+        QString value = getParams.value(2).toString();
+        QString description = getParams.value(3).toString();
+
+        ParamValue param(id, name, value, description);
+        result.append(param);
+    }
+
+    return result;
+
+}
+
+QList<ParamValue> Db::getQueryHeaders(int queryId)
+{
+    QList<ParamValue> result;
+    QSqlQuery getHeaders(m_db);
+    getHeaders.prepare("SELECT id, name, value, description FROM query_headers WHERE query_id = :query_id;");
+    getHeaders.bindValue(":query_id", queryId);
+
+    getHeaders.exec();
+    while (getHeaders.next())
+    {
+        int id = getHeaders.value(0).toInt();
+        QString name = getHeaders.value(1).toString();
+        QString value = getHeaders.value(2).toString();
+        QString description = getHeaders.value(3).toString();
+
+        ParamValue param(id, name, value, description);
+        result.append(param);
+    }
+
+    return result;
+}
+
+QList<ParamValue> Db::getQueryMultiPartBody(int queryId)
+{
+    QList<ParamValue> result;
+    QSqlQuery getMultiPartParams(m_db);
+
+    getMultiPartParams.prepare("SELECT id, name, type, value, description FROM query_form_data_body WHERE query_id = :query_id;");
+    getMultiPartParams.bindValue(":query_id", queryId);
+
+    getMultiPartParams.exec();
+
+    while (getMultiPartParams.next())
+    {
+        int id = getMultiPartParams.value(0).toInt();
+        QString name = getMultiPartParams.value(1).toString();
+        ParamValue::ParamValueType paramType = static_cast<ParamValue::ParamValueType>(getMultiPartParams.value(2).toInt());
+        QString value = getMultiPartParams.value(2).toString();
+        QString description = getMultiPartParams.value(3).toString();
+
+        ParamValue paramValue(id, name, value, description);
+        paramValue.setValueType(paramType);
+
+        result.append(paramValue);
+    }
+
+    return result;
+}
+
+QList<ParamValue> Db::getQueryEncodedFormBody(int queryId)
+{
+    QList<ParamValue> result;
+    QSqlQuery getEncodedFormParams(m_db);
+
+    getEncodedFormParams.prepare("SELECT id, name, value, description FROM query_encoded_form_body WHERE query_id = :query_id;");
+    getEncodedFormParams.bindValue(":query_id", queryId);
+
+    getEncodedFormParams.exec();
+
+    while (getEncodedFormParams.next())
+    {
+        int id = getEncodedFormParams.value(0).toInt();
+        QString name = getEncodedFormParams.value(1).toString();
+        QString value = getEncodedFormParams.value(2).toString();
+        QString description = getEncodedFormParams.value(3).toString();
+
+        ParamValue param(id, name, value, description);
+        result.append(param);
+    }
+
+    return result;
+}
+
+std::optional<QueryRawBody> Db::getQueryRawBody(int queryId)
+{
+    QSqlQuery getRawBody(m_db);
+    getRawBody.prepare("SELECT id, query_id, type, value FROM queries_raw_body WHERE query_id = :query_id;");
+    getRawBody.bindValue(":query_id", queryId);
+
+    getRawBody.exec();
+
+    if (getRawBody.next())
+    {
+        int id = getRawBody.value(0).toInt();
+        int queryId = getRawBody.value(1).toInt();
+        QueryRawBody::RawBodyType type = static_cast<QueryRawBody::RawBodyType>(getRawBody.value(2).toInt());
+        QString value = getRawBody.value(3).toString();
+        QueryRawBody rawBody(id, queryId, type, value);
+
+        return rawBody;
+    }
+
+    return std::nullopt;
+}
+
+std::optional<QueryBinaryBody> Db::getQueryBinaryBody(int queryId)
+{
+    QSqlQuery getBinaryBody(m_db);
+    getBinaryBody.prepare("SELECT id, query_id, file_path from queries_binary_body WHERE query_id = :query_id;");
+    getBinaryBody.bindValue(":query_id", queryId);
+
+    getBinaryBody.exec();
+
+    if (getBinaryBody.next())
+    {
+        int id = getBinaryBody.value(0).toInt();
+        int queryId = getBinaryBody.value(1).toInt();
+        QString filePath = getBinaryBody.value(2).toString();
+
+        QueryBinaryBody binaryBody(id, queryId, filePath);
+        return binaryBody;
+    }
+
+    return std::nullopt;
+}
+
+std::optional<BearerQueryAuth> Db::getQueryBearerAuth(int queryId)
+{
+    QSqlQuery getBearerAuth(m_db);
+    getBearerAuth.prepare("SELECT id, query_id, bearer_token FROM queries_auth_bearer WHERE query_id = :query_id;");
+    getBearerAuth.bindValue(":query_id", queryId);
+
+    getBearerAuth.exec();
+
+    if (getBearerAuth.next())
+    {
+        int id = getBearerAuth.value(0).toInt();
+        int dbQueryId = getBearerAuth.value(1).toInt();
+        QString bearerToken = getBearerAuth.value(2).toString();
+
+        BearerQueryAuth bearerAuth(id, dbQueryId, bearerToken);
+        return bearerAuth;
+    }
+
+    return std::nullopt;
+}
+
+std::optional<BasicQueryAuth> Db::getQueryBasicAuth(int queryId)
+{
+    QSqlQuery getBasicAuth(m_db);
+    getBasicAuth.prepare("SELECT id, query_id, username, password FROM queries_auth_basic WHERE query_id = :query_id;");
+    getBasicAuth.bindValue(":query_id", queryId);
+
+    getBasicAuth.exec();
+
+    if (getBasicAuth.next())
+    {
+        int id = getBasicAuth.value(0).toInt();
+        int dbQueryId = getBasicAuth.value(1).toInt();
+        QString username = getBasicAuth.value(2).toString();
+        QString password = getBasicAuth.value(3).toString();
+
+        BasicQueryAuth basicAuth(id, dbQueryId, username, password);
+
+        return basicAuth;
     }
 
     return std::nullopt;
@@ -699,6 +939,11 @@ bool Db::insertQuery(Query &query)
 
     bool insertResult = insert.exec();
     int id = insert.lastInsertId().toInt();
+
+    if (!insertResult)
+    {
+        qDebug() << insert.lastError();
+    }
 
     query.setId(id);
 
@@ -1173,13 +1418,13 @@ bool Db::deleteQueryEncodedForm(QList<int> &idParams)
 
 bool Db::saveQueryRawBody(Query &query)
 {
-    if (query.rawBody().id().has_value())
+    if (query.rawBody().value().id().has_value())
     {
-        return updateQueryRawBody(query.rawBody());
+        return updateQueryRawBody(query.rawBody().value());
     }
     else
     {
-        return insertQueryRawBody(query.rawBody());
+        return insertQueryRawBody(query.rawBody().value());
     }
 }
 
@@ -1218,13 +1463,13 @@ bool Db::updateQueryRawBody(QueryRawBody &rawBody)
 
 bool Db::saveQueryBinaryBody(Query &query)
 {
-    if (query.binaryBody().id().has_value())
+    if (query.binaryBody().value().id().has_value())
     {
-        return updateQueryBinaryBody(query.binaryBody());
+        return updateQueryBinaryBody(query.binaryBody().value());
     }
     else
     {
-        return insertQueryBinaryBody(query.binaryBody());
+        return insertQueryBinaryBody(query.binaryBody().value());
     }
 }
 

@@ -1,9 +1,11 @@
-#include "restycagewindow.h"
-#include "ui_restycagewindow.h"
-#include "environmentform.h"
-#include "queryform.h"
-#include "../dialogs/collectiondialog.h"
+#include "resty_cage_window.h"
+#include "ui_resty_cage_window.h"
+#include "environment_form.h"
+#include "query_form.h"
+#include "../dialogs/collection_dialog.h"
 #include "../constants.h"
+#include "../db/collection.h"
+#include "../models/treeview_item.h"
 
 #include <QDir>
 #include <QFileInfoList>
@@ -56,6 +58,10 @@ void RestyCageWindow::on_addEnvironmentBtn_clicked()
 void RestyCageWindow::addNewQuery()
 {
     QueryForm *queryForm = new QueryForm(ui->tabWidget);
+
+    connect(queryForm, &QueryForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
+    connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
+
     int idx = ui->tabWidget->addTab(queryForm, "New Query*");
 
     ui->tabWidget->setCurrentIndex(idx);
@@ -88,7 +94,12 @@ void RestyCageWindow::initCollections()
     {
         QStandardItem *collectionItem = new QStandardItem();
         collectionItem->setText(currentCollection.name());
-        collectionItem->setData(currentCollection.id().value(), Qt::UserRole);
+
+        TreeviewItem itemData(TreeviewItem::ItemType::Collection, currentCollection.id().value());
+        QVariant data;
+        data.setValue(itemData);
+
+        collectionItem->setData(data, Qt::UserRole);
         collectionItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::FolderOpen));
 
         std::optional<int> parentId = currentCollection.parent();
@@ -115,13 +126,19 @@ void RestyCageWindow::initCollections()
         {
             QStandardItem *queryItem = new QStandardItem();
             queryItem->setText(query.name());
-            queryItem->setData(query.id().value(), Qt::UserRole);
-            queryItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentOpen));
+            TreeviewItem itemData(TreeviewItem::ItemType::Query, query.id().value());
+            QVariant data;
+            data.setValue(itemData);
+
+            queryItem->setData(data, Qt::UserRole);
+            queryItem->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew));
             collectionItem->setChild(collectionItem->rowCount(), queryItem);
         }
     }
 
     ui->collectionsTreeView->setModel(&m_collectionsModel);
+    ui->collectionsTreeView->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
+    ui->collectionsTreeView->expandAll();
 }
 
 void RestyCageWindow::initAppDataFolder()
@@ -201,7 +218,7 @@ void RestyCageWindow::on_newCollectionBtn_clicked()
     if (dialogResult == QDialog::Accepted)
     {
         QString collectionName = collectionDialog.name();
-        std::optional<int> parent = collectionDialog.parent();
+        std::optional<int> parent = collectionDialog.collectionId();
         Collection newCollection(collectionName, parent);
         m_db.saveCollection(newCollection);
 
@@ -226,17 +243,55 @@ void RestyCageWindow::on_delEnvBtn_clicked()
     }
 }
 
-
 void RestyCageWindow::on_removeCollectionBtn_clicked()
 {
     QModelIndex idx = ui->collectionsTreeView->currentIndex();
     QStandardItem *selectedCollectionItem = m_collectionsModel.itemFromIndex(idx);
-    int collectionId = selectedCollectionItem->data(Qt::UserRole).toInt();
 
-    bool delResult = m_db.deleteCollection(collectionId);
+    TreeviewItem itemData = selectedCollectionItem->data(Qt::UserRole).value<TreeviewItem>();
+
+    bool delResult = false;
+
+    if (itemData.itemType() == TreeviewItem::ItemType::Collection)
+    {
+        delResult = m_db.deleteCollection(itemData.id());
+    }
+
+    if (itemData.itemType() == TreeviewItem::ItemType::Query)
+    {
+        delResult = m_db.deleteQuery(itemData.id());
+    }
+
     if (delResult)
     {
         initCollections();
+    }
+}
+
+
+void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &index)
+{
+    QStandardItem *selectedCollectionItem = m_collectionsModel.itemFromIndex(index);
+    TreeviewItem itemData = selectedCollectionItem->data(Qt::UserRole).value<TreeviewItem>();
+
+    if (itemData.itemType() == TreeviewItem::Query)
+    {
+        std::optional<Query> query = m_db.getQuery(itemData.id());
+
+        if (!query.has_value())
+        {
+            return;
+        }
+
+        QueryForm *queryForm = new QueryForm(this);
+
+        connect(queryForm, &QueryForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
+        connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
+
+        int idx = ui->tabWidget->addTab(queryForm, "");
+        ui->tabWidget->setCurrentIndex(idx);
+
+        queryForm->initFromDb(query.value());
     }
 }
 

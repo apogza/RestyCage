@@ -1,5 +1,5 @@
-#ifndef KEYVALUEFILETEXTDIALOG_H
-#define KEYVALUEFILETEXTDIALOG_H
+#ifndef KEY_VALUE_FILE_TEXT_DIALOG_H
+#define KEY_VALUE_FILE_TEXT_DIALOG_H
 
 #include <QDialog>
 
@@ -32,4 +32,4 @@ private:
     QString fileName;
 };
 
-#endif // KEYVALUEFILETEXTDIALOG_H
+#endif // KEY_VALUE_FILE_TEXT_DIALOG_H

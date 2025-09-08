@@ -10,6 +10,13 @@ BasicQueryAuth::BasicQueryAuth(QString &username, QString &password)
     m_password = password;
 }
 
+BasicQueryAuth::BasicQueryAuth(int id, int queryId, QString &username, QString &password)
+    : BasicQueryAuth(username, password)
+{
+    m_id = id;
+    m_queryId = queryId;
+}
+
 std::optional<int> BasicQueryAuth::id()
 {
     return m_id;

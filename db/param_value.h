@@ -1,5 +1,5 @@
-#ifndef PARAMVALUE_H
-#define PARAMVALUE_H
+#ifndef PARAM_VALUE_H
+#define PARAM_VALUE_H
 
 #include <QString>
 #include <QMap>
@@ -39,4 +39,4 @@ private:
 
 };
 
-#endif // PARAMVALUE_H
+#endif // PARAM_VALUE_H

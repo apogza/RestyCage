@@ -1,11 +1,10 @@
 #include "../constants.h"
-#include "ui_queryform.h"
-#include "../dialogs/keyvaluefiletextdialog.h"
+#include "ui_query_form.h"
+#include "../dialogs/key_value_file_text_dialog.h"
 #include "../qjsonmodel.h"
 #include "../db/query.h"
-#include "queryform.h"
-#include "../queryserializer.h"
-#include "../dialogs/namedialog.h"
+#include "query_form.h"
+#include "../dialogs/collection_dialog.h"
 #include "../db/db.h"
 
 #include <QFile>
@@ -34,6 +33,17 @@ QueryForm::QueryForm(QWidget *parent)
 QueryForm::~QueryForm()
 {
     delete ui;
+}
+
+void QueryForm::initFromDb(Query &query)
+{
+    emit changedName(this, query.name());
+    ui->urlEdit->setText(query.url());
+    m_queryId = query.id();
+
+    int idx = ui->methodComboBox->findText(query.method());
+    ui->methodComboBox->setCurrentIndex(idx);
+
 }
 
 void QueryForm::initModels()
@@ -271,8 +281,16 @@ Query QueryForm::createQuery()
 {
     Query query;
     query.setName(m_name);
-    query.setMethod(ui->methodComboBox->currentText());
-    query.setUrl(ui->urlEdit->text());
+
+    if (m_queryId.has_value())
+    {
+        query.setId(m_queryId.value());
+    }
+
+    QString method = ui->methodComboBox->currentText();
+    QString url = ui->urlEdit->text() ;
+    query.setMethod(method);
+    query.setUrl(url);
 
     if (m_reqParamsModel.rowCount() > 0)
     {
@@ -546,9 +564,30 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
 
 void QueryForm::on_saveQueryBtn_clicked()
 {
-    NameDialog nameDialog;
+    QList<Collection> collections = m_db.getCollections();
+
+    CollectionDialog collectionDialog;
+    collectionDialog.setCollectionList(collections);
+
+    int dialogResult = collectionDialog.exec();
+
+    if (dialogResult != QDialog::Accepted)
+    {
+        return;
+    }
+
+    std::optional<int> collectionId = collectionDialog.collectionId();
+
+    if (!collectionId.has_value())
+    {
+        return;
+    }
+
+    QString queryName = collectionDialog.name();
 
     Query query = createQuery();
+    query.setName(queryName);
+    query.setCollectionId(collectionId.value());
     bool saveResult = m_db.saveQuery(query);
 
     if (saveResult)

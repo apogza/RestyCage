@@ -43,7 +43,6 @@ private:
 
     bool saveQueryAuth(Query &query);
 
-
     bool saveQueryHeaders(Query &query);
     bool insertQueryHeader(int queryid, ParamValue &paramValue);
     bool updateQueryHeader(ParamValue &paramValue);
@@ -95,6 +94,15 @@ public:
     bool deleteCollection(int collectionId);
 
     std::optional<Query> getQuery(int queryId);
+    QList<ParamValue> getQueryParams(int queryId);
+    QList<ParamValue> getQueryHeaders(int queryId);
+    QList<ParamValue> getQueryMultiPartBody(int queryId);
+    QList<ParamValue> getQueryEncodedFormBody(int queryId);
+    std::optional<QueryRawBody> getQueryRawBody(int queryId);
+    std::optional<QueryBinaryBody> getQueryBinaryBody(int queryId);
+    std::optional<BearerQueryAuth> getQueryBearerAuth(int queryId);
+    std::optional<BasicQueryAuth> getQueryBasicAuth(int queryId);
+
     bool saveQuery(Query &query);
     bool deleteQuery(int queryId);
 

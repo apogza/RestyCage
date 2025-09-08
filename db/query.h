@@ -4,7 +4,7 @@
 #include <QString>
 #include <QList>
 
-#include "paramvalue.h"
+#include "param_value.h"
 #include "basic_query_auth.h"
 #include "bearer_query_auth.h"
 #include "query_raw_body.h"
@@ -38,8 +38,8 @@ public:
     QList<ParamValue> &headers();
     QList<ParamValue> &encodedFormBody();
     QList<ParamValue> &multipartFormBody();
-    QueryRawBody &rawBody();
-    QueryBinaryBody &binaryBody();
+    std::optional<QueryRawBody> &rawBody();
+    std::optional<QueryBinaryBody> &binaryBody();
 
     QList<int> &deletedParams();
     QList<int> &deletedHeaders();
@@ -48,9 +48,9 @@ public:
 
     void setId(int id);
     void setCollectionId(int collectionId);
-    void setName(QString name);
-    void setMethod(QString method);
-    void setUrl(QString url);
+    void setName(QString &name);
+    void setMethod(QString &method);
+    void setUrl(QString &url);
 
     void setAuthType(AuthType authType);
     void setBasicAuth(BasicQueryAuth& auth);
@@ -85,8 +85,8 @@ private:
     BearerQueryAuth m_bearerAuth;
 
     BodyType m_bodyType;
-    QueryRawBody m_queryRawBody;
-    QueryBinaryBody m_queryBinaryBody;
+    std::optional<QueryRawBody> m_queryRawBody;
+    std::optional<QueryBinaryBody> m_queryBinaryBody;
 
     QList<ParamValue> m_parameters;
     QList<ParamValue> m_headers;

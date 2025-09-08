@@ -1,5 +1,5 @@
-#include "collectiondialog.h"
-#include "ui_collectiondialog.h"
+#include "collection_dialog.h"
+#include "ui_collection_dialog.h"
 
 CollectionDialog::CollectionDialog(QWidget *parent)
     : QDialog(parent)
@@ -35,7 +35,7 @@ QString CollectionDialog::name()
     return ui->nameEdit->text();
 }
 
-std::optional<int> CollectionDialog::parent()
+std::optional<int> CollectionDialog::collectionId()
 {
     QVariant data = ui->parentComboBox->currentData();
 

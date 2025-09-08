@@ -1,5 +1,5 @@
-#ifndef RESTYCAGEWINDOW_H
-#define RESTYCAGEWINDOW_H
+#ifndef RESTY_CAGE_WINDOW_H
+#define RESTY_CAGE_WINDOW_H
 
 #include <QMainWindow>
 #include <QStandardItemModel>
@@ -19,6 +19,15 @@ class RestyCageWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    enum ItemType { CollectionItem, QueryItem };
+
+    class ItemData
+    {
+    public:
+        int id;
+        ItemType itemType;
+    };
+
     RestyCageWindow(QWidget *parent = nullptr);
     ~RestyCageWindow();
 
@@ -42,6 +51,8 @@ private slots:
 
     void on_removeCollectionBtn_clicked();
 
+    void on_collectionsTreeView_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::RestyCageWindow *ui;
     QStandardItemModel m_envsModel;
@@ -56,4 +67,4 @@ private:
     void initAppDataFolder();
 
 };
-#endif // RESTYCAGEWINDOW_H
+#endif // RESTY_CAGE_WINDOW_H

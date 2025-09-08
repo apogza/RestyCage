@@ -1,5 +1,5 @@
-#ifndef KEYVALUEDIALOG_H
-#define KEYVALUEDIALOG_H
+#ifndef KEY_VALUE_DIALOG_H
+#define KEY_VALUE_DIALOG_H
 
 #include <QDialog>
 
@@ -24,4 +24,4 @@ private:
     Ui::KeyValueDialog *ui;
 };
 
-#endif // KEYVALUEDIALOG_H
+#endif // KEY_VALUE_DIALOG_H

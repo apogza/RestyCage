@@ -1,8 +1,8 @@
-#ifndef QUERYFORM_H
-#define QUERYFORM_H
+#ifndef QUERY_FORM_H
+#define QUERY_FORM_H
 
-#include "../keyvaluehandler.h"
-#include "../db/paramvalue.h"
+#include "../key_value_handler.h"
+#include "../db/param_value.h"
 #include "../db/query.h"
 #include "../db/db.h"
 
@@ -26,6 +26,8 @@ class QueryForm : public QWidget
 public:
     explicit QueryForm(QWidget *parent = nullptr);
     ~QueryForm();
+
+    void initFromDb(Query &query);
 
 signals:
     void changedName(QueryForm *form, QString newName);
@@ -68,7 +70,9 @@ private:
     QStandardItemModel m_reqUrlEncodedFormBodyModel;
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
+
     QString m_name;
+    std::optional<int> m_queryId;
     Db &m_db = Db::instance();
 
     QList<int> m_deletedParams;
@@ -104,4 +108,4 @@ private:
 
 
 
-#endif // QUERYFORM_H
+#endif // QUERY_FORM_H

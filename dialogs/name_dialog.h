@@ -1,5 +1,5 @@
-#ifndef NAMEDIALOG_H
-#define NAMEDIALOG_H
+#ifndef NAME_DIALOG_H
+#define NAME_DIALOG_H
 
 #include <QDialog>
 
@@ -21,4 +21,4 @@ private:
     Ui::NameDialog *ui;
 };
 
-#endif // NAMEDIALOG_H
+#endif // NAME_DIALOG_H

@@ -1,5 +1,5 @@
-#include "keyvaluedialog.h"
-#include "ui_keyvaluedialog.h"
+#include "key_value_dialog.h"
+#include "ui_key_value_dialog.h"
 
 KeyValueDialog::KeyValueDialog(QWidget *parent)
     : QDialog(parent)

@@ -38,3 +38,8 @@ void QueryBinaryBody::setId(int id)
 {
     m_id = id;
 }
+
+void QueryBinaryBody::setQueryId(int id)
+{
+    m_queryId = id;
+}
