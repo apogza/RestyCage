@@ -19,7 +19,9 @@ QueryForm::QueryForm(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_nam = new QNetworkAccessManager(this);
+    m_networkHelper = new NetworkHelper(this);
+    connect(m_networkHelper, &NetworkHelper::replyReceived, this, &QueryForm::slotReplyReceived);
+
     keyValueHandler = new KeyValueHandler(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
@@ -43,7 +45,6 @@ void QueryForm::initFromDb(Query &query)
 
     int idx = ui->methodComboBox->findText(query.method());
     ui->methodComboBox->setCurrentIndex(idx);
-
 }
 
 void QueryForm::initModels()
@@ -88,31 +89,41 @@ void QueryForm::on_sendButton_clicked()
     QUrlQuery urlQuery(url);
     setRequestParams(urlQuery);
 
-    url.setQuery(urlQuery);
-    QNetworkRequest req(url);
+    m_networkHelper->initRequest(url);
 
-    setRequestAuth(req);
-    setRequestHeaders(req);
+    setRequestAuth();
+    setRequestHeaders();
 
-    sendRequest(req, urlQuery);
+    sendRequest(urlQuery);
 }
 
 void QueryForm::setRequestParams(QUrlQuery &url)
 {
+    QList<ParamValue> paramVal;
+
     for (int i = 0; i < m_reqParamsModel.rowCount(); i++)
     {
+        QMap<QString, QString> map;
+
         QString key = m_reqParamsModel.item(i, 0)->text();
         QString value = m_reqParamsModel.item(i, 1)->text();
-        url.addQueryItem(key, value);
+
+        map.insert("name", key);
+        map.insert("value", value);
+
+        ParamValue param(map);
+        paramVal << param;
     }
+
+    m_networkHelper->setRequestsUrlParams(url, paramVal);
 }
 
-void QueryForm::setRequestAuth(QNetworkRequest &req)
+void QueryForm::setRequestAuth()
 {
     if (ui->authComboBox->currentText() == "Bearer Token")
     {
         QString bearerToken = ui->bearerTokenEdit->text();
-        req.setRawHeader(authorizationHeader, QString("Bearer %1").arg(bearerToken).toUtf8());
+        m_networkHelper->setRequestBearerAuth(bearerToken);
     }
 
     if (ui->authComboBox->currentText() == "Basic Auth")
@@ -120,59 +131,63 @@ void QueryForm::setRequestAuth(QNetworkRequest &req)
         QString user = ui->authBasicUserEdit->text();
         QString password = ui->authBasicPasswordEdit->text();
 
-        req.setRawHeader(authorizationHeader, QString("Basic %1:%2").arg(user, password).toUtf8());
+        m_networkHelper->setRequestBasicAuth(user, password);
     }
 }
 
-void QueryForm::setRequestHeaders(QNetworkRequest &req)
+void QueryForm::setRequestHeaders()
 {
+    QList<ParamValue> headers;
+
     for (int i = 0; i < m_reqHeadersModel.rowCount(); i++)
     {
+        QMap<QString, QString> headerMap;
+
         QString headerKey = m_reqHeadersModel.item(i, 0)->text();
         QString headerValue = m_reqHeadersModel.item(i, 1)->text();
 
-        req.headers().append(headerKey, headerValue);
+        headerMap.insert("name", headerKey);
+        headerMap.insert("value", headerValue);
+
+        ParamValue param(headerMap);
+
+        headers.append(param);
     }
+
+    m_networkHelper->setRequestHeaders(headers);
 }
 
-void QueryForm::sendRequest(QNetworkRequest &request, QUrlQuery &urlQuery)
+void QueryForm::sendRequest(QUrlQuery &urlQuery)
 {
     const QString method = ui->methodComboBox->currentText();
 
     QString bodyType = ui->reqBodyTypeComboBox->currentText();
 
-    QNetworkReply *reply = nullptr;
-
     if (bodyType == "Form Data")
     {
-        reply = sendMultiPartRequest(request, method);
+        sendMultiPartRequest(method);
     }
     else if (bodyType == "X-www-encoded-form")
     {
-        reply = sendUrlEncodedFormRequest(request, method, urlQuery);
+        sendUrlEncodedFormRequest(method, urlQuery);
     }
     else if (bodyType == "Raw")
     {
-        reply = sendRawRequest(request, method);
+        sendRawRequest(method);
     }
     else if (bodyType == "Binary")
     {
-        reply = sendBinaryRequest(request, method);
+        sendBinaryRequest(method);
     }
     else
     {
-        reply = m_nam->sendCustomRequest(request, method.toUtf8());
+        m_networkHelper->sendCustomRequest(method.toUtf8());
     }
-
-    requestStartMs = QDateTime::currentMSecsSinceEpoch();
-
-    connect(reply, &QNetworkReply::finished, this, &QueryForm::readReply);
 }
 
-QNetworkReply *QueryForm::sendMultiPartRequest(QNetworkRequest &request, const QString &method)
+void QueryForm::sendMultiPartRequest(const QString &method)
 {
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("multipart/form-data"));
-    QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    QList<ParamValue> params;
 
     for (int i = 0; i < m_reqFormBodyModel.rowCount(); i++)
     {
@@ -180,79 +195,50 @@ QNetworkReply *QueryForm::sendMultiPartRequest(QNetworkRequest &request, const Q
         QString type = m_reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
         QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
 
-        QHttpPart part;
-        part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QString("form-data; name=\"%1\"").arg(key)));
+        QMap<QString, QString> paramMap;
+        paramMap.insert("name", key);
+        paramMap.insert("type", type);
+        paramMap.insert("value", value);
 
-        if (type == "File")
-        {
-            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-            QFile *file = new QFile(value, multiPart);
-
-            file->open(QIODevice::ReadOnly);
-            part.setBodyDevice(file);
-            multiPart->append(part);
-        }
-        else
-        {
-            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
-            part.setBody(value.toUtf8());
-        }
+        ParamValue param(paramMap);
+        params.append(param);
     }
 
-    return m_nam->sendCustomRequest(request, method.toUtf8(), multiPart);
+    m_networkHelper->sendMultiPartRequest(method.toUtf8(), params);
 }
 
-QNetworkReply *QueryForm::sendUrlEncodedFormRequest(QNetworkRequest &request, const QString &method, QUrlQuery &urlQuery)
+void QueryForm::sendUrlEncodedFormRequest(const QString &method, QUrlQuery &urlQuery)
 {
+    QList<ParamValue> params;
     for (int i = 0; i < m_reqUrlEncodedFormBodyModel.rowCount(); i++)
     {
         QString key = m_reqUrlEncodedFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
         QString value = m_reqUrlEncodedFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
 
         urlQuery.addQueryItem(key, value);
+
+        QMap<QString, QString> paramMap;
+        paramMap.insert("name", key);
+        paramMap.insert("value", value);
+
+        ParamValue paramValue(paramMap);
+        params.append(paramValue);
     }
 
-    return m_nam->sendCustomRequest(request, method.toUtf8());
+    m_networkHelper->sendUrlEncodedFormRequest(method, urlQuery, params);
 }
 
-QNetworkReply *QueryForm::sendRawRequest(QNetworkRequest &request, const QString &method)
+void QueryForm::sendRawRequest(const QString &method)
 {
     QString body = ui->reqRawBodyTextEdit->toPlainText();
     QString bodyType = ui->rawContentTypeComboBox->currentText();
 
-    if (bodyType == "JSON")
-    {
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
-    }
-    else if (bodyType == "XML")
-    {
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/xml"));
-    }
-    else if (bodyType == "HTML")
-    {
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/html"));
-    }
-    else if (bodyType == "JavaScript")
-    {
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/javascript"));
-    }
-    else
-    {
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
-    }
-
-    return m_nam->sendCustomRequest(request, method.toUtf8(), body.toUtf8());
+    m_networkHelper->sendRawRequest(method, bodyType, body.toUtf8());
 }
 
-QNetworkReply *QueryForm::sendBinaryRequest(QNetworkRequest &request, const QString &method)
-{
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-
-    QFile file(m_binaryBodyFilePath);
-    file.open(QIODevice::ReadOnly);
-    QByteArray fileByteArray = file.readAll();
-
-    return m_nam->sendCustomRequest(request, method.toUtf8(), fileByteArray);
+void QueryForm::sendBinaryRequest(const QString &method)
+{    
+    m_networkHelper->sendBinaryRequest(method, m_binaryBodyFilePath);
 }
 
 QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns)
@@ -355,6 +341,20 @@ Query QueryForm::createQuery()
     query.setDeletedEncodedFormParams(m_deletedEncodedFormParams);
 
     return query;
+}
+
+void QueryForm::slotReplyReceived()
+{
+    ui->statusLbl->setText(QString("HTTP %1").arg(QString::number(m_networkHelper->statusCode())));
+    ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(m_networkHelper->replyBody().size())));
+    ui->timeLbl->setText(QString("%1 ms").arg(QString::number(m_networkHelper->replyTotalTime())));
+
+    QJsonModel *model = new QJsonModel(ui->respJsonTreeView);
+    ui->respJsonTreeView->setModel(model);
+    model->loadJson(m_networkHelper->replyBody());
+
+    ui->requestTabWidget->setDisabled(false);
+    ui->responseTabWidget->setDisabled(false);
 }
 
 void QueryForm::readReply()
@@ -611,4 +611,3 @@ void QueryForm::on_reqBodyFormDataRemoveRowBtn_clicked()
         }
     }
 }
-

@@ -65,7 +65,7 @@ void ParamValue::setValueType(ParamValueType type)
     m_type = type;
 }
 
-QString &ParamValue::getValue(const QString &key)
+QString &ParamValue::value(const QString &key)
 {
     if (m_valueMap.contains(key))
     {

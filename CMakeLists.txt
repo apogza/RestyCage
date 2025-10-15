@@ -4,6 +4,7 @@ project(RestyCage LANGUAGES CXX)
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
@@ -36,6 +37,8 @@ qt_add_executable(RestyCage
     db/query_binary_body.h db/query_binary_body.cpp
     db/query_raw_body.h db/query_raw_body.cpp
     models/treeview_item.h models/treeview_item.cpp
+    network_helper.h network_helper.cpp
+
 
 
 
@@ -48,6 +51,7 @@ target_link_libraries(RestyCage
         Qt::Network
         Qt::Sql
 )
+target_link_libraries(RestyCage PRIVATE Qt6::Core)
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
 

@@ -13,6 +13,7 @@
 #include <QTableView>
 #include <QNetworkReply>
 #include <QUrlQuery>
+#include "../network_helper.h"
 
 
 namespace Ui {
@@ -64,7 +65,7 @@ private slots:
 
 private:
     Ui::QueryForm *ui;
-    QNetworkAccessManager *m_nam;
+    NetworkHelper *m_networkHelper;
     QStandardItemModel m_reqParamsModel;
     QStandardItemModel m_reqHeadersModel;
     QStandardItemModel m_reqUrlEncodedFormBodyModel;
@@ -89,19 +90,19 @@ private:
     QList<QVariant> removeModelRow(QTableView* tableView, QStandardItemModel &itemsModel);
 
     void setRequestParams(QUrlQuery &url);
-    void setRequestAuth(QNetworkRequest &req);
-    void setRequestHeaders(QNetworkRequest &req);
+    void setRequestAuth();
+    void setRequestHeaders();
 
-    void sendRequest(QNetworkRequest &request, QUrlQuery &urlQuery);
-    QNetworkReply *sendMultiPartRequest(QNetworkRequest &request, const QString &method);
-    QNetworkReply *sendUrlEncodedFormRequest(QNetworkRequest &request, const QString &method, QUrlQuery &urlQuery);
-    QNetworkReply *sendRawRequest(QNetworkRequest &request, const QString &method);
-    QNetworkReply *sendBinaryRequest(QNetworkRequest &request, const QString &method);
+    void sendRequest(QUrlQuery &urlQuery);
+    void sendMultiPartRequest(const QString &method);
+    void sendUrlEncodedFormRequest(const QString &method, QUrlQuery &urlQuery);
+    void sendRawRequest(const QString &method);
+    void sendBinaryRequest(const QString &method);
 
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
     Query createQuery();
 
-
+    void slotReplyReceived();
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);
 };

@@ -34,14 +34,14 @@ void EnvironmentForm::initFromDb(Environment &env)
     for (ParamValue &param: params)
     {
         QStandardItem *nameItem = new QStandardItem();
-        nameItem->setText(param.getValue("name"));
+        nameItem->setText(param.value("name"));
         nameItem->setData(param.id().value(), Qt::UserRole);
 
         QStandardItem *valueItem = new QStandardItem();
-        valueItem->setText(param.getValue("value"));
+        valueItem->setText(param.value("value"));
 
         QStandardItem *descriptionItem = new QStandardItem();
-        descriptionItem->setText(param.getValue("description"));
+        descriptionItem->setText(param.value("description"));
 
         m_envItemModel.setItem(i, 0, nameItem);
         m_envItemModel.setItem(i, 1, valueItem);

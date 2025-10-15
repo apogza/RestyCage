@@ -863,9 +863,9 @@ bool Db::insertEnvParam(int envId, ParamValue &paramValue)
                            "VALUES (:env_id, :name, :value, :description);");
 
     insertEnvParam.bindValue(":env_id", envId);
-    insertEnvParam.bindValue(":name", paramValue.getValue("name"));
-    insertEnvParam.bindValue(":value", paramValue.getValue("value"));
-    insertEnvParam.bindValue(":description", paramValue.getValue("description"));
+    insertEnvParam.bindValue(":name", paramValue.value("name"));
+    insertEnvParam.bindValue(":value", paramValue.value("value"));
+    insertEnvParam.bindValue(":description", paramValue.value("description"));
 
     bool result = insertEnvParam.exec();
 
@@ -883,9 +883,9 @@ bool Db::updateEnvParam(int envId, ParamValue &paramValue)
                            "description = :description "
                            "WHERE id = :param_id;");
 
-    updateEnvParam.bindValue(":name", paramValue.getValue("name"));
-    updateEnvParam.bindValue(":value", paramValue.getValue("value"));
-    updateEnvParam.bindValue(":description", paramValue.getValue("description"));
+    updateEnvParam.bindValue(":name", paramValue.value("name"));
+    updateEnvParam.bindValue(":value", paramValue.value("value"));
+    updateEnvParam.bindValue(":description", paramValue.value("description"));
     updateEnvParam.bindValue(":param_id", paramValue.id().value());
 
     return updateEnvParam.exec();
@@ -1107,9 +1107,9 @@ bool Db::insertQueryHeader(int queryId, ParamValue &header)
     insertHeader.prepare("INSERT INTO queries_headers(query_id, name, value, description) "
                          "VALUES (:query_id, :name, :value, :description);");
     insertHeader.bindValue(":query_id", queryId);
-    insertHeader.bindValue(":name", header.getValue("name"));
-    insertHeader.bindValue(":value", header.getValue("value"));
-    insertHeader.bindValue(":description", header.getValue("description"));
+    insertHeader.bindValue(":name", header.value("name"));
+    insertHeader.bindValue(":value", header.value("value"));
+    insertHeader.bindValue(":description", header.value("description"));
 
     bool insertResult = insertHeader.exec();
     int headerId = insertHeader.lastInsertId().toInt();
@@ -1132,9 +1132,9 @@ bool Db::updateQueryHeader(ParamValue &header)
                          "description = :description "
                          "WHERE id = :id");
 
-    updateHeader.bindValue(":name", header.getValue("name"));
-    updateHeader.bindValue(":value", header.getValue("value"));
-    updateHeader.bindValue(":description", header.getValue("description"));
+    updateHeader.bindValue(":name", header.value("name"));
+    updateHeader.bindValue(":value", header.value("value"));
+    updateHeader.bindValue(":description", header.value("description"));
     updateHeader.bindValue(":id", header.id().value());
 
     return updateHeader.exec();
@@ -1186,9 +1186,9 @@ bool Db::insertQueryParam(int queryId, ParamValue &paramValue)
                              "VALUES(:query_id, :name, :value, :description);");
 
     insertQueryParam.bindValue(":query_id", queryId);
-    insertQueryParam.bindValue(":name", paramValue.getValue("name"));
-    insertQueryParam.bindValue(":value", paramValue.getValue("value"));
-    insertQueryParam.bindValue(":description", paramValue.getValue("description"));
+    insertQueryParam.bindValue(":name", paramValue.value("name"));
+    insertQueryParam.bindValue(":value", paramValue.value("value"));
+    insertQueryParam.bindValue(":description", paramValue.value("description"));
 
     bool execResult = insertQueryParam.exec();
     int id = insertQueryParam.lastInsertId().toInt();
@@ -1205,9 +1205,9 @@ bool Db::updateQueryParam(ParamValue &paramValue)
                              "value = :value,"
                              "description = :description "
                              "WHERE id = :param_id");
-    updateQueryParam.bindValue(":name", paramValue.getValue("name"));
-    updateQueryParam.bindValue(":value", paramValue.getValue("value"));
-    updateQueryParam.bindValue(":description", paramValue.getValue("description"));
+    updateQueryParam.bindValue(":name", paramValue.value("name"));
+    updateQueryParam.bindValue(":value", paramValue.value("value"));
+    updateQueryParam.bindValue(":description", paramValue.value("description"));
 
     bool execResult = updateQueryParam.exec();
 
@@ -1284,10 +1284,10 @@ bool Db::insertQueryBodyFormDataParam(int queryId, ParamValue &paramValue)
                                     "VALUES(:query_id, :name, :type, :value, :description);");
 
     insertBodyFormDataParam.bindValue(":query_id", queryId);
-    insertBodyFormDataParam.bindValue(":name", paramValue.getValue("name"));
+    insertBodyFormDataParam.bindValue(":name", paramValue.value("name"));
     insertBodyFormDataParam.bindValue(":type", paramValue.getValueType());
-    insertBodyFormDataParam.bindValue(":value", paramValue.getValue("value"));
-    insertBodyFormDataParam.bindValue(":description", paramValue.getValue("description"));
+    insertBodyFormDataParam.bindValue(":value", paramValue.value("value"));
+    insertBodyFormDataParam.bindValue(":description", paramValue.value("description"));
 
     bool execResult = insertBodyFormDataParam.exec();
 
@@ -1307,10 +1307,10 @@ bool Db::updateQueryBodyFormDataParam(ParamValue &paramValue)
                                     "description = :description "
                                     "WHERE id = :id");
 
-    updateBodyFormDataParam.bindValue(":name", paramValue.getValue("name"));
+    updateBodyFormDataParam.bindValue(":name", paramValue.value("name"));
     updateBodyFormDataParam.bindValue(":type", paramValue.getValueType());
-    updateBodyFormDataParam.bindValue(":value", paramValue.getValue("value"));
-    updateBodyFormDataParam.bindValue(":description", paramValue.getValue("description"));
+    updateBodyFormDataParam.bindValue(":value", paramValue.value("value"));
+    updateBodyFormDataParam.bindValue(":description", paramValue.value("description"));
     updateBodyFormDataParam.bindValue(":id", paramValue.id().value());
 
     return updateBodyFormDataParam.exec();
@@ -1358,9 +1358,9 @@ bool Db::insertQueryEncodedFormData(int queryId, ParamValue &paramValue)
                                   "VALUES(:query_id, :name, :value, :description);");
 
     insertEncodedFormData.bindValue(":query_id", queryId);
-    insertEncodedFormData.bindValue(":name", paramValue.getValue("name"));
-    insertEncodedFormData.bindValue(":value", paramValue.getValue("value"));
-    insertEncodedFormData.bindValue(":description", paramValue.getValue("description"));
+    insertEncodedFormData.bindValue(":name", paramValue.value("name"));
+    insertEncodedFormData.bindValue(":value", paramValue.value("value"));
+    insertEncodedFormData.bindValue(":description", paramValue.value("description"));
 
     bool execResult = insertEncodedFormData.exec();
 
@@ -1380,9 +1380,9 @@ bool Db::updateQueryEncodedFormData(ParamValue &paramValue)
                                   "description = :description "
                                   "WHERE id = :id;");
 
-    updateEncodedFormData.bindValue(":name", paramValue.getValue("name"));
-    updateEncodedFormData.bindValue(":value", paramValue.getValue("value"));
-    updateEncodedFormData.bindValue(":description", paramValue.getValue("description"));
+    updateEncodedFormData.bindValue(":name", paramValue.value("name"));
+    updateEncodedFormData.bindValue(":value", paramValue.value("value"));
+    updateEncodedFormData.bindValue(":description", paramValue.value("description"));
     updateEncodedFormData.bindValue(":id", paramValue.id().value());
 
     return updateEncodedFormData.exec();

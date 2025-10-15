@@ -24,7 +24,7 @@ public:
     ParamValueType getValueType();
     void setValueType(ParamValueType type);
 
-    QString &getValue(const QString &key);
+    QString &value(const QString &key);
     void insert(QString key, QString value);
 
     void setAllValues(const QMap<QString, QString> &valueMap);
