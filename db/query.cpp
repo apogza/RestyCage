@@ -3,11 +3,11 @@
 
 Query::AuthType Query::authTypeFromString(const QString &authType)
 {
-    if (authType == "Bearer")
+    if (authType == "Bearer Token")
     {
         return AuthType::BearerToken;
     }
-    else if (authType == "Basic")
+    else if (authType == "Basic Auth")
     {
         return AuthType::Basic;
     }
@@ -26,10 +26,10 @@ QString Query::authTypeToString(const AuthType authType)
         result = "None";
         break;
     case AuthType::Basic:
-        result = "Basic";
+        result = "Basic Auth";
         break;
     case AuthType::BearerToken:
-        result = "Bearer";
+        result = "Bearer Token";
         break;
     default:
         break;
@@ -78,12 +78,12 @@ Query::AuthType Query::authType()
     return m_authType;
 }
 
-BasicQueryAuth &Query::basicAuth()
+std::optional<BasicQueryAuth> &Query::basicAuth()
 {
     return m_basicAuth;
 }
 
-BearerQueryAuth &Query::bearerAuth()
+std::optional<BearerQueryAuth> &Query::bearerAuth()
 {
     return m_bearerAuth;
 }

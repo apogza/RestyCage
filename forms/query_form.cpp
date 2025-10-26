@@ -25,7 +25,7 @@ QueryForm::QueryForm(QWidget *parent)
     keyValueHandler = new KeyValueHandler(this);
 
     ui->respHeadersTableWidget->setColumnCount(2);
-    ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << keyHeader << valueHeader);
+    ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
     ui->rawContentTypeComboBox->setVisible(false);
 
     initModels();
@@ -39,32 +39,76 @@ QueryForm::~QueryForm()
 
 void QueryForm::initFromDb(Query &query)
 {
+    //indicate to the main window what the name of query is so that the tab title is set
     emit changedName(this, query.name());
+
     ui->urlEdit->setText(query.url());
     m_queryId = query.id();
+    m_name = query.name();
+    m_collectionId = query.collectionId();
+
+    if (query.rawBody().has_value())
+    {
+        m_rawBodyId = query.rawBody()->id();
+    }
+
+    if (query.binaryBody().has_value())
+    {
+        m_binaryBodyId = query.binaryBody()->id();
+    }
 
     int idx = ui->methodComboBox->findText(query.method());
     ui->methodComboBox->setCurrentIndex(idx);
+
+    ui->authComboBox->setCurrentIndex(query.authType());
+
+
+    loadItemsFromDb(m_reqParamsModel, query.parameters());
+    loadItemsFromDb(m_reqHeadersModel, query.headers());
+
+    if (query.basicAuth().has_value())
+    {
+        m_basicAuthId = query.basicAuth().value().id();
+        ui->authBasicUserEdit->setText(query.basicAuth().value().username());
+        ui->authBasicPasswordEdit->setText(query.basicAuth().value().password());
+    }
+
+    if (query.bearerAuth().has_value())
+    {
+        m_bearerAuthId = query.bearerAuth().value().id();
+        ui->bearerTokenEdit->setText(query.bearerAuth().value().bearerToken());
+    }
+
+    ui->reqBodyTypeComboBox->setCurrentIndex(query.bodyType());
+
+    loadItemsFromDb(m_reqFormBodyModel, query.multipartFormBody());
+    loadItemsFromDb(m_reqUrlEncodedFormBodyModel, query.encodedFormBody());
+
+    if (query.bodyType() == Query::BodyType::Raw && query.rawBody().has_value())
+    {
+        ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
+        ui->reqRawBodyTextEdit->setText(query.rawBody()->value());
+    }
 }
 
 void QueryForm::initModels()
 {
     m_reqParamsModel.insertColumns(0, 3);
-    m_reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
     m_reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqParamsTableView->setModel(&m_reqParamsModel);
 
     m_reqHeadersModel.insertColumns(0, 3);
-    m_reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
     m_reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqHeadersTableView->setModel(&m_reqHeadersModel);
 
     m_reqFormBodyModel.insertColumns(0, 4);
-    m_reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(typeHeader));
     m_reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(valueHeader));
     m_reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr(descriptionHeader));
@@ -72,7 +116,7 @@ void QueryForm::initModels()
     ui->reqBodyFormTableView->setModel(&m_reqFormBodyModel);
 
     m_reqUrlEncodedFormBodyModel.insertColumns(0, 3);
-    m_reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
     m_reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
@@ -247,21 +291,57 @@ QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemMod
     for (int i = 0; i < itemsModel.rowCount(); i++)
     {
         QMap<QString, QString> paramValueMap;
+        int id = -1;
 
         for (int j = 0; j < numColumns; j++)
         {
             QVariant headerData = itemsModel.headerData(j, Qt::Orientation::Horizontal, Qt::DisplayRole);
+            QVariant itemData = itemsModel.item(i, j)->data(Qt::UserRole);
+            if (!itemData.isNull())
+            {
+                id = itemData.toInt();
+            }
 
             paramValueMap.insert(
-                headerData.toString(),
+                headerData.toString().toLower(),
                 itemsModel.item(i, j)->data(Qt::DisplayRole).toString());
         }
 
-        parameters.append(ParamValue(paramValueMap));
+        ParamValue param(paramValueMap);
+
+        if (id > -1)
+        {
+            param.setId(id);
+        }
+
+        parameters.append(param);
     }
 
     return parameters;
 }
+
+void QueryForm::loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue> &vals)
+{
+
+    for (ParamValue &paramVal: vals)
+    {
+        QList<QStandardItem*> rowItems;
+
+        QStandardItem *nameItem = new QStandardItem();
+        nameItem->setText(paramVal.value("name"));
+        nameItem->setData(paramVal.id().value(), Qt::UserRole);
+
+        rowItems.append(nameItem);
+        rowItems.append(new QStandardItem(paramVal.value("value")));
+        if (paramVal.hasValue("description"))
+        {
+            rowItems.append(new QStandardItem(paramVal.value("description")));
+        }
+
+        itemsModel.insertRow(itemsModel.rowCount(), rowItems);
+    }
+}
+
 
 Query QueryForm::createQuery()
 {
@@ -271,6 +351,11 @@ Query QueryForm::createQuery()
     if (m_queryId.has_value())
     {
         query.setId(m_queryId.value());
+    }
+
+    if (m_collectionId.has_value())
+    {
+        query.setCollectionId(m_collectionId.value());
     }
 
     QString method = ui->methodComboBox->currentText();
@@ -288,6 +373,46 @@ Query QueryForm::createQuery()
         query.setHeaders(convertModelToParamValueList(m_reqHeadersModel, 3));
     }
 
+    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+    query.setAuthType(authType);
+
+    if (authType == Query::AuthType::Basic)
+    {
+        QString username = ui->authBasicUserEdit->text();
+        QString password = ui->authBasicPasswordEdit->text();
+
+        BasicQueryAuth basicAuth(username, password);
+
+        if (m_queryId.has_value())
+        {
+            basicAuth.setQueryId(m_queryId.value());
+        }
+
+        if (m_basicAuthId.has_value())
+        {
+            basicAuth.setId(m_basicAuthId.value());
+        }
+
+        query.setBasicAuth(basicAuth);
+    }
+    else if (authType == Query::AuthType::BearerToken)
+    {
+        QString bearerToken = ui->bearerTokenEdit->text();
+        BearerQueryAuth bearerAuth(bearerToken);
+
+        if (m_bearerAuthId.has_value())
+        {
+            bearerAuth.setId(m_bearerAuthId.value());
+        }
+
+        if (m_queryId.has_value())
+        {
+            bearerAuth.setQueryId(m_queryId.value());
+        }
+
+        query.setBearerAuth(bearerAuth);
+    }
+
     Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
     query.setBodyType(bodyType);
 
@@ -296,9 +421,17 @@ Query QueryForm::createQuery()
     {
         QueryRawBody::RawBodyType rawBodyType = QueryRawBody::rawBodyTypeFromString(ui->rawContentTypeComboBox->currentText());
         QString value = ui->reqRawBodyTextEdit->toPlainText();
-        QueryRawBody rawBody(rawBodyType, value);
 
-        query.setRawBody(rawBody);
+        if (m_rawBodyId.has_value() && m_queryId.has_value())
+        {
+            QueryRawBody rawBody(m_rawBodyId.value(), m_queryId.value(), rawBodyType, value);
+            query.setRawBody(rawBody);
+        }
+        else
+        {
+            QueryRawBody rawBody(rawBodyType, value);
+            query.setRawBody(rawBody);
+        }
         break;
     }
     case Query::BodyType::EncodedForm:
@@ -315,24 +448,6 @@ Query QueryForm::createQuery()
     }
     default:
         break;
-    }
-
-    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
-    query.setAuthType(authType);
-
-    if (authType == Query::AuthType::Basic)
-    {
-        QString username = ui->authBasicUserEdit->text();
-        QString password = ui->authBasicPasswordEdit->text();
-
-        BasicQueryAuth basicAuth(username, password);
-        query.setBasicAuth(basicAuth);
-    }
-    else if (authType == Query::AuthType::BearerToken)
-    {
-        QString bearerToken = ui->bearerTokenEdit->text();
-        BearerQueryAuth bearerAuth(bearerToken);
-        query.setBearerAuth(bearerAuth);
     }
 
     query.setDeletedParameters(m_deletedParams);
@@ -413,6 +528,7 @@ void QueryForm::readReplyHeaders(QNetworkReply *reply)
         j++;
     }
 }
+
 
 void QueryForm::on_authComboBox_currentIndexChanged(int index)
 {
@@ -564,30 +680,41 @@ void QueryForm::on_reqFileSelectionBtn_clicked()
 
 void QueryForm::on_saveQueryBtn_clicked()
 {
-    QList<Collection> collections = m_db.getCollections();
+    saveQuery();
+}
 
-    CollectionDialog collectionDialog;
-    collectionDialog.setCollectionList(collections);
-
-    int dialogResult = collectionDialog.exec();
-
-    if (dialogResult != QDialog::Accepted)
-    {
-        return;
-    }
-
-    std::optional<int> collectionId = collectionDialog.collectionId();
-
-    if (!collectionId.has_value())
-    {
-        return;
-    }
-
-    QString queryName = collectionDialog.name();
-
+void QueryForm::saveQuery()
+{
     Query query = createQuery();
-    query.setName(queryName);
-    query.setCollectionId(collectionId.value());
+
+    bool isNewQuery = !m_queryId.has_value();
+
+    if (isNewQuery)
+    {
+        QList<Collection> collections = m_db.getCollections();
+
+        CollectionDialog collectionDialog;
+        collectionDialog.setCollectionList(collections);
+
+        int dialogResult = collectionDialog.exec();
+
+        if (dialogResult != QDialog::Accepted)
+        {
+            return;
+        }
+
+        std::optional<int> collectionId = collectionDialog.collectionId();
+
+        if (!collectionId.has_value())
+        {
+            return;
+        }
+
+        QString queryName = collectionDialog.name();
+        query.setName(queryName);
+        query.setCollectionId(collectionId.value());
+    }
+
     bool saveResult = m_db.saveQuery(query);
 
     if (saveResult)
@@ -597,6 +724,8 @@ void QueryForm::on_saveQueryBtn_clicked()
         m_deletedMultiPartParams.clear();
         m_deletedEncodedFormParams.clear();
     }
+
+    emit changedName(this, query.name());
 }
 
 void QueryForm::on_reqBodyFormDataRemoveRowBtn_clicked()

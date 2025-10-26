@@ -6,12 +6,18 @@
 #include <QFile>
 #include <QHttpMultiPart>
 #include <QNetworkReply>
+#include <QSslConfiguration>
 
 
 NetworkHelper::NetworkHelper(QObject *parent)
     : QObject{parent}
 {
     m_nam = new QNetworkAccessManager(this);
+    m_nam->setStrictTransportSecurityEnabled(false);
+
+    QSslConfiguration sslConf = QSslConfiguration::defaultConfiguration();
+    sslConf.setPeerVerifyMode(QSslSocket::VerifyNone);
+    QSslConfiguration::setDefaultConfiguration(sslConf);
 }
 
 void NetworkHelper::setRequestsUrlParams(QUrlQuery &url, QList<ParamValue> &params)

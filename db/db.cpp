@@ -579,24 +579,18 @@ std::optional<Query> Db::getQuery(int queryId)
     query.setParameters(getQueryParams(queryId));
     query.setHeaders(getQueryHeaders(queryId));
 
-    if (query.authType() == Query::AuthType::Basic)
-    {
-        std::optional<BasicQueryAuth> basicAuth = getQueryBasicAuth(queryId);
+    std::optional<BasicQueryAuth> basicAuth = getQueryBasicAuth(queryId);
 
-        if (basicAuth.has_value())
-        {
-            query.setBasicAuth(basicAuth.value());
-        }
+    if (basicAuth.has_value())
+    {
+        query.setBasicAuth(basicAuth.value());
     }
 
-    if (query.authType() == Query::AuthType::BearerToken)
-    {
-        std::optional<BearerQueryAuth> bearerAuth = getQueryBearerAuth(queryId);
+    std::optional<BearerQueryAuth> bearerAuth = getQueryBearerAuth(queryId);
 
-        if (bearerAuth.has_value())
-        {
-            query.setBearerAuth(bearerAuth.value());
-        }
+    if (bearerAuth.has_value())
+    {
+        query.setBearerAuth(bearerAuth.value());
     }
 
     query.setMultipartFormBody(getQueryMultiPartBody(queryId));
@@ -624,7 +618,7 @@ QList<ParamValue> Db::getQueryParams(int queryId)
     QList<ParamValue> result;
 
     QSqlQuery getParams(m_db);
-    getParams.prepare("SELECT id, name, value, description FROM query_params WHERE query_id = :query_id;");
+    getParams.prepare("SELECT id, name, value, description FROM queries_params WHERE query_id = :query_id;");
     getParams.bindValue(":query_id", queryId);
 
     getParams.exec();
@@ -640,14 +634,13 @@ QList<ParamValue> Db::getQueryParams(int queryId)
     }
 
     return result;
-
 }
 
 QList<ParamValue> Db::getQueryHeaders(int queryId)
 {
     QList<ParamValue> result;
     QSqlQuery getHeaders(m_db);
-    getHeaders.prepare("SELECT id, name, value, description FROM query_headers WHERE query_id = :query_id;");
+    getHeaders.prepare("SELECT id, name, value, description FROM queries_headers WHERE query_id = :query_id;");
     getHeaders.bindValue(":query_id", queryId);
 
     getHeaders.exec();
@@ -915,22 +908,25 @@ bool Db::insertQuery(Query &query)
     }
 
     QSqlQuery insert(m_db);
-    insert.prepare("INSERT INTO queries(collection_id, name, method, url, auth_type) "
-                   "VALUES(:collection_id, :name, :method, :url, :auth_type);");
+    insert.prepare("INSERT INTO queries(collection_id, name, method, url, auth_type, body_type) "
+                   "VALUES (:collection_id, :name, :method, :url, :auth_type, :body_type);");
 
     insert.bindValue(":collection_id", query.collectionId().value());
     insert.bindValue(":name", query.name());
     insert.bindValue(":method", query.method());
     insert.bindValue(":url", query.url());
     insert.bindValue(":auth_type", query.authType());
+    insert.bindValue(":body_type", query.bodyType());
 
     bool insertResult = insert.exec();
-    int id = insert.lastInsertId().toInt();
-
     if (!insertResult)
     {
         qDebug() << insert.lastError();
+        qDebug() << insert.executedQuery();
+        return false;
     }
+
+    int id = insert.lastInsertId().toInt();
 
     query.setId(id);
 
@@ -955,18 +951,27 @@ bool Db::updateQuery(Query &query)
                    "collection_id = :collection_id,"
                    "name = :name,"
                    "method = :method,"
-                   "url = :url "
+                   "url = :url ,"
+                   "auth_type = :auth_type,"
+                   "body_type = :body_type "
                    "WHERE id = :query_id;");
 
     update.bindValue(":collection_id", query.collectionId().value());
     update.bindValue(":name", query.name());
     update.bindValue(":method", query.method());
     update.bindValue(":url", query.url());
+    update.bindValue(":auth_type", query.authType());
+    update.bindValue(":body_type", query.bodyType());
     update.bindValue(":query_id", query.id().value());
 
     //TODO add queries for all other sections of the query
 
     bool updateResult = update.exec();
+
+    if (!updateResult)
+    {
+        qDebug() << update.lastError();
+    }
 
     updateResult = updateResult && saveQueryParams(query);
     updateResult = updateResult && saveQueryHeaders(query);
@@ -991,7 +996,7 @@ bool Db::insertBasicQueryAuth(BasicQueryAuth &basicQueryAuth)
 {
     QSqlQuery insertQueryAuth(m_db);
     bool insertResult = false;
-    insertQueryAuth.prepare("INSERT INTO queries_auth_bascic(query_id, username, password) "
+    insertQueryAuth.prepare("INSERT INTO queries_auth_basic(query_id, username, password) "
                             "VALUES (:query_id, :username, :password);");
     insertQueryAuth.bindValue(":query_id", basicQueryAuth.queryId().value());
     insertQueryAuth.bindValue(":username", basicQueryAuth.username());
@@ -1040,7 +1045,7 @@ bool Db::insertBearerQueryAuth(BearerQueryAuth &bearerQueryAuth)
     insertBearerAuth.prepare("INSERT INTO queries_auth_bearer (query_id, bearer_token)"
                              "VALUES(:query_id, :bearer_token);");
 
-    insertBearerAuth.bindValue(":query_id", bearerQueryAuth.id().value());
+    insertBearerAuth.bindValue(":query_id", bearerQueryAuth.queryId().value());
     insertBearerAuth.bindValue(":bearer_token", bearerQueryAuth.bearerToken());
 
     bool execResult = insertBearerAuth.exec();
@@ -1056,28 +1061,35 @@ bool Db::updateBearerQueryAuth(BearerQueryAuth &bearerQueryAuth)
     QSqlQuery updateBearerAuth(m_db);
 
     updateBearerAuth.prepare("UPDATE queries_auth_bearer SET "
-                             "bearer_token = :bearer_token"
+                             "bearer_token = :bearer_token "
                              "WHERE id = :id");
 
     updateBearerAuth.bindValue(":bearer_token", bearerQueryAuth.bearerToken());
     updateBearerAuth.bindValue(":id", bearerQueryAuth.id().value());
+    bool result = updateBearerAuth.exec();
 
-    return updateBearerAuth.exec();
+    if (!result)
+    {
+        qDebug() << updateBearerAuth.lastError();
+    }
+
+    return result;
 }
 
 bool Db::saveQueryAuth(Query &query)
 {
-    if (query.authType() == Query::AuthType::Basic)
+    bool result = true;
+    if (query.basicAuth().has_value())
     {
-        return saveBasicQueryAuth(query.basicAuth());
+        result = result && saveBasicQueryAuth(query.basicAuth().value());
     }
 
-    if (query.authType() == Query::AuthType::BearerToken)
+    if (query.bearerAuth().has_value())
     {
-        return saveBearerQueryAuth(query.bearerAuth());
+        result = result && saveBearerQueryAuth(query.bearerAuth().value());
     }
 
-    return true;
+    return result;
 }
 
 bool Db::saveQueryHeaders(Query &query)
@@ -1208,6 +1220,7 @@ bool Db::updateQueryParam(ParamValue &paramValue)
     updateQueryParam.bindValue(":name", paramValue.value("name"));
     updateQueryParam.bindValue(":value", paramValue.value("value"));
     updateQueryParam.bindValue(":description", paramValue.value("description"));
+    updateQueryParam.bindValue(":param_id", paramValue.id().value());
 
     bool execResult = updateQueryParam.exec();
 

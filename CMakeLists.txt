@@ -22,8 +22,6 @@ qt_add_executable(RestyCage
     Resources.qrc
     forms/environment_form.h forms/environment_form.cpp forms/environment_form.ui
     key_value_handler.h key_value_handler.cpp
-
-
     constants.h
     dialogs/name_dialog.h dialogs/name_dialog.cpp dialogs/name_dialog.ui
     db/query.h db/query.cpp
@@ -38,10 +36,6 @@ qt_add_executable(RestyCage
     db/query_raw_body.h db/query_raw_body.cpp
     models/treeview_item.h models/treeview_item.cpp
     network_helper.h network_helper.cpp
-
-
-
-
 )
 
 target_link_libraries(RestyCage

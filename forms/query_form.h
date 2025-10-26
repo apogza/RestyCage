@@ -72,8 +72,15 @@ private:
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
 
+
     QString m_name;
     std::optional<int> m_queryId;
+    std::optional<int> m_collectionId;
+    std::optional<int> m_rawBodyId;
+    std::optional<int> m_binaryBodyId;
+    std::optional<int> m_basicAuthId;
+    std::optional<int> m_bearerAuthId;
+
     Db &m_db = Db::instance();
 
     QList<int> m_deletedParams;
@@ -100,11 +107,14 @@ private:
     void sendBinaryRequest(const QString &method);
 
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
+    void loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue> &vals);
     Query createQuery();
 
     void slotReplyReceived();
     void readReply();
     void readReplyHeaders(QNetworkReply* reply);
+
+    void saveQuery();
 };
 
 

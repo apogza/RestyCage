@@ -29,8 +29,8 @@ public:
     QString &method();
     QString &url();
     AuthType authType();
-    BasicQueryAuth &basicAuth();
-    BearerQueryAuth &bearerAuth();
+    std::optional<BasicQueryAuth> &basicAuth();
+    std::optional<BearerQueryAuth> &bearerAuth();
 
     BodyType &bodyType();
 
@@ -81,8 +81,8 @@ private:
     QString m_url;
     AuthType m_authType;
 
-    BasicQueryAuth m_basicAuth;
-    BearerQueryAuth m_bearerAuth;
+    std::optional<BasicQueryAuth> m_basicAuth;
+    std::optional<BearerQueryAuth> m_bearerAuth;
 
     BodyType m_bodyType;
     std::optional<QueryRawBody> m_queryRawBody;

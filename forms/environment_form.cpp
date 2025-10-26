@@ -53,7 +53,7 @@ void EnvironmentForm::initFromDb(Environment &env)
 void EnvironmentForm::initModel()
 {
     m_envItemModel.insertColumns(0, 3);
-    m_envItemModel.setHeaderData(0, Qt::Horizontal, QObject::tr(keyHeader));
+    m_envItemModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_envItemModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
     m_envItemModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 

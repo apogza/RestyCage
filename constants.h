@@ -35,7 +35,7 @@ const QString querySerializationBody = "body";
 const QString querySerializationValue = "value";
 const QByteArray authorizationHeader = "Authorization";
 
-static const char *keyHeader = "Key";
+static const char *nameHeader = "Name";
 static const char *valueHeader = "Value";
 static const char *descriptionHeader = "Description";
 static const char *typeHeader = "Type";
