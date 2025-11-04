@@ -161,7 +161,18 @@ void RestyCageWindow::onTabHasChangedName(QWidget *widget, QString newTitle)
     m_tabs.remove(oldTitle);
     m_tabs.insert(newTitle, widget);
 
-    initEnvironments();
+    QueryForm *queryForm = dynamic_cast<QueryForm*>(widget);
+    EnvironmentForm *envForm = dynamic_cast<EnvironmentForm*>(widget);
+
+    if (queryForm)
+    {
+        initCollections();
+    }
+
+    if (envForm)
+    {
+        initEnvironments();
+    }
 }
 
 void RestyCageWindow::onTabHasBeenModified(QWidget *widget)
