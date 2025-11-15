@@ -61,8 +61,6 @@ private slots:
 
     void on_saveQueryBtn_clicked();
 
-
-
 private:
     Ui::QueryForm *ui;
     NetworkHelper *m_networkHelper;
@@ -72,6 +70,7 @@ private:
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
 
+    const int tabStop = 4;
 
     QString m_name;
     std::optional<int> m_queryId;
@@ -111,10 +110,11 @@ private:
     Query createQuery();
 
     void slotReplyReceived();
-    void readReply();
-    void readReplyHeaders(QNetworkReply* reply);
+    void loadReplyBody();
+    void loadReplyHeaders();
 
     void saveQuery();
+
 };
 
 

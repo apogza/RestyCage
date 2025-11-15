@@ -14,8 +14,7 @@ qt_add_executable(RestyCage
     forms/resty_cage_window.cpp
     forms/resty_cage_window.h
     forms/resty_cage_window.ui
-    qjsonmodel.h qjsonmodel.cpp
-    qutf8.h
+    models/treeview_item.h models/treeview_item.cpp
     dialogs/key_value_dialog.h dialogs/key_value_dialog.cpp dialogs/key_value_dialog.ui
     dialogs/key_value_file_text_dialog.h dialogs/key_value_file_text_dialog.cpp dialogs/key_value_file_text_dialog.ui
     forms/query_form.h forms/query_form.cpp forms/query_form.ui
@@ -34,7 +33,6 @@ qt_add_executable(RestyCage
     db/bearer_query_auth.h db/bearer_query_auth.cpp
     db/query_binary_body.h db/query_binary_body.cpp
     db/query_raw_body.h db/query_raw_body.cpp
-    models/treeview_item.h models/treeview_item.cpp
     network_helper.h network_helper.cpp
 )
 

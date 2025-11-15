@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../Resources.qrc">
-    <normaloff>:/icons/corona-red.ico</normaloff>:/icons/corona-red.ico</iconset>
+    <normaloff>:/icons/B6-small.png</normaloff>:/icons/B6-small.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">

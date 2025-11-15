@@ -287,10 +287,18 @@ void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &in
 
     if (itemData.itemType() == TreeviewItem::Query)
     {
-        std::optional<Query> query = m_db.getQuery(itemData.id());
+        std::optional<Query> queryOpt = m_db.getQuery(itemData.id());
 
-        if (!query.has_value())
+        if (!queryOpt.has_value())
         {
+            return;
+        }
+
+        Query query = queryOpt.value();
+
+        if (m_tabs.contains(query.name()))
+        {
+            ui->tabWidget->setCurrentWidget(m_tabs[query.name()]);
             return;
         }
 
@@ -299,10 +307,12 @@ void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &in
         connect(queryForm, &QueryForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
         connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
 
-        int idx = ui->tabWidget->addTab(queryForm, "");
+        int idx = ui->tabWidget->addTab(queryForm, query.name());
+        m_tabs.insert(query.name(), queryForm);
+
         ui->tabWidget->setCurrentIndex(idx);
 
-        queryForm->initFromDb(query.value());
+        queryForm->initFromDb(query);
     }
 }
 

@@ -1,7 +1,6 @@
 #include "../constants.h"
 #include "ui_query_form.h"
 #include "../dialogs/key_value_file_text_dialog.h"
-#include "../qjsonmodel.h"
 #include "../db/query.h"
 #include "query_form.h"
 #include "../dialogs/collection_dialog.h"
@@ -11,6 +10,7 @@
 #include <QFileDialog>
 #include <QHttpPart>
 #include <QHttpMultiPart>
+#include <QJsonDocument>
 
 
 QueryForm::QueryForm(QWidget *parent)
@@ -24,8 +24,18 @@ QueryForm::QueryForm(QWidget *parent)
 
     keyValueHandler = new KeyValueHandler(this);
 
+    QFont font = ui->respBodyTextEdit->font();
+    QFontMetrics fontMetrics(font);
+    QSize tabSize = fontMetrics.size(Qt::TextSingleLine, " ");
+
+    qDebug() << tabStop * tabSize.width();
+    qDebug() << ui->respBodyTextEdit->tabStopDistance();
+
+    ui->reqRawBodyTextEdit->setTabStopDistance(tabStop * tabSize.width());
+
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
+    ui->respBodyTextEdit->setAutoFormatting(QTextEdit::AutoAll);
     ui->rawContentTypeComboBox->setVisible(false);
 
     initModels();
@@ -464,71 +474,41 @@ void QueryForm::slotReplyReceived()
     ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(m_networkHelper->replyBody().size())));
     ui->timeLbl->setText(QString("%1 ms").arg(QString::number(m_networkHelper->replyTotalTime())));
 
-    QJsonModel *model = new QJsonModel(ui->respJsonTreeView);
-    ui->respJsonTreeView->setModel(model);
-    model->loadJson(m_networkHelper->replyBody());
+    loadReplyBody();
+    loadReplyHeaders();
+}
+
+void QueryForm::loadReplyBody()
+{
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(m_networkHelper->replyBody());
+    ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
 
     ui->requestTabWidget->setDisabled(false);
     ui->responseTabWidget->setDisabled(false);
 }
 
-void QueryForm::readReply()
+void QueryForm::loadReplyHeaders()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    readReplyHeaders(reply);
-    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QMap<QString, QString> replyHeaders = m_networkHelper->replyHeaders();
+    QMapIterator<QString, QString> it(replyHeaders);
 
-    QByteArray body = reply->readAll();
-
-    qint64 totalTime = QDateTime::currentMSecsSinceEpoch() -  requestStartMs;
-
-    ui->statusLbl->setText(QString("HTTP %1").arg(QString::number(statusCode)));
-    ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(body.size())));
-    ui->timeLbl->setText(QString("%1 ms").arg(QString::number(totalTime)));
-
-    QJsonModel *model = new QJsonModel(ui->respJsonTreeView);
-    ui->respJsonTreeView->setModel(model);
-    model->loadJson(body);
-
-    ui->requestTabWidget->setDisabled(false);
-    ui->responseTabWidget->setDisabled(false);
-}
-
-void QueryForm::readReplyHeaders(QNetworkReply *reply)
-{
-    QSet<QString> headerSet;
-    QHttpHeaders replyHeaders = reply->headers();
-
-    ui->respHeadersTableWidget->clearContents();
-    ui->respHeadersTableWidget->setRowCount(0);
-
-    int j = 0;
-
-    for (int i = 0; i < replyHeaders.size(); i++)
+    while (it.hasNext())
     {
-        QString headerKey = replyHeaders.nameAt(i);
-
-        if (headerSet.contains(headerKey))
-        {
-            continue;
-        }
-
-        headerSet.insert(headerKey);
+        it.next();
 
         QTableWidgetItem *itemKey = new QTableWidgetItem();
-        itemKey->setText(headerKey);
+        itemKey->setText(it.key());
 
         QTableWidgetItem *itemValue = new QTableWidgetItem();
-        itemValue->setText(QString::fromUtf8(replyHeaders.valueAt(i).toByteArray()));
+        itemValue->setText(it.value());
 
-        ui->respHeadersTableWidget->insertRow(j);
+        int rowNum = ui->respHeadersTableWidget->rowCount();
 
-        ui->respHeadersTableWidget->setItem(j, 0, itemKey);
-        ui->respHeadersTableWidget->setItem(j, 1, itemValue);
-        j++;
+        ui->respHeadersTableWidget->insertRow(rowNum);
+        ui->respHeadersTableWidget->setItem(rowNum, 0, itemKey);
+        ui->respHeadersTableWidget->setItem(rowNum, 1, itemValue);
     }
 }
-
 
 void QueryForm::on_authComboBox_currentIndexChanged(int index)
 {
