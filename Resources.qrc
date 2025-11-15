@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>corona-red.ico</file>
+        <file>B6-small.png</file>
+        <file>B6.png</file>
     </qresource>
 </RCC>
