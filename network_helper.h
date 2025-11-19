@@ -29,6 +29,7 @@ public:
     qint64 replyTotalTime();
     QByteArray &replyBody();
     QMap<QString, QString> &replyHeaders();
+    QString replyType() const;
 
 private:
     QNetworkAccessManager *m_nam;
@@ -37,6 +38,7 @@ private:
     qint64 m_requestStartMs;
     qint64 m_totalTime;
     int m_statusCode;
+    QString m_replyType;
 
     QByteArray m_replyBody;
     QMap<QString, QString> m_replyHeaders;

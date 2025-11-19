@@ -186,12 +186,19 @@ QMap<QString, QString> &NetworkHelper::replyHeaders()
     return m_replyHeaders;
 }
 
+QString NetworkHelper::replyType() const
+{
+    return m_replyType;
+}
+
 void NetworkHelper::readReply()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     readReplyHeaders(reply);
 
     m_statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    m_replyType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
 
     m_replyBody = reply->readAll();
 

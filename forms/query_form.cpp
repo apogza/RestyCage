@@ -11,7 +11,7 @@
 #include <QHttpPart>
 #include <QHttpMultiPart>
 #include <QJsonDocument>
-
+#include "../ui/json_highlighter.h"
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -28,15 +28,13 @@ QueryForm::QueryForm(QWidget *parent)
     QFontMetrics fontMetrics(font);
     QSize tabSize = fontMetrics.size(Qt::TextSingleLine, " ");
 
-    qDebug() << tabStop * tabSize.width();
-    qDebug() << ui->respBodyTextEdit->tabStopDistance();
-
     ui->reqRawBodyTextEdit->setTabStopDistance(tabStop * tabSize.width());
 
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
-    ui->respBodyTextEdit->setAutoFormatting(QTextEdit::AutoAll);
+    ui->respBodyTextEdit->setAutoFormatting(QTextEdit::AutoAll);    
     ui->rawContentTypeComboBox->setVisible(false);
+
 
     initModels();
     Db &db = Db::instance();
@@ -480,8 +478,21 @@ void QueryForm::slotReplyReceived()
 
 void QueryForm::loadReplyBody()
 {
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(m_networkHelper->replyBody());
-    ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
+    QByteArray replyBody = m_networkHelper->replyBody();
+    QString replyType = m_networkHelper->replyType();
+
+
+    if (replyType.contains("application/json"))
+    {
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(m_networkHelper->replyBody());
+        ui->respBodyTextEdit->setText(jsonDocument.toJson(QJsonDocument::Indented));
+        JsonHighlighter *highlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
+    }
+    else
+    {
+        ui->respBodyTextEdit->setText(m_networkHelper->replyBody());
+    }
+
 
     ui->requestTabWidget->setDisabled(false);
     ui->responseTabWidget->setDisabled(false);

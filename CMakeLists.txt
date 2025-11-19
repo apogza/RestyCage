@@ -34,6 +34,7 @@ qt_add_executable(RestyCage
     db/query_binary_body.h db/query_binary_body.cpp
     db/query_raw_body.h db/query_raw_body.cpp
     network_helper.h network_helper.cpp
+    ui/json_highlighter.h ui/json_highlighter.cpp
 )
 
 target_link_libraries(RestyCage
