@@ -133,20 +133,29 @@ void QueryForm::initModels()
 
 void QueryForm::on_sendButton_clicked()
 {
-    ui->requestTabWidget->setDisabled(true);
-    ui->responseTabWidget->setDisabled(true);
 
-    QUrl url(ui->urlEdit->text());
+    if (ui->sendButton->text() == "Send")
+    {
+        ui->requestTabWidget->setDisabled(true);
+        ui->responseTabWidget->setDisabled(true);
+        ui->sendButton->setText("Cancel");
 
-    QUrlQuery urlQuery(url);
-    setRequestParams(urlQuery);
+        QUrl url(ui->urlEdit->text());
 
-    m_networkHelper->initRequest(url);
+        QUrlQuery urlQuery(url);
+        setRequestParams(urlQuery);
 
-    setRequestAuth();
-    setRequestHeaders();
+        m_networkHelper->initRequest(url);
 
-    sendRequest(urlQuery);
+        setRequestAuth();
+        setRequestHeaders();
+
+        sendRequest(urlQuery);
+    }
+    else
+    {
+        m_networkHelper->cancelRequest();
+    }
 }
 
 void QueryForm::setRequestParams(QUrlQuery &url)
@@ -468,12 +477,28 @@ Query QueryForm::createQuery()
 
 void QueryForm::slotReplyReceived()
 {
-    ui->statusLbl->setText(QString("HTTP %1").arg(QString::number(m_networkHelper->statusCode())));
-    ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(m_networkHelper->replyBody().size())));
-    ui->timeLbl->setText(QString("%1 ms").arg(QString::number(m_networkHelper->replyTotalTime())));
+    if (m_networkHelper->statusCode() != 0)
+    {
+        ui->statusLbl->setText(QString("HTTP %1").arg(QString::number(m_networkHelper->statusCode())));
+        ui->sizeLbl->setText(QString("%1 bytes").arg(QString::number(m_networkHelper->replyBody().size())));
+        ui->timeLbl->setText(QString("%1 ms").arg(QString::number(m_networkHelper->replyTotalTime())));
 
-    loadReplyBody();
-    loadReplyHeaders();
+        loadReplyBody();
+        loadReplyHeaders();
+    }
+    else
+    {
+        ui->statusLbl->setText("");
+        ui->sizeLbl->setText("");
+        ui->timeLbl->setText("");
+
+        ui->respBodyTextEdit->setText("");
+        ui->respHeadersTableWidget->clear();
+    }
+
+    ui->requestTabWidget->setDisabled(false);
+    ui->responseTabWidget->setDisabled(false);
+    ui->sendButton->setText("Send");
 }
 
 void QueryForm::loadReplyBody()
@@ -492,10 +517,6 @@ void QueryForm::loadReplyBody()
     {
         ui->respBodyTextEdit->setText(m_networkHelper->replyBody());
     }
-
-
-    ui->requestTabWidget->setDisabled(false);
-    ui->responseTabWidget->setDisabled(false);
 }
 
 void QueryForm::loadReplyHeaders()

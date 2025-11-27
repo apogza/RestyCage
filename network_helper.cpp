@@ -90,8 +90,8 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
 
     m_requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
-    QNetworkReply *reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), multiPart);
-    connect(reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+    m_reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), multiPart);
+    connect(m_reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
 }
 
 void NetworkHelper::sendUrlEncodedFormRequest(const QString &method, QUrlQuery &urlQuery, QList<ParamValue> &paramValues)
@@ -103,8 +103,8 @@ void NetworkHelper::sendUrlEncodedFormRequest(const QString &method, QUrlQuery &
 
     m_requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
-    QNetworkReply *reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8());
-    connect(reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+    m_reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8());
+    connect(m_reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
 }
 
 void NetworkHelper::sendRawRequest(const QString &method, const QString &bodyType, const QByteArray &body)
@@ -132,8 +132,8 @@ void NetworkHelper::sendRawRequest(const QString &method, const QString &bodyTyp
 
     m_requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
-    QNetworkReply *reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), body);
-    connect(reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+    m_reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), body);
+    connect(m_reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
 }
 
 void NetworkHelper::sendBinaryRequest(const QString &method, QString &filePath)
@@ -150,20 +150,28 @@ void NetworkHelper::sendBinaryRequest(const QString &method, QString &filePath)
 
     m_requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
-    QNetworkReply *reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), fileByteArray);
+    m_reply = m_nam->sendCustomRequest(m_request.value(), method.toUtf8(), fileByteArray);
 
-    connect(reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+    connect(m_reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
 }
 
 void NetworkHelper::sendCustomRequest(const QString &method)
 {
     QNetworkRequest req = m_request.value();
 
-    QNetworkReply *reply = m_nam->sendCustomRequest(req, method.toUtf8());
+    m_reply = m_nam->sendCustomRequest(req, method.toUtf8());
 
     m_requestStartMs = QDateTime::currentMSecsSinceEpoch();
 
-    connect(reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+    connect(m_reply, &QNetworkReply::finished, this, &NetworkHelper::readReply);
+}
+
+void NetworkHelper::cancelRequest()
+{
+    if (m_reply && m_reply->isRunning())
+    {
+        m_reply->abort();
+    }
 }
 
 int NetworkHelper::statusCode()
@@ -192,15 +200,14 @@ QString NetworkHelper::replyType() const
 }
 
 void NetworkHelper::readReply()
-{
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    readReplyHeaders(reply);
+{    
+    readReplyHeaders(m_reply);
 
-    m_statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    m_statusCode = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-    m_replyType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    m_replyType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
 
-    m_replyBody = reply->readAll();
+    m_replyBody = m_reply->readAll();
 
     m_totalTime = QDateTime::currentMSecsSinceEpoch() - m_requestStartMs;
 

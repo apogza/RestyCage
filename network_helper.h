@@ -24,6 +24,7 @@ public:
     void sendRawRequest(const QString &method, const QString &bodyType, const QByteArray &body);
     void sendBinaryRequest(const QString &method, QString &filePath);
     void sendCustomRequest(const QString &method);
+    void cancelRequest();
 
     int statusCode();
     qint64 replyTotalTime();
@@ -34,6 +35,7 @@ public:
 private:
     QNetworkAccessManager *m_nam;
     std::optional<QNetworkRequest> m_request;
+    QNetworkReply *m_reply;
 
     qint64 m_requestStartMs;
     qint64 m_totalTime;
