@@ -493,7 +493,7 @@ void QueryForm::slotReplyReceived()
         ui->timeLbl->setText("");
 
         ui->respBodyTextEdit->setText("");
-        ui->respHeadersTableWidget->clear();
+        ui->respHeadersTableWidget->clearContents();
     }
 
     ui->requestTabWidget->setDisabled(false);
@@ -725,12 +725,17 @@ void QueryForm::saveQuery()
         QString queryName = collectionDialog.name();
         query.setName(queryName);
         query.setCollectionId(collectionId.value());
+
+        m_name = queryName;
+        m_collectionId = collectionId.value();
     }
 
     bool saveResult = m_db.saveQuery(query);
 
     if (saveResult)
     {
+        m_queryId = query.id();
+
         m_deletedParams.clear();
         m_deletedHeaders.clear();
         m_deletedMultiPartParams.clear();
