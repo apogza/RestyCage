@@ -51,6 +51,7 @@ void QueryForm::initFromDb(Query &query)
     emit changedName(this, query.name());
 
     ui->urlEdit->setText(query.url());
+    m_uid = query.uid();
     m_queryId = query.id();
     m_name = query.name();
     m_collectionId = query.collectionId();
@@ -97,6 +98,11 @@ void QueryForm::initFromDb(Query &query)
         ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
         ui->reqRawBodyTextEdit->setText(query.rawBody()->value());
     }
+}
+
+QUuid QueryForm::uid()
+{
+    return m_uid;
 }
 
 void QueryForm::initModels()
@@ -374,6 +380,8 @@ Query QueryForm::createQuery()
     {
         query.setCollectionId(m_collectionId.value());
     }
+
+    query.setUid(m_uid);
 
     QString method = ui->methodComboBox->currentText();
     QString url = ui->urlEdit->text() ;
@@ -734,12 +742,12 @@ void QueryForm::saveQuery()
 
     if (saveResult)
     {
-        m_queryId = query.id();
-
         m_deletedParams.clear();
         m_deletedHeaders.clear();
         m_deletedMultiPartParams.clear();
         m_deletedEncodedFormParams.clear();
+
+        m_queryId = query.id();
     }
 
     emit changedName(this, query.name());

@@ -26,6 +26,7 @@ void EnvironmentForm::initFromDb(Environment &env)
 {
     m_envName = QString(env.name());
     m_envId = env.id();
+    m_uid = env.uid();
 
     QList<ParamValue> &params = env.params();
 
@@ -48,6 +49,11 @@ void EnvironmentForm::initFromDb(Environment &env)
         m_envItemModel.setItem(i, 2, descriptionItem);
         i++;
     }
+}
+
+QUuid EnvironmentForm::uid()
+{
+    return m_uid;
 }
 
 void EnvironmentForm::initModel()
@@ -108,6 +114,7 @@ void EnvironmentForm::on_saveEnvironmentBtn_clicked()
     Environment env;
     env.setName(m_envName);
     env.setDeletedParams(m_deletedParams);
+    env.setUid(m_uid);
 
     if (m_envId.has_value())
     {

@@ -21,6 +21,8 @@ public:
 
     void initFromDb(Environment &env);
 
+    QUuid uid();
+
 signals:
     void changedName(EnvironmentForm *form, QString newName);
     void hasBeenModified(EnvironmentForm *form);
@@ -39,6 +41,7 @@ private:
     QStandardItemModel m_envItemModel;
     KeyValueHandler *m_keyValueHandler;
     QString m_envName;
+    QUuid m_uid = QUuid::createUuid();
     std::optional<int> m_envId;
     Db &m_db = Db::instance();
 

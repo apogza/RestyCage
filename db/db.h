@@ -18,6 +18,9 @@ private:
     void initEnvs();
     void initCollections();
     void initQueries();
+    void initMigrations();
+
+    void runMigrations();
 
     bool insertEnv(Environment &environment);
     bool updateEnv(Environment &environment);

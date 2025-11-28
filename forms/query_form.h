@@ -29,6 +29,7 @@ public:
     ~QueryForm();
 
     void initFromDb(Query &query);
+    QUuid uid();
 
 signals:
     void changedName(QueryForm *form, QString newName);
@@ -73,6 +74,7 @@ private:
     const int tabStop = 4;
 
     QString m_name;
+    QUuid m_uid = QUuid::createUuid();
     std::optional<int> m_queryId;
     std::optional<int> m_collectionId;
     std::optional<int> m_rawBodyId;

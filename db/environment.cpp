@@ -2,10 +2,11 @@
 
 Environment::Environment() {}
 
-Environment::Environment(int id, QString &name, bool active)
+Environment::Environment(int id, QString &name, QUuid uid, bool active)
 {
     m_id = id;
     m_name = name;
+    m_uid = uid;
     m_active = active;
 }
 
@@ -22,6 +23,11 @@ void Environment::setActive(bool isActive)
 void Environment::setId(int id)
 {
     m_id = id;
+}
+
+void Environment::setUid(QUuid uid)
+{
+    m_uid = uid;
 }
 
 void Environment::addParam(ParamValue &paramValue)
@@ -42,6 +48,11 @@ QString &Environment::name()
 std::optional<int> Environment::id()
 {
     return m_id;
+}
+
+QUuid Environment::uid()
+{
+    return m_uid;
 }
 
 bool Environment::active()

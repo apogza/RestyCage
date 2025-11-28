@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QSqlQuery>
 #include <QSqlError>
+#include "migrations/add_uid_migration.h"
 
 Db::Db()
 {
@@ -13,6 +14,9 @@ Db::Db()
     initEnvs();
     initCollections();
     initQueries();
+    initMigrations();
+
+    runMigrations();
 }
 
 void Db::init()
@@ -41,6 +45,7 @@ void Db::initEnvs()
         bool execResult = createEnvsTable.exec(
             "CREATE TABLE envs("
             "id INTEGER PRIMARY KEY,"
+            "uid TEXT,"
             "name TEXT NOT NULL,"
             "active INTEGER);");
 
@@ -79,6 +84,7 @@ void Db::initCollections()
         bool execResult = createCollectionsTable.exec(
             "CREATE TABLE collections("
             "id INTEGER PRIMARY KEY,"
+            "uid TEXT,"
             "parent_id INTEGER,"
             "name TEXT,"
             "FOREIGN KEY (parent_id) REFERENCES collections(id) ON DELETE CASCADE ON UPDATE NO ACTION);");
@@ -100,6 +106,7 @@ void Db::initQueries()
         bool execResult = createQueriesTable.exec(
             "CREATE TABLE queries("
             "id INTEGER PRIMARY KEY,"
+            "uid TEXT,"
             "collection_id INTEGER,"
             "name TEXT,"
             "method TEXT,"
@@ -255,6 +262,36 @@ void Db::initQueries()
     }
 }
 
+void Db::initMigrations()
+{
+
+    QStringList tables = m_db.tables();
+
+    if (tables.contains("migrations"))
+    {
+        return;
+    }
+
+    QSqlQuery createMigrationsTable(m_db);
+
+    bool execResult = createMigrationsTable.exec(
+        "CREATE TABLE migrations("
+        "id TEXT PRIMARY KEY,"
+        "execution_date TEXT)");
+
+    if (execResult)
+    {
+        qDebug() << "Created migrations table";
+    }
+}
+
+void Db::runMigrations()
+{
+    AddUidMigration migration("add_uid_migration", m_db);
+    migration.apply();
+
+}
+
 bool Db::saveEnv(Environment &env)
 {
     std::optional<int> envId = env.id();
@@ -402,15 +439,16 @@ QList<Environment> Db::getEnvs()
 {
     QList<Environment> result;
 
-    QSqlQuery envsQuery("SELECT id, name, active from envs;", m_db);
+    QSqlQuery envsQuery("SELECT id, name, uid, active from envs;", m_db);
 
     while (envsQuery.next())
     {
         int id = envsQuery.value(0).toInt();
         QString name = envsQuery.value(1).toString();
-        bool active = envsQuery.value(2).toBool();
+        QUuid uid = envsQuery.value(2).toUuid();
+        bool active = envsQuery.value(3).toBool();
 
-        result.append({id, name, active});
+        result.append({id, name, uid, active});
     }
 
     return result;
@@ -419,16 +457,17 @@ QList<Environment> Db::getEnvs()
 std::optional<Environment> Db::getEnv(int envId)
 {
     QSqlQuery envQuery(m_db);
-    envQuery.prepare("SELECT id, name, active from envs WHERE id = :env_id;");
+    envQuery.prepare("SELECT id, name, uid, active from envs WHERE id = :env_id;");
     envQuery.bindValue(":env_id", envId);
 
     if (envQuery.exec() && envQuery.next())
     {
         int id = envQuery.value(0).toInt();
         QString name = envQuery.value(1).toString();
-        bool active = envQuery.value(2).toBool();
+        QUuid uid = envQuery.value(2).toUuid();
+        bool active = envQuery.value(3).toBool();
 
-        Environment env(id, name, active);
+        Environment env(id, name, uid, active);
 
         QList<ParamValue> envParams = getEnvParams(id);
         for (ParamValue &param: envParams)
@@ -445,11 +484,12 @@ std::optional<Environment> Db::getEnv(int envId)
 bool Db::insertEnv(Environment &environment)
 {
     QSqlQuery insertEnv(m_db);
-    insertEnv.prepare("INSERT INTO envs(name, active) VALUES(:name, :active);");
+    insertEnv.prepare("INSERT INTO envs(name, uid,  active) VALUES(:name, :uid, :active);");
 
     int activeVal = environment.active() ? 1 : 0;
 
     insertEnv.bindValue(":name", environment.name());
+    insertEnv.bindValue(":uid", environment.uid());
     insertEnv.bindValue(":active", activeVal);
 
     bool result = insertEnv.exec();
@@ -554,7 +594,7 @@ bool Db::deleteCollection(int collectionId)
 std::optional<Query> Db::getQuery(int queryId)
 {
     QSqlQuery getQuery(m_db);
-    getQuery.prepare("SELECT id, collection_id, name, method, url, auth_type, body_type "
+    getQuery.prepare("SELECT id, uid, collection_id, name, method, url, auth_type, body_type "
                      "FROM queries "
                      "WHERE id = :id;");
     getQuery.bindValue(":id", queryId);
@@ -566,15 +606,16 @@ std::optional<Query> Db::getQuery(int queryId)
 
     Query query;
     query.setId(getQuery.value(0).toInt());
-    query.setCollectionId(getQuery.value(1).toInt());
-    QString name = getQuery.value(2).toString();
-    QString method = getQuery.value(3).toString();
-    QString url = getQuery.value(4).toString();
+    query.setUid(getQuery.value(1).toUuid());
+    query.setCollectionId(getQuery.value(2).toInt());
+    QString name = getQuery.value(3).toString();
+    QString method = getQuery.value(4).toString();
+    QString url = getQuery.value(5).toString();
     query.setName(name);
     query.setMethod(method);
     query.setUrl(url);
-    query.setAuthType(static_cast<Query::AuthType>(getQuery.value(5).toInt()));
-    query.setBodyType(static_cast<Query::BodyType>(getQuery.value(6).toInt()));
+    query.setAuthType(static_cast<Query::AuthType>(getQuery.value(6).toInt()));
+    query.setBodyType(static_cast<Query::BodyType>(getQuery.value(7).toInt()));
 
     query.setParameters(getQueryParams(queryId));
     query.setHeaders(getQueryHeaders(queryId));
@@ -908,10 +949,11 @@ bool Db::insertQuery(Query &query)
     }
 
     QSqlQuery insert(m_db);
-    insert.prepare("INSERT INTO queries(collection_id, name, method, url, auth_type, body_type) "
-                   "VALUES (:collection_id, :name, :method, :url, :auth_type, :body_type);");
+    insert.prepare("INSERT INTO queries(collection_id, uid, name, method, url, auth_type, body_type) "
+                   "VALUES (:collection_id, :uid, :name, :method, :url, :auth_type, :body_type);");
 
     insert.bindValue(":collection_id", query.collectionId().value());
+    insert.bindValue(":uid", query.uid());
     insert.bindValue(":name", query.name());
     insert.bindValue(":method", query.method());
     insert.bindValue(":url", query.url());

@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFileInfoList>
 #include <QFileInfo>
+#include <QLabel>
 
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,8 +34,20 @@ RestyCageWindow::~RestyCageWindow()
 
 void RestyCageWindow::on_tabWidget_tabCloseRequested(int index)
 {
-    QString tabTitle = ui->tabWidget->tabText(index);
-    m_tabs.remove(tabTitle);
+    QWidget *tab = ui->tabWidget->widget(index);
+
+    QueryForm *queryForm = dynamic_cast<QueryForm*>(tab);
+    EnvironmentForm *envForm = dynamic_cast<EnvironmentForm*>(tab);
+
+    if (queryForm)
+    {
+        m_tabs.remove(queryForm->uid());
+    }
+
+    if (envForm)
+    {
+        m_tabs.remove(envForm->uid());
+    }
 
     ui->tabWidget->removeTab(index);
 }
@@ -158,9 +171,6 @@ void RestyCageWindow::onTabHasChangedName(QWidget *widget, QString newTitle)
 
     ui->tabWidget->setTabText(idx, newTitle);
 
-    m_tabs.remove(oldTitle);
-    m_tabs.insert(newTitle, widget);
-
     QueryForm *queryForm = dynamic_cast<QueryForm*>(widget);
     EnvironmentForm *envForm = dynamic_cast<EnvironmentForm*>(widget);
 
@@ -182,9 +192,6 @@ void RestyCageWindow::onTabHasBeenModified(QWidget *widget)
     QString newTitle = QString("%1%2").arg(oldTitle, "*");
 
     ui->tabWidget->setTabText(idx, newTitle);
-
-    m_tabs.remove(oldTitle);
-    m_tabs.insert(newTitle, widget);
 }
 
 void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
@@ -200,9 +207,11 @@ void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
         return;
     }
 
-    if (m_tabs.contains(envName))
+    QUuid uid = env.value().uid();
+
+    if (m_tabs.contains(uid))
     {
-        ui->tabWidget->setCurrentWidget(m_tabs[envName]);
+        ui->tabWidget->setCurrentWidget(m_tabs[uid]);
         return;
     }
 
@@ -214,7 +223,7 @@ void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
     connect(environmentForm, &EnvironmentForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
     connect(environmentForm, &EnvironmentForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
 
-    m_tabs.insert(envName, environmentForm);
+    m_tabs.insert(uid, environmentForm);
     ui->tabWidget->setCurrentIndex(idx);
 }
 
@@ -236,7 +245,6 @@ void RestyCageWindow::on_newCollectionBtn_clicked()
         initCollections();
     }
 }
-
 
 void RestyCageWindow::on_delEnvBtn_clicked()
 {
@@ -279,7 +287,6 @@ void RestyCageWindow::on_removeCollectionBtn_clicked()
     }
 }
 
-
 void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &index)
 {
     QStandardItem *selectedCollectionItem = m_collectionsModel.itemFromIndex(index);
@@ -296,9 +303,9 @@ void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &in
 
         Query query = queryOpt.value();
 
-        if (m_tabs.contains(query.name()))
+        if (m_tabs.contains(query.uid()))
         {
-            ui->tabWidget->setCurrentWidget(m_tabs[query.name()]);
+            ui->tabWidget->setCurrentWidget(m_tabs[query.uid()]);
             return;
         }
 
@@ -308,7 +315,7 @@ void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &in
         connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
 
         int idx = ui->tabWidget->addTab(queryForm, query.name());
-        m_tabs.insert(query.name(), queryForm);
+        m_tabs.insert(query.uid(), queryForm);
 
         ui->tabWidget->setCurrentIndex(idx);
 

@@ -53,6 +53,11 @@ std::optional<int> Query::id()
     return m_id;
 }
 
+QUuid Query::uid()
+{
+    return m_uid;
+}
+
 std::optional<int> Query::collectionId()
 {
     return m_collectionId;
@@ -151,6 +156,11 @@ void Query::setId(int id)
     {
         m_queryBinaryBody.value().setQueryId(id);
     }
+}
+
+void Query::setUid(QUuid uid)
+{
+    m_uid = uid;
 }
 
 void Query::setCollectionId(int collectionId)

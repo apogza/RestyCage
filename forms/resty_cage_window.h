@@ -57,7 +57,7 @@ private:
     Ui::RestyCageWindow *ui;
     QStandardItemModel m_envsModel;
     QStandardItemModel m_collectionsModel;
-    QMap<QString, QWidget*> m_tabs;
+    QMap<QUuid, QWidget*> m_tabs;
     Db &m_db = Db::instance();
 
     void addNewQuery();

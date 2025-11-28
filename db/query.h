@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QList>
+#include <QUuid>
 
 #include "param_value.h"
 #include "basic_query_auth.h"
@@ -24,6 +25,7 @@ public:
     Query(std::optional<int> id, QString &name);
 
     std::optional<int> id();
+    QUuid uid();
     std::optional<int> collectionId();
     QString &name();
     QString &method();
@@ -47,6 +49,7 @@ public:
     QList<int> &deletedEncodedFormParams();
 
     void setId(int id);
+    void setUid(QUuid uid);
     void setCollectionId(int collectionId);
     void setName(QString &name);
     void setMethod(QString &method);
@@ -80,6 +83,7 @@ private:
     QString m_method;
     QString m_url;
     AuthType m_authType;
+    QUuid m_uid = QUuid::createUuid();
 
     std::optional<BasicQueryAuth> m_basicAuth;
     std::optional<BearerQueryAuth> m_bearerAuth;
