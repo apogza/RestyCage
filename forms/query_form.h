@@ -62,6 +62,8 @@ private slots:
 
     void on_saveQueryBtn_clicked();
 
+    void on_rawContentTypeComboBox_currentIndexChanged(int index);
+
 private:
     Ui::QueryForm *ui;
     NetworkHelper *m_networkHelper;

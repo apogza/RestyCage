@@ -32,12 +32,9 @@ QueryForm::QueryForm(QWidget *parent)
 
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
-    ui->respBodyTextEdit->setAutoFormatting(QTextEdit::AutoAll);    
     ui->rawContentTypeComboBox->setVisible(false);
 
-
     initModels();
-    Db &db = Db::instance();
 }
 
 QueryForm::~QueryForm()
@@ -71,7 +68,6 @@ void QueryForm::initFromDb(Query &query)
 
     ui->authComboBox->setCurrentIndex(query.authType());
 
-
     loadItemsFromDb(m_reqParamsModel, query.parameters());
     loadItemsFromDb(m_reqHeadersModel, query.headers());
 
@@ -96,6 +92,11 @@ void QueryForm::initFromDb(Query &query)
     if (query.bodyType() == Query::BodyType::Raw && query.rawBody().has_value())
     {
         ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
+        if (query.rawBody().value().rawBodyType() == QueryRawBody::RawBodyType::JSON)
+        {
+            new JsonHighlighter(ui->reqRawBodyTextEdit->document());
+        }
+
         ui->reqRawBodyTextEdit->setText(query.rawBody()->value());
     }
 }
@@ -345,7 +346,6 @@ QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemMod
 
 void QueryForm::loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue> &vals)
 {
-
     for (ParamValue &paramVal: vals)
     {
         QList<QStandardItem*> rowItems;
@@ -519,7 +519,7 @@ void QueryForm::loadReplyBody()
     {
         QJsonDocument jsonDocument = QJsonDocument::fromJson(m_networkHelper->replyBody());
         ui->respBodyTextEdit->setText(jsonDocument.toJson(QJsonDocument::Indented));
-        JsonHighlighter *highlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
+        new JsonHighlighter(ui->respBodyTextEdit->document());
     }
     else
     {
@@ -765,3 +765,12 @@ void QueryForm::on_reqBodyFormDataRemoveRowBtn_clicked()
         }
     }
 }
+
+void QueryForm::on_rawContentTypeComboBox_currentIndexChanged(int index)
+{
+    if (index == 0)
+    {
+        new JsonHighlighter(ui->reqRawBodyTextEdit->document());
+    }
+}
+
