@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
     }
     */
 
-
     RestyCageWindow w;
     w.show();
 
