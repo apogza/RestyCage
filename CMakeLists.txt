@@ -1,16 +1,18 @@
 cmake_minimum_required(VERSION 3.19)
 project(RestyCage LANGUAGES CXX)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
 qt_add_executable(RestyCage
-    WIN32 MACOSX_BUNDLE
     main.cpp
+    Resources.qrc
     forms/resty_cage_window.cpp
     forms/resty_cage_window.h
     forms/resty_cage_window.ui
@@ -18,7 +20,6 @@ qt_add_executable(RestyCage
     dialogs/key_value_dialog.h dialogs/key_value_dialog.cpp dialogs/key_value_dialog.ui
     dialogs/key_value_file_text_dialog.h dialogs/key_value_file_text_dialog.cpp dialogs/key_value_file_text_dialog.ui
     forms/query_form.h forms/query_form.cpp forms/query_form.ui
-    Resources.qrc
     forms/environment_form.h forms/environment_form.cpp forms/environment_form.ui
     key_value_handler.h key_value_handler.cpp
     constants.h
@@ -47,20 +48,4 @@ target_link_libraries(RestyCage
         Qt::Sql
 )
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
-target_link_libraries(RestyCage PRIVATE Qt6::Core)
-target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
-include(GNUInstallDirs)
-
-install(TARGETS RestyCage
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-
-qt_generate_deploy_app_script(
-    TARGET RestyCage
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})

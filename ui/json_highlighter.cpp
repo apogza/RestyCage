@@ -6,14 +6,14 @@ JsonHighlighter::JsonHighlighter(QTextDocument *parent)
 
     HighlightingRule jsonValueRule;
 
-    jsonValueFormat.setForeground(Qt::darkCyan);
+    jsonValueFormat.setForeground(QBrush(QColor(qRgb(60, 121, 107))));
     jsonValueRule.pattern = QRegularExpression(QStringLiteral(":\\s*\".*\""));
     jsonValueRule.format = jsonValueFormat;
     highlightingRules.append(jsonValueRule);
 
     HighlightingRule jsonVarRule;
 
-    jsonVarFormat.setForeground(Qt::blue);
+    jsonVarFormat.setForeground(QBrush(QColor(qRgb(79, 85, 118))));
     jsonVarRule.pattern = QRegularExpression(QStringLiteral("\".*\"\\s*:"));
     jsonVarRule.format = jsonVarFormat;
     highlightingRules.append(jsonVarRule);

@@ -1,6 +1,6 @@
 <RCC>
-    <qresource prefix="/icons">
-        <file>B6-small.png</file>
-        <file>B6.png</file>
+    <qresource prefix="/resty_cage">
+        <file>resources/B6.png</file>
+        <file>resources/B6-small.png</file>
     </qresource>
 </RCC>

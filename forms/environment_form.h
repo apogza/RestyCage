@@ -43,7 +43,7 @@ private:
     QString m_envName;
     QUuid m_uid = QUuid::createUuid();
     std::optional<int> m_envId;
-    Db &m_db = Db::instance();
+    Db &m_db = Db::instance();    
 
     QList<int> m_deletedParams;
 
