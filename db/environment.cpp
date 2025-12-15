@@ -40,6 +40,23 @@ void Environment::setDeletedParams(QList<int> &deletedParams)
     m_deletedParams = deletedParams;
 }
 
+QMap<QString, QString> Environment::getAllValues() const
+{
+    QMap<QString, QString> result;
+    for (const ParamValue &paramVal : m_params)
+    {
+        if (paramVal.hasValue("name") && paramVal.hasValue("value"))
+        {
+            if (!result.contains(paramVal.value("name")))
+            {
+                result.insert(paramVal.value("name"), paramVal.value("value"));
+            }
+        }
+    }
+
+    return result;
+}
+
 QString &Environment::name()
 {
     return m_name;

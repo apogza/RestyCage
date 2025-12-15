@@ -6,6 +6,10 @@
 #include <QGlobalStatic>
 #include <QStandardPaths>
 
+const QString settingsOrgKey = "NoOrg";
+const QString settingsAppKey = "RestyCage";
+const QString activeEnvironmentId = "activeEnvironmentId";
+
 const QString appDataFolder = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "resty_cage");
 const QString dbPath = QString("%1/%2").arg(appDataFolder, "resty_cage.db");
 const QString collectionsTable = "collections";

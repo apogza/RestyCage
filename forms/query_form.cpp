@@ -1,17 +1,19 @@
-#include "../constants.h"
 #include "ui_query_form.h"
+#include "query_form.h"
+
+#include "../constants.h"
 #include "../dialogs/key_value_file_text_dialog.h"
 #include "../db/query.h"
-#include "query_form.h"
+
 #include "../dialogs/collection_dialog.h"
 #include "../db/db.h"
+#include "../ui/json_highlighter.h"
 
 #include <QFile>
 #include <QFileDialog>
 #include <QHttpPart>
 #include <QHttpMultiPart>
 #include <QJsonDocument>
-#include "../ui/json_highlighter.h"
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -33,6 +35,14 @@ QueryForm::QueryForm(QWidget *parent)
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
     ui->rawContentTypeComboBox->setVisible(false);
+
+    m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
+
+    if (m_settings->contains(activeEnvironmentId))
+    {
+        int activeEnvironmentIdValue = m_settings->value(activeEnvironmentId, -1).toInt();
+        m_activeEnvironment = m_db.getEnv(activeEnvironmentIdValue);
+    }
 
     initModels();
 }
@@ -147,6 +157,8 @@ void QueryForm::on_sendButton_clicked()
         ui->responseTabWidget->setDisabled(true);
         ui->sendButton->setText("Cancel");
 
+        QString urlString = ui->urlEdit->text();
+        urlString = replaceEnvParameters(urlString);
         QUrl url(ui->urlEdit->text());
 
         QUrlQuery urlQuery(url);
@@ -191,7 +203,9 @@ void QueryForm::setRequestAuth()
     if (ui->authComboBox->currentText() == "Bearer Token")
     {
         QString bearerToken = ui->bearerTokenEdit->text();
-        m_networkHelper->setRequestBearerAuth(bearerToken);
+        QString bearerTokenParamReplace = replaceEnvParameters(bearerToken);
+
+        m_networkHelper->setRequestBearerAuth(bearerTokenParamReplace);
     }
 
     if (ui->authComboBox->currentText() == "Basic Auth")
@@ -481,6 +495,41 @@ Query QueryForm::createQuery()
     query.setDeletedEncodedFormParams(m_deletedEncodedFormParams);
 
     return query;
+}
+
+QString QueryForm::replaceEnvParameters(const QString &originalString)
+{
+    // the string does not have parameters
+    if (originalString.indexOf("{{") == -1)
+    {
+        return originalString;
+    }
+
+    QString result = originalString;
+
+    if (m_activeEnvironment.has_value())
+    {
+        QMap<QString, QString> envParams = m_activeEnvironment.value().getAllValues();
+
+        int paramStart =  0;
+        int paramEnd = 0;
+
+        do
+        {
+            int paramStart =  result.indexOf("{{");
+            int paramEnd = result.indexOf("}}", paramStart);
+
+            QString paramName = result.slice(paramStart, paramEnd - paramStart);
+
+            if (envParams.contains(paramName))
+            {
+                result.replace(QString("{{%0}}").arg(paramName), envParams[paramName]);
+            }
+        }
+        while (paramStart > -1);
+    }
+
+    return result;
 }
 
 void QueryForm::slotReplyReceived()

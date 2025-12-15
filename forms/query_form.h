@@ -1,10 +1,12 @@
 #ifndef QUERY_FORM_H
 #define QUERY_FORM_H
 
+
 #include "../key_value_handler.h"
 #include "../db/param_value.h"
 #include "../db/query.h"
 #include "../db/db.h"
+#include "../network_helper.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -13,7 +15,7 @@
 #include <QTableView>
 #include <QNetworkReply>
 #include <QUrlQuery>
-#include "../network_helper.h"
+#include <QSettings>
 
 
 namespace Ui {
@@ -90,6 +92,8 @@ private:
     QList<int> m_deletedHeaders;
     QList<int> m_deletedMultiPartParams;
     QList<int> m_deletedEncodedFormParams;
+    QSettings *m_settings;
+    std::optional<Environment> m_activeEnvironment;
 
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
@@ -112,6 +116,8 @@ private:
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
     void loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue> &vals);
     Query createQuery();
+
+    QString replaceEnvParameters(const QString &originalString);
 
     void slotReplyReceived();
     void loadReplyBody();

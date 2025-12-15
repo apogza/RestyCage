@@ -21,6 +21,8 @@ public:
     void addParam(ParamValue &paramValue);
     void setDeletedParams(QList<int> &deletedParams);
 
+    QMap<QString, QString> getAllValues() const;
+
     QString &name();
     std::optional<int> id();
     QUuid uid();
