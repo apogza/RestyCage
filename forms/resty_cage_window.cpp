@@ -11,6 +11,7 @@
 #include <QFileInfoList>
 #include <QFileInfo>
 #include <QLabel>
+#include <QMenu>
 
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,6 +26,9 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     initCollections();
     initEnvironments();
     ui->toolBox->setCurrentIndex(0);
+
+    ui->envsTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->envsTreeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(onEnvContextMenuRequest(const QPoint &)));
 }
 
 RestyCageWindow::~RestyCageWindow()
@@ -193,6 +197,26 @@ void RestyCageWindow::onTabHasBeenModified(QWidget *widget)
 
     ui->tabWidget->setTabText(idx, newTitle);
 }
+
+void RestyCageWindow::onEnvContextMenuRequest(const QPoint &point)
+{
+    QMenu *contextMenu = new QMenu(ui->envsTreeView);
+
+    contextMenu->addAction(QString("Activate Environment"), this, SLOT(on_activateEnvironment()));
+    contextMenu->addAction(QString("Deactivate Environment"), this, SLOT(on_deactivateEnvironment()));
+    contextMenu->exec(QCursor::pos());
+}
+
+void RestyCageWindow::on_activateEnvironment()
+{
+
+}
+
+void RestyCageWindow::on_deactivateEnvironment()
+{
+
+}
+
 
 void RestyCageWindow::on_envsTreeView_doubleClicked(const QModelIndex &index)
 {

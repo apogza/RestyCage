@@ -34,6 +34,7 @@ public:
 public slots:
     void onTabHasChangedName(QWidget *widget, QString newName);
     void onTabHasBeenModified(QWidget *widget);
+    void onEnvContextMenuRequest(const QPoint &point);
 
 private slots:
 
@@ -52,6 +53,9 @@ private slots:
     void on_removeCollectionBtn_clicked();
 
     void on_collectionsTreeView_doubleClicked(const QModelIndex &index);
+
+    void on_activateEnvironment();
+    void on_deactivateEnvironment();
 
 private:
     Ui::RestyCageWindow *ui;
