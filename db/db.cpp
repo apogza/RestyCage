@@ -1460,6 +1460,8 @@ bool Db::deleteQueryEncodedForm(QList<int> &idParams)
 
 bool Db::saveQueryRawBody(Query &query)
 {
+    query.rawBody()->setQueryId(query.id().value());
+
     if (query.rawBody().value().id().has_value())
     {
         return updateQueryRawBody(query.rawBody().value());
