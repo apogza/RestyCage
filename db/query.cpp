@@ -149,12 +149,22 @@ void Query::setId(int id)
 
     if (m_queryRawBody.has_value())
     {
-        m_queryRawBody.value().setQueryId(id);
+        m_queryRawBody->setQueryId(id);
     }
 
     if (m_queryBinaryBody.has_value())
     {
-        m_queryBinaryBody.value().setQueryId(id);
+        m_queryBinaryBody->setQueryId(id);
+    }
+
+    if (m_basicAuth.has_value())
+    {
+        m_basicAuth->setQueryId(id);
+    }
+
+    if (m_bearerAuth.has_value())
+    {
+        m_bearerAuth->setQueryId(id);
     }
 }
 

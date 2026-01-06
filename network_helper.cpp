@@ -228,12 +228,14 @@ void NetworkHelper::readReplyHeaders(QNetworkReply *reply)
     {
         QString headerKey = replyHeaders.nameAt(i);
 
+        /*
         if (headerSet.contains(headerKey))
         {
             continue;
         }
 
         headerSet.insert(headerKey);
+        */
 
         m_replyHeaders.insert(headerKey, replyHeaders.valueAt(i).toByteArray());
     }

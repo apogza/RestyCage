@@ -581,6 +581,9 @@ void QueryForm::loadReplyHeaders()
     QMap<QString, QString> replyHeaders = m_networkHelper->replyHeaders();
     QMapIterator<QString, QString> it(replyHeaders);
 
+    ui->respHeadersTableWidget->clear();
+    ui->respHeadersTableWidget->setRowCount(0);
+
     while (it.hasNext())
     {
         it.next();
