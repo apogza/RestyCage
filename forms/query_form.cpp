@@ -550,7 +550,9 @@ void QueryForm::slotReplyReceived()
         ui->timeLbl->setText("");
 
         ui->respBodyTextEdit->setText("");
-        ui->respHeadersTableWidget->clearContents();
+        ui->respHeadersTableWidget->clear();
+        ui->respHeadersTableWidget->setRowCount(0);
+
     }
 
     ui->requestTabWidget->setDisabled(false);
