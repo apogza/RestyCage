@@ -7,6 +7,7 @@
 #include <QHttpMultiPart>
 #include <QNetworkReply>
 #include <QSslConfiguration>
+#include <QMimeDatabase>
 
 
 NetworkHelper::NetworkHelper(QObject *parent)
@@ -58,8 +59,9 @@ void NetworkHelper::setRequestUrlQUery(QUrlQuery &urlQuery)
 
 void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue> &paramValues)
 {
-    m_request.value().setHeader(QNetworkRequest::ContentTypeHeader, QVariant("multipart/form-data"));
     QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    QMimeDatabase db;
 
     for (ParamValue &paramValue : paramValues)
     {
@@ -72,8 +74,11 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
 
         if (type == "File")
         {
-            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
             QFile *file = new QFile(value, multiPart);
+            QString fileContentType = db.mimeTypeForFile(value).name();
+            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(fileContentType));
+            part.setHeader(QNetworkRequest::ContentDispositionHeader,
+                           QVariant(QString("form-data; name=\"file\"; filename=\"%1\"").arg(file->fileName())));
 
             if (file->open(QIODevice::ReadOnly))
             {
@@ -85,6 +90,7 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
         {
             part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
             part.setBody(value.toUtf8());
+            multiPart->append(part);
         }
     }
 
