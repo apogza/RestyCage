@@ -78,7 +78,7 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
             QString fileContentType = db.mimeTypeForFile(value).name();
             part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(fileContentType));
             part.setHeader(QNetworkRequest::ContentDispositionHeader,
-                           QVariant(QString("form-data; name=\"file\"; filename=\"%1\"").arg(file->fileName())));
+                           QVariant(QString("form-data; name=\"%1\"; filename=\"%2\"").arg(key).arg(file->fileName())));
 
             if (file->open(QIODevice::ReadOnly))
             {
