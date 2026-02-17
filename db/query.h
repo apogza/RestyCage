@@ -15,7 +15,7 @@ class Query
 {
 
 public:
-    enum BodyType { Empty, EncodedForm, MultipartForm, Raw, Binary };
+    enum BodyType { Empty, MultipartForm, EncodedForm, Raw, Binary };
     enum AuthType { None, Basic, BearerToken };
 
     static AuthType authTypeFromString(const QString &authType);

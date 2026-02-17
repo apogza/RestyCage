@@ -305,7 +305,7 @@ Query::BodyType Query::bodyTypeFromString(const QString &bodyType)
     {
         return BodyType::EncodedForm;
     }
-    else if (bodyType == "Multipart")
+    else if (bodyType == "Form Data")
     {
         return BodyType::MultipartForm;
     }

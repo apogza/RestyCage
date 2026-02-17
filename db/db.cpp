@@ -704,7 +704,7 @@ QList<ParamValue> Db::getQueryMultiPartBody(int queryId)
     QList<ParamValue> result;
     QSqlQuery getMultiPartParams(m_db);
 
-    getMultiPartParams.prepare("SELECT id, name, type, value, description FROM query_form_data_body WHERE query_id = :query_id;");
+    getMultiPartParams.prepare("SELECT id, name, type, value, description FROM queries_form_data_body WHERE query_id = :query_id;");
     getMultiPartParams.bindValue(":query_id", queryId);
 
     getMultiPartParams.exec();
@@ -713,9 +713,11 @@ QList<ParamValue> Db::getQueryMultiPartBody(int queryId)
     {
         int id = getMultiPartParams.value(0).toInt();
         QString name = getMultiPartParams.value(1).toString();
-        ParamValue::ParamValueType paramType = static_cast<ParamValue::ParamValueType>(getMultiPartParams.value(2).toInt());
-        QString value = getMultiPartParams.value(2).toString();
-        QString description = getMultiPartParams.value(3).toString();
+        int type = getMultiPartParams.value(2).toInt();
+        ParamValue::ParamValueType paramType = static_cast<ParamValue::ParamValueType>(type);
+
+        QString value = getMultiPartParams.value(3).toString();
+        QString description = getMultiPartParams.value(4).toString();
 
         ParamValue paramValue(id, name, value, description);
         paramValue.setValueType(paramType);

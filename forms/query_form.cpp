@@ -273,16 +273,32 @@ void QueryForm::sendMultiPartRequest(const QString &method)
 
     for (int i = 0; i < m_reqFormBodyModel.rowCount(); i++)
     {
+        int id = -1;
+        QVariant idVariant = m_reqFormBodyModel.item(i, 0)->data(Qt::UserRole);
+
+        if (idVariant.isNull())
+        {
+            id = idVariant.toInt();
+        }
+
         QString key = m_reqFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
         QString type = m_reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
         QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
+        QString description = m_reqFormBodyModel.item(i, 2)->data(Qt::EditRole).toString();
 
         QMap<QString, QString> paramMap;
         paramMap.insert("name", key);
-        paramMap.insert("type", type);
         paramMap.insert("value", value);
+        paramMap.insert("description", description);
 
         ParamValue param(paramMap);
+
+        if (id != -1)
+        {
+            param.setId(id);
+        }
+
+        param.setValueType(type == "File" ? ParamValue::ParamValueType::File : ParamValue::ParamValueType::String);
         params.append(param);
     }
 
@@ -333,19 +349,30 @@ QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemMod
 
         for (int j = 0; j < numColumns; j++)
         {
-            QVariant headerData = itemsModel.headerData(j, Qt::Orientation::Horizontal, Qt::DisplayRole);
-            QVariant itemData = itemsModel.item(i, j)->data(Qt::UserRole);
-            if (!itemData.isNull())
+            if (i == 0 && j == 0)
             {
-                id = itemData.toInt();
+                QVariant itemData = itemsModel.item(i, j)->data(Qt::UserRole);
+                if (!itemData.isNull() && itemData.toInt() > 0)
+                {
+                    id = itemData.toInt();
+                }
             }
+
+            QVariant headerData = itemsModel.headerData(j, Qt::Orientation::Horizontal, Qt::DisplayRole);
+            QVariant displayVariant = itemsModel.item(i, j)->data(Qt::DisplayRole);
+
+            QVariant userVariant = itemsModel.item(i, j)->data(Qt::UserRole);
 
             paramValueMap.insert(
                 headerData.toString().toLower(),
-                itemsModel.item(i, j)->data(Qt::DisplayRole).toString());
+                userVariant.isNull() ? displayVariant.toString() : userVariant.toString());
         }
 
         ParamValue param(paramValueMap);
+        if (paramValueMap.contains("type") && paramValueMap["type"] == "File")
+        {
+            param.setValueType(ParamValue::ParamValueType::File);
+        }
 
         if (id > -1)
         {
@@ -369,7 +396,22 @@ void QueryForm::loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue
         nameItem->setData(paramVal.id().value(), Qt::UserRole);
 
         rowItems.append(nameItem);
-        rowItems.append(new QStandardItem(paramVal.value("value")));
+
+        if (paramVal.getValueType() == ParamValue::ParamValueType::File)
+        {
+            rowItems.append(new QStandardItem("File"));
+
+            QString rawValue = paramVal.value("value");
+            QFileInfo fileInfo(rawValue);
+
+            rowItems.append(new QStandardItem(fileInfo.fileName()));
+        }
+        else
+        {
+            rowItems.append(new QStandardItem("Text"));
+            rowItems.append(new QStandardItem(paramVal.value("value")));
+        }
+
         if (paramVal.hasValue("description"))
         {
             rowItems.append(new QStandardItem(paramVal.value("description")));
@@ -477,7 +519,7 @@ Query QueryForm::createQuery()
         query.setEncodedFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
         break;
     case Query::BodyType::MultipartForm:
-        query.setMultipartFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        query.setMultipartFormBody(convertModelToParamValueList(m_reqFormBodyModel, 3));
         break;
     case Query::BodyType::Binary:
     {
