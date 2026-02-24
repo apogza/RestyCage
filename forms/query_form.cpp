@@ -249,7 +249,7 @@ void QueryForm::sendRequest(QUrlQuery &urlQuery)
     {
         sendMultiPartRequest(method);
     }
-    else if (bodyType == "X-www-encoded-form")
+    else if (bodyType == "Encoded Form")
     {
         sendUrlEncodedFormRequest(method, urlQuery);
     }
