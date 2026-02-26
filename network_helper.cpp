@@ -144,7 +144,9 @@ void NetworkHelper::sendRawRequest(const QString &method, const QString &bodyTyp
 
 void NetworkHelper::sendBinaryRequest(const QString &method, QString &filePath)
 {
-    m_request.value().setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+    QMimeDatabase db;
+    QMimeType fileType = db.mimeTypeForFile(filePath);
+    m_request.value().setHeader(QNetworkRequest::ContentTypeHeader, QVariant(fileType.name()));
 
     QFile file(filePath);
 
