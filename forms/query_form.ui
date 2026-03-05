@@ -107,6 +107,16 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="exportBtn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="saveQueryBtn">
        <property name="text">
         <string>Save</string>

@@ -14,6 +14,7 @@
 #include <QHttpPart>
 #include <QHttpMultiPart>
 #include <QJsonDocument>
+#include <QMimeDatabase>
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -35,6 +36,7 @@ QueryForm::QueryForm(QWidget *parent)
     ui->respHeadersTableWidget->setColumnCount(2);
     ui->respHeadersTableWidget->setHorizontalHeaderLabels(QStringList() << nameHeader << valueHeader);
     ui->rawContentTypeComboBox->setVisible(false);
+    ui->exportBtn->setVisible(false);
 
     m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
 
@@ -584,6 +586,7 @@ void QueryForm::slotReplyReceived()
 
         loadReplyBody();
         loadReplyHeaders();
+        ui->exportBtn->setVisible(true);
     }
     else
     {
@@ -868,5 +871,14 @@ void QueryForm::on_rawContentTypeComboBox_currentIndexChanged(int index)
     {
         new JsonHighlighter(ui->reqRawBodyTextEdit->document());
     }
+}
+
+
+void QueryForm::on_exportBtn_clicked()
+{
+    QByteArray& data = m_networkHelper->replyBody();
+    QMimeDatabase db;
+    QMimeType mimeType = db.mimeTypeForData(data);
+
 }
 
