@@ -66,19 +66,20 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
     for (ParamValue &paramValue : paramValues)
     {
         QString key = paramValue.value("name");
-        QString type = paramValue.value("type");
+        ParamValue::ParamValueType type = paramValue.getValueType();
         QString value = paramValue.value("value");
 
-        QHttpPart part;
-        part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QString("form-data; name=\"%1\"").arg(key)));
+        QHttpPart part;        
 
-        if (type == "File")
+        if (type == ParamValue::File)
         {
             QFile *file = new QFile(value, multiPart);
             QString fileContentType = db.mimeTypeForFile(value).name();
-            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(fileContentType));
+            QString fileName = file->fileName();
             part.setHeader(QNetworkRequest::ContentDispositionHeader,
-                           QVariant(QString("form-data; name=\"%1\"; filename=\"%2\"").arg(key).arg(file->fileName())));
+                           QVariant(QString("form-data; name=\"%1\"; filename=\"%2\"").arg(key).arg(fileName)));
+
+            part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(fileContentType));
 
             if (file->open(QIODevice::ReadOnly))
             {
@@ -88,6 +89,7 @@ void NetworkHelper::sendMultiPartRequest(const QString &method, QList<ParamValue
         }
         else
         {
+            part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QString("form-data; name=\"%1\"").arg(key)));
             part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
             part.setBody(value.toUtf8());
             multiPart->append(part);
