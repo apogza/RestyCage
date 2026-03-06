@@ -41,10 +41,13 @@ void NetworkHelper::setRequestBearerAuth(QString &bearerToken)
 
 void NetworkHelper::setRequestHeaders(QList<ParamValue> &headers)
 {
+    QHttpHeaders newHeaders;
     for (ParamValue &param : headers)
-    {
-        m_request.value().headers().append(param.value("name"), param.value("value"));
+    {        
+        newHeaders.append(param.value("name"), param.value("value"));
     }
+
+    m_request.value().setHeaders(newHeaders);
 }
 
 void NetworkHelper::initRequest(QUrl &url)
