@@ -15,6 +15,7 @@
 #include <QHttpMultiPart>
 #include <QJsonDocument>
 #include <QMimeDatabase>
+#include <QSaveFile>
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -878,7 +879,27 @@ void QueryForm::on_exportBtn_clicked()
 {
     QByteArray& data = m_networkHelper->replyBody();
     QMimeDatabase db;
-    QMimeType mimeType = db.mimeTypeForData(data);
+    QString replyType = m_networkHelper->replyType().split(";").first().trimmed();
 
+    QMimeType mimeType = db.mimeTypeForName(replyType);
+
+    QString folderWritePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString proposedFilePath = QString("%1/%2.%3").arg(folderWritePath, "response", mimeType.preferredSuffix());
+    QString fileFilter = mimeType.filterString();
+
+    QString filePath = QFileDialog::getSaveFileName(this, "Save Response", proposedFilePath, fileFilter);
+
+    if (filePath.isEmpty())
+    {
+        return;
+    }
+
+    QSaveFile file(filePath);
+
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write(data);
+        file.commit();
+    }
 }
 
