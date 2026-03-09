@@ -3,7 +3,6 @@
 #include "environment_form.h"
 #include "query_form.h"
 #include "../dialogs/collection_dialog.h"
-#include "../constants.h"
 #include "../db/collection.h"
 #include "../models/treeview_item.h"
 
@@ -22,7 +21,6 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     ui->envsTreeView->setModel(&m_envsModel);
 
     addNewQuery();
-    initAppDataFolder();
     initCollections();
     initEnvironments();
     ui->toolBox->setCurrentIndex(0);
@@ -156,16 +154,6 @@ void RestyCageWindow::initCollections()
     ui->collectionsTreeView->setModel(&m_collectionsModel);
     ui->collectionsTreeView->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
     ui->collectionsTreeView->expandAll();
-}
-
-void RestyCageWindow::initAppDataFolder()
-{
-    QDir dataFolder = appDataFolder;
-
-    if (!dataFolder.exists())
-    {
-        QDir().mkdir(appDataFolder);
-    }
 }
 
 void RestyCageWindow::onTabHasChangedName(QWidget *widget, QString newTitle)

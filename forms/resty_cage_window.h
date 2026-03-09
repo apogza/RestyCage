@@ -68,7 +68,5 @@ private:
     void initEnvironments();
     void initCollections();
 
-    void initAppDataFolder();
-
 };
 #endif // RESTY_CAGE_WINDOW_H

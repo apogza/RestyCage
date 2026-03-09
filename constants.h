@@ -11,7 +11,6 @@ const QString settingsOrgKey = "NoOrg";
 const QString settingsAppKey = "RestyCage";
 const QString activeEnvironmentId = "activeEnvironmentId";
 
-const QString appDataFolder = QString("%1/%2").arg(QDir::currentPath(), "resty_cage");
 const QString dbPath = QString("./resty_cage.db");
 const QString collectionsTable = "collections";
 const QString queriesTable = "queries";
