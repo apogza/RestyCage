@@ -14,7 +14,7 @@ include(ECMAddAppIcon)
 
 qt_standard_project_setup()
 
-file(GLOB ICON_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/icons/*-apps-restycage.png")
+file(GLOB ICON_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/*-apps-restycage.png")
 
 set(restyCage_SRC
     main.cpp
@@ -59,4 +59,10 @@ target_link_libraries(RestyCage
         Qt::Sql
 )
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
+
+message("Install destination: ${CMAKE_INSTALL_BINDIR}")
+
+install(TARGETS RestyCage
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 

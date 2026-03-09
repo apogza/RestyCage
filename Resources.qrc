@@ -2,5 +2,11 @@
     <qresource prefix="/resty_cage"/>
     <qresource prefix="/">
         <file>resources/darkstyle.qss</file>
+        <file>resources/512-apps-restycage.png</file>
+        <file>resources/256-apps-restycage.png</file>
+        <file>resources/128-apps-restycage.png</file>
+        <file>resources/64-apps-restycage.png</file>
+        <file>resources/32-apps-restycage.png</file>
+        <file>resources/16-apps-restycage.png</file>
     </qresource>
 </RCC>

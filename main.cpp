@@ -18,7 +18,10 @@ int main(int argc, char *argv[])
     }
     */
 
+    a.setWindowIcon(QIcon(":/resources/256-apps-restycage.png"));
+
     RestyCageWindow w;
+
     w.show();
 
     return a.exec();
