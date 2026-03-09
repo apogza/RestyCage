@@ -1,6 +1,6 @@
 <RCC>
-    <qresource prefix="/resty_cage">
-        <file>resources/B6.png</file>
-        <file>resources/B6-small.png</file>
+    <qresource prefix="/resty_cage"/>
+    <qresource prefix="/">
+        <file>resources/darkstyle.qss</file>
     </qresource>
 </RCC>

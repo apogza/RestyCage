@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>RESTy Cage</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="../Resources.qrc">
-    <normaloff>:/icons/B6-small.png</normaloff>:/icons/B6-small.png</iconset>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -188,8 +184,6 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="../Resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

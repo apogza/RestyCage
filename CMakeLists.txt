@@ -5,12 +5,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+find_package(ECM 6.0 REQUIRED CONFIG)
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+include(ECMAddAppIcon)
+
 qt_standard_project_setup()
 
-qt_add_executable(RestyCage
+file(GLOB ICON_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/icons/*-apps-restycage.png")
+
+set(restyCage_SRC
     main.cpp
     Resources.qrc
     forms/resty_cage_window.cpp
@@ -37,7 +43,12 @@ qt_add_executable(RestyCage
     network_helper.h network_helper.cpp
     ui/json_highlighter.h ui/json_highlighter.cpp
     db/migrations/migration.h db/migrations/migration.cpp
-    db/migrations/add_uid_migration.h db/migrations/add_uid_migration.cpp
+    db/migrations/add_uid_migration.h db/migrations/add_uid_migration.cpp)
+
+ecm_add_app_icon(restyCage_SRC ICONS ${ICON_SRCS})
+
+qt_add_executable(RestyCage
+    ${restyCage_SRC}
 )
 
 target_link_libraries(RestyCage

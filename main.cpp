@@ -2,7 +2,7 @@
 
 #include <QApplication>
 #include <QUrl>
-#include<QDirIterator>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
