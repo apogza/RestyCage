@@ -44,14 +44,18 @@ void RestyCageWindow::on_tabWidget_tabCloseRequested(int index)
     if (queryForm)
     {
         m_tabs.remove(queryForm->uid());
+        queryForm->close();
     }
 
     if (envForm)
     {
         m_tabs.remove(envForm->uid());
+        envForm->close();
     }
 
     ui->tabWidget->removeTab(index);
+
+    delete tab;
 }
 
 void RestyCageWindow::on_newQueryBtn_clicked()
@@ -61,7 +65,7 @@ void RestyCageWindow::on_newQueryBtn_clicked()
 
 void RestyCageWindow::on_addEnvironmentBtn_clicked()
 {
-    EnvironmentForm *environmentForm = new EnvironmentForm(ui->tabWidget);
+    EnvironmentForm *environmentForm = new EnvironmentForm();
     int idx = ui->tabWidget->addTab(environmentForm, "New Environment*");
 
     ui->tabWidget->setCurrentIndex(idx);
@@ -72,7 +76,7 @@ void RestyCageWindow::on_addEnvironmentBtn_clicked()
 
 void RestyCageWindow::addNewQuery()
 {
-    QueryForm *queryForm = new QueryForm(ui->tabWidget);
+    QueryForm *queryForm = new QueryForm();
 
     connect(queryForm, &QueryForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
     connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);

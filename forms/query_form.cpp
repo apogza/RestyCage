@@ -42,12 +42,13 @@ QueryForm::QueryForm(QWidget *parent)
 
     m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
 
-    pdfDocument = new QPdfDocument(ui->pdfBodyPage);
+    pdfDocument = new QPdfDocument(this);
 
-    this->pdfView = new QPdfView(ui->pdfBodyPage);
+    pdfView = new QPdfView(this);
     pdfView->setPageMode(QPdfView::PageMode::MultiPage);
     pdfView->setPageSpacing(10);
     pdfView->setDocument(pdfDocument);
+
     ui->pdfBodyPage->layout()->addWidget(pdfView);
 
     if (m_settings->contains(activeEnvironmentId))
@@ -253,6 +254,8 @@ void QueryForm::setRequestHeaders()
 
 void QueryForm::sendRequest(QUrlQuery &urlQuery)
 {
+    pdfDocument->close();
+
     const QString method = ui->methodComboBox->currentText();
 
     QString bodyType = ui->reqBodyTypeComboBox->currentText();
@@ -607,7 +610,6 @@ void QueryForm::slotReplyReceived()
         ui->respBodyTextEdit->setText("");
         ui->respHeadersTableWidget->clear();
         ui->respHeadersTableWidget->setRowCount(0);
-
     }
 
     ui->requestTabWidget->setDisabled(false);
@@ -635,10 +637,10 @@ void QueryForm::loadReplyBody()
     {
         ui->respBodyStackedWidget->setCurrentWidget(ui->pdfBodyPage);
 
-        this->pdfBuffer = new QBuffer(&replyBody, ui->pdfBodyPage);
-        this->pdfBuffer->open(QIODevice::ReadOnly);
-        this->pdfDocument->load(pdfBuffer);
-        this->pdfBuffer->close();
+        QBuffer buff(&replyBody, nullptr);
+        buff.open(QIODevice::ReadOnly);
+        pdfDocument->load(&buff);
+        buff.close();
 
         return;
     }

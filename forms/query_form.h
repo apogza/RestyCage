@@ -78,7 +78,6 @@ private:
     QStandardItemModel m_reqUrlEncodedFormBodyModel;
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
-    QBuffer *pdfBuffer;
     QPdfDocument *pdfDocument;
     QPdfView *pdfView;
 

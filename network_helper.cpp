@@ -213,9 +213,8 @@ QString NetworkHelper::replyType() const
 }
 
 void NetworkHelper::readReply()
-{    
+{
     readReplyHeaders(m_reply);
-
     m_statusCode = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
     m_replyType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
@@ -224,7 +223,10 @@ void NetworkHelper::readReply()
 
     m_totalTime = QDateTime::currentMSecsSinceEpoch() - m_requestStartMs;
 
+    m_reply->deleteLater();
+
     m_request = std::nullopt;
+
     emit replyReceived();
 }
 
@@ -240,15 +242,6 @@ void NetworkHelper::readReplyHeaders(QNetworkReply *reply)
     for (int i = 0; i < replyHeaders.size(); i++)
     {
         QString headerKey = replyHeaders.nameAt(i);
-
-        /*
-        if (headerSet.contains(headerKey))
-        {
-            continue;
-        }
-
-        headerSet.insert(headerKey);
-        */
 
         m_replyHeaders.insert(headerKey, replyHeaders.valueAt(i).toByteArray());
     }
