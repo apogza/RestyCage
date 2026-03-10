@@ -16,7 +16,9 @@
 #include <QNetworkReply>
 #include <QUrlQuery>
 #include <QSettings>
-
+#include <QBuffer>
+#include <QPdfDocument>
+#include <QPdfView>
 
 namespace Ui {
 class QueryForm;
@@ -76,6 +78,9 @@ private:
     QStandardItemModel m_reqUrlEncodedFormBodyModel;
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
+    QBuffer *pdfBuffer;
+    QPdfDocument *pdfDocument;
+    QPdfView *pdfView;
 
     const int tabStop = 4;
 

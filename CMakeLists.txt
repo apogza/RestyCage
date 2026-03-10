@@ -6,11 +6,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(ECM 6.0 REQUIRED CONFIG)
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql PdfWidgets)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 include(ECMAddAppIcon)
+include(ECMInstallIcons)
 
 qt_standard_project_setup()
 
@@ -47,22 +47,21 @@ set(restyCage_SRC
 
 ecm_add_app_icon(restyCage_SRC ICONS ${ICON_SRCS})
 
-qt_add_executable(RestyCage
-    ${restyCage_SRC}
-)
+message("Install prefix: ${CMAKE_INSTALL_PREFIX}")
+
+ecm_install_icons(ICONS ${ICON_SRCS} DESTINATION share/icons)
+
+qt_add_executable(RestyCage ${restyCage_SRC})
 
 target_link_libraries(RestyCage
-    PRIVATE
+    PUBLIC
         Qt::Core
         Qt::Widgets
         Qt::Network
         Qt::Sql
+        Qt::PdfWidgets
 )
 target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
-message("Install destination: ${CMAKE_INSTALL_BINDIR}")
-
-install(TARGETS RestyCage
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+install(TARGETS RestyCage RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 

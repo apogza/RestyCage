@@ -16,6 +16,7 @@
 #include <QJsonDocument>
 #include <QMimeDatabase>
 #include <QSaveFile>
+#include <QPixmap>
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -40,6 +41,14 @@ QueryForm::QueryForm(QWidget *parent)
     ui->exportBtn->setVisible(false);
 
     m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
+
+    pdfDocument = new QPdfDocument(ui->pdfBodyPage);
+
+    this->pdfView = new QPdfView(ui->pdfBodyPage);
+    pdfView->setPageMode(QPdfView::PageMode::MultiPage);
+    pdfView->setPageSpacing(10);
+    pdfView->setDocument(pdfDocument);
+    ui->pdfBodyPage->layout()->addWidget(pdfView);
 
     if (m_settings->contains(activeEnvironmentId))
     {
@@ -609,7 +618,32 @@ void QueryForm::slotReplyReceived()
 void QueryForm::loadReplyBody()
 {
     QByteArray replyBody = m_networkHelper->replyBody();
-    QString replyType = m_networkHelper->replyType();
+    QString replyType = m_networkHelper->replyType().toLower();
+
+    if (replyType.contains("image"))
+    {
+        QPixmap pixmap;
+        if (pixmap.loadFromData(replyBody))
+        {
+            ui->imgLabel->setPixmap(pixmap);
+            ui->respBodyStackedWidget->setCurrentWidget(ui->imgBodyPage);
+            return;
+        }
+    }
+
+    if (replyType.contains("pdf"))
+    {
+        ui->respBodyStackedWidget->setCurrentWidget(ui->pdfBodyPage);
+
+        this->pdfBuffer = new QBuffer(&replyBody, ui->pdfBodyPage);
+        this->pdfBuffer->open(QIODevice::ReadOnly);
+        this->pdfDocument->load(pdfBuffer);
+        this->pdfBuffer->close();
+
+        return;
+    }
+
+    ui->respBodyStackedWidget->setCurrentWidget(ui->textBodyPage);
 
 
     if (replyType.contains("application/json"))
