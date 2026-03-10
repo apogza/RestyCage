@@ -42,15 +42,6 @@ QueryForm::QueryForm(QWidget *parent)
 
     m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
 
-    pdfDocument = new QPdfDocument(this);
-
-    pdfView = new QPdfView(this);
-    pdfView->setPageMode(QPdfView::PageMode::MultiPage);
-    pdfView->setPageSpacing(10);
-    pdfView->setDocument(pdfDocument);
-
-    ui->pdfBodyPage->layout()->addWidget(pdfView);
-
     if (m_settings->contains(activeEnvironmentId))
     {
         int activeEnvironmentIdValue = m_settings->value(activeEnvironmentId, -1).toInt();
@@ -62,6 +53,16 @@ QueryForm::QueryForm(QWidget *parent)
 
 QueryForm::~QueryForm()
 {
+    if (pdfDocument != nullptr)
+    {
+        pdfDocument->close();
+    }
+
+    if (pdfView != nullptr)
+    {
+        pdfView->close();
+    }
+
     delete ui;
 }
 
@@ -254,7 +255,15 @@ void QueryForm::setRequestHeaders()
 
 void QueryForm::sendRequest(QUrlQuery &urlQuery)
 {
-    pdfDocument->close();
+    if (pdfDocument != nullptr)
+    {
+        pdfDocument->close();
+    }
+
+    if (pdfView != nullptr)
+    {
+        pdfView->close();
+    }
 
     const QString method = ui->methodComboBox->currentText();
 
@@ -636,6 +645,15 @@ void QueryForm::loadReplyBody()
     if (replyType.contains("pdf"))
     {
         ui->respBodyStackedWidget->setCurrentWidget(ui->pdfBodyPage);
+
+        pdfDocument = new QPdfDocument(this);
+
+        pdfView = new QPdfView(this);
+        pdfView->setPageMode(QPdfView::PageMode::MultiPage);
+        pdfView->setPageSpacing(10);
+        pdfView->setDocument(pdfDocument);
+
+        ui->pdfBodyPage->layout()->addWidget(pdfView);
 
         QBuffer buff(&replyBody, nullptr);
         buff.open(QIODevice::ReadOnly);
