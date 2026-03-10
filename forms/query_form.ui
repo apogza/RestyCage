@@ -791,6 +791,9 @@
               <property name="widgetResizable">
                <bool>true</bool>
               </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignCenter</set>
+              </property>
               <widget class="QWidget" name="scrollAreaWidgetContents">
                <property name="geometry">
                 <rect>
@@ -814,6 +817,9 @@
                   </property>
                   <property name="scaledContents">
                    <bool>false</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
