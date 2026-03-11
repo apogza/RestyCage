@@ -48,21 +48,20 @@ QueryForm::QueryForm(QWidget *parent)
         m_activeEnvironment = m_db.getEnv(activeEnvironmentIdValue);
     }
 
+    pdfView = new QPdfView(this);
+    pdfDocument = new QPdfDocument(this);
+
+    pdfView->setPageMode(QPdfView::PageMode::MultiPage);
+    pdfView->setPageSpacing(10);
+    pdfView->setDocument(pdfDocument);
+
+    ui->pdfBodyPage->layout()->addWidget(pdfView);
+
     initModels();
 }
 
 QueryForm::~QueryForm()
 {
-    if (pdfDocument != nullptr)
-    {
-        pdfDocument->close();
-    }
-
-    if (pdfView != nullptr)
-    {
-        pdfView->close();
-    }
-
     delete ui;
 }
 
@@ -255,16 +254,6 @@ void QueryForm::setRequestHeaders()
 
 void QueryForm::sendRequest(QUrlQuery &urlQuery)
 {
-    if (pdfDocument != nullptr)
-    {
-        pdfDocument->close();
-    }
-
-    if (pdfView != nullptr)
-    {
-        pdfView->close();
-    }
-
     const QString method = ui->methodComboBox->currentText();
 
     QString bodyType = ui->reqBodyTypeComboBox->currentText();
@@ -645,15 +634,7 @@ void QueryForm::loadReplyBody()
     if (replyType.contains("pdf"))
     {
         ui->respBodyStackedWidget->setCurrentWidget(ui->pdfBodyPage);
-
-        pdfDocument = new QPdfDocument(this);
-
-        pdfView = new QPdfView(this);
-        pdfView->setPageMode(QPdfView::PageMode::MultiPage);
-        pdfView->setPageSpacing(10);
-        pdfView->setDocument(pdfDocument);
-
-        ui->pdfBodyPage->layout()->addWidget(pdfView);
+        pdfDocument->close();
 
         QBuffer buff(&replyBody, nullptr);
         buff.open(QIODevice::ReadOnly);
@@ -956,4 +937,3 @@ void QueryForm::on_exportBtn_clicked()
         file.commit();
     }
 }
-
