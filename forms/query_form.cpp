@@ -42,12 +42,6 @@ QueryForm::QueryForm(QWidget *parent)
 
     m_settings = new QSettings(settingsOrgKey, settingsAppKey, this);
 
-    if (m_settings->contains(activeEnvironmentId))
-    {
-        int activeEnvironmentIdValue = m_settings->value(activeEnvironmentId, -1).toInt();
-        m_activeEnvironment = m_db.getEnv(activeEnvironmentIdValue);
-    }
-
     pdfView = new QPdfView(this);
     pdfDocument = new QPdfDocument(this);
 
@@ -129,6 +123,11 @@ QUuid QueryForm::uid()
     return m_uid;
 }
 
+void QueryForm::setEnvVariables(QMap<QString, QString> *envVariables)
+{
+    this->m_envVariables = envVariables;
+}
+
 void QueryForm::initModels()
 {
     m_reqParamsModel.insertColumns(0, 3);
@@ -172,7 +171,7 @@ void QueryForm::on_sendButton_clicked()
 
         QString urlString = ui->urlEdit->text();
         urlString = replaceEnvParameters(urlString);
-        QUrl url(ui->urlEdit->text());
+        QUrl url(urlString);
 
         QUrlQuery urlQuery(url);
         setRequestParams(urlQuery);
@@ -554,34 +553,26 @@ Query QueryForm::createQuery()
 
 QString QueryForm::replaceEnvParameters(const QString &originalString)
 {
-    // the string does not have parameters
-    if (originalString.indexOf("{{") == -1)
-    {
-        return originalString;
-    }
+    QRegularExpression regExp("{{(?<param>\\w+)}}");
+
+    QRegularExpressionMatchIterator it = regExp.globalMatch(originalString);
 
     QString result = originalString;
 
-    if (m_activeEnvironment.has_value())
+    while (it.hasNext())
     {
-        QMap<QString, QString> envParams = m_activeEnvironment.value().getAllValues();
-
+        QRegularExpressionMatch match = it.next();
         int paramStart =  0;
         int paramEnd = 0;
 
-        do
+        QString param = match.captured("param");
+
+        if (param.isNull() || !m_envVariables->contains(param))
         {
-            int paramStart =  result.indexOf("{{");
-            int paramEnd = result.indexOf("}}", paramStart);
-
-            QString paramName = result.slice(paramStart, paramEnd - paramStart);
-
-            if (envParams.contains(paramName))
-            {
-                result.replace(QString("{{%0}}").arg(paramName), envParams[paramName]);
-            }
+            continue;
         }
-        while (paramStart > -1);
+
+        result = result.replace(QString("{{%0}}").arg(param), m_envVariables->value(param));
     }
 
     return result;

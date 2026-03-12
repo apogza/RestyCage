@@ -1,7 +1,6 @@
 #ifndef QUERY_FORM_H
 #define QUERY_FORM_H
 
-
 #include "../key_value_handler.h"
 #include "../db/param_value.h"
 #include "../db/query.h"
@@ -34,6 +33,7 @@ public:
 
     void initFromDb(Query &query);
     QUuid uid();
+    void setEnvVariables(QMap<QString, QString> *envVars);
 
 signals:
     void changedName(QueryForm *form, QString newName);
@@ -70,6 +70,8 @@ private slots:
 
     void on_exportBtn_clicked();
 
+    void slotReplyReceived();
+
 private:
     Ui::QueryForm *ui;
     NetworkHelper *m_networkHelper;
@@ -100,7 +102,6 @@ private:
     QList<int> m_deletedMultiPartParams;
     QList<int> m_deletedEncodedFormParams;
     QSettings *m_settings;
-    std::optional<Environment> m_activeEnvironment;
 
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
@@ -126,7 +127,6 @@ private:
 
     QString replaceEnvParameters(const QString &originalString);
 
-    void slotReplyReceived();
     void loadReplyBody();
     void loadReplyHeaders();
 

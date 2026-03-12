@@ -484,7 +484,7 @@ std::optional<Environment> Db::getEnv(int envId)
 std::optional<QMap<QString, QString>> Db::getEnvVars(int envId)
 {
     QSqlQuery envQuery(m_db);
-    envQuery.prepare("SELECT name, value from envs_params WHERE id = :env_id;");
+    envQuery.prepare("SELECT name, value from envs_params WHERE env_id = :env_id;");
     envQuery.bindValue(":env_id", envId);
     if (!envQuery.exec())
     {

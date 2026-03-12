@@ -76,10 +76,11 @@ void RestyCageWindow::on_addEnvironmentBtn_clicked()
 
 void RestyCageWindow::addNewQuery()
 {
-    QueryForm *queryForm = new QueryForm();
+    QueryForm *queryForm = new QueryForm(this);
 
     connect(queryForm, &QueryForm::changedName, this, &RestyCageWindow::onTabHasChangedName);
     connect(queryForm, &QueryForm::hasBeenModified, this, &RestyCageWindow::onTabHasBeenModified);
+    queryForm->setEnvVariables(&m_envVariables);
 
     int idx = ui->tabWidget->addTab(queryForm, "New Query*");
 
@@ -382,6 +383,7 @@ void RestyCageWindow::on_collectionsTreeView_doubleClicked(const QModelIndex &in
 
         ui->tabWidget->setCurrentIndex(idx);
 
+        queryForm->setEnvVariables(&m_envVariables);
         queryForm->initFromDb(query);
     }
 }
