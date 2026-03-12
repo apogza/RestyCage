@@ -201,12 +201,59 @@ void RestyCageWindow::onEnvContextMenuRequest(const QPoint &point)
 
 void RestyCageWindow::on_activateEnvironment()
 {
+    QModelIndex selectionEnv = ui->envsTreeView->selectionModel()->selectedIndexes()[0];
 
+    int selectedEnvId = m_envsModel.itemFromIndex(selectionEnv)->data(Qt::UserRole).toInt();
+
+    if (m_activeEnvIdx.has_value())
+    {
+        QFont nonBoldFont;
+        nonBoldFont.setBold(false);
+        m_envsModel.itemFromIndex(m_activeEnvIdx.value())->setData(nonBoldFont, Qt::FontRole);
+    }
+
+    QFont boldFont;
+    boldFont.setBold(true);
+
+    m_envsModel.itemFromIndex(selectionEnv)->setData(boldFont, Qt::FontRole);
+    m_activeEnvIdx = selectionEnv;
+
+    std::optional<QMap<QString, QString>> envVals = m_db.getEnvVars(selectedEnvId);
+
+    if (envVals.has_value())
+    {
+        m_envVariables.clear();
+        QMapIterator<QString, QString> it(envVals.value());
+
+        while (it.hasNext())
+        {
+            it.next();
+            m_envVariables.insert(it.key(), it.value());
+        }
+    }
 }
 
 void RestyCageWindow::on_deactivateEnvironment()
 {
+    QModelIndex selectionEnv = ui->envsTreeView->selectionModel()->selectedIndexes()[0];
 
+    if (!m_activeEnvIdx.has_value()
+        || m_activeEnvIdx.value().row() != selectionEnv.row()
+        || m_activeEnvIdx.value().column() != selectionEnv.column())
+    {
+        return;
+    }
+
+    if (m_activeEnvIdx.has_value())
+    {
+        m_envVariables.clear();
+
+        QFont nonBoldFont;
+        nonBoldFont.setBold(false);
+        m_envsModel.itemFromIndex(m_activeEnvIdx.value())->setData(nonBoldFont, Qt::FontRole);
+    }
+
+    m_activeEnvIdx = std::nullopt;
 }
 
 

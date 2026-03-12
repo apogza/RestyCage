@@ -90,6 +90,8 @@ public:
 
     QList<Environment> getEnvs();
     std::optional<Environment> getEnv(int envId);
+    std::optional<QMap<QString, QString>> getEnvVars(int envId);
+
     bool saveEnv(Environment &environment);
     bool deleteEnv(int envId);
 

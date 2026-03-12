@@ -64,6 +64,7 @@ void EnvironmentForm::initModel()
     m_envItemModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->tableView->setModel(&m_envItemModel);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 void EnvironmentForm::on_addEnvironmentBtn_clicked()

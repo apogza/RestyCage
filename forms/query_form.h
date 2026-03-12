@@ -78,8 +78,9 @@ private:
     QStandardItemModel m_reqUrlEncodedFormBodyModel;
     QStandardItemModel m_reqFormBodyModel;
     QString m_binaryBodyFilePath;
-    QPdfDocument *pdfDocument;
-    QPdfView *pdfView;
+    QPdfDocument *pdfDocument = nullptr;
+    QPdfView *pdfView = nullptr;
+    QMap<QString, QString> *m_envVariables = nullptr;
 
     const int tabStop = 4;
 

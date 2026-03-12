@@ -62,6 +62,9 @@ private:
     QStandardItemModel m_envsModel;
     QStandardItemModel m_collectionsModel;
     QMap<QUuid, QWidget*> m_tabs;
+    QMap<QString, QString> m_envVariables;
+    std::optional<QModelIndex> m_activeEnvIdx;
+
     Db &m_db = Db::instance();
 
     void addNewQuery();

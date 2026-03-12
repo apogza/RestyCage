@@ -481,6 +481,29 @@ std::optional<Environment> Db::getEnv(int envId)
     return std::nullopt;
 }
 
+std::optional<QMap<QString, QString>> Db::getEnvVars(int envId)
+{
+    QSqlQuery envQuery(m_db);
+    envQuery.prepare("SELECT name, value from envs_params WHERE id = :env_id;");
+    envQuery.bindValue(":env_id", envId);
+    if (!envQuery.exec())
+    {
+        return std::nullopt;
+    }
+
+    QMap<QString, QString> result;
+
+    while (envQuery.next())
+    {
+        QString key = envQuery.value(0).toString();
+        QString val = envQuery.value(1).toString();
+
+        result.insert(key, val);
+    }
+
+    return result;
+}
+
 bool Db::insertEnv(Environment &environment)
 {
     QSqlQuery insertEnv(m_db);
