@@ -169,8 +169,7 @@ void QueryForm::on_sendButton_clicked()
         ui->responseTabWidget->setDisabled(true);
         ui->sendButton->setText("Cancel");
 
-        QString urlString = ui->urlEdit->text();
-        urlString = replaceEnvParameters(urlString);
+        QString urlString = replaceEnvParameters(ui->urlEdit->text());
         QUrl url(urlString);
 
         QUrlQuery urlQuery(url);
@@ -562,9 +561,6 @@ QString QueryForm::replaceEnvParameters(const QString &originalString)
     while (it.hasNext())
     {
         QRegularExpressionMatch match = it.next();
-        int paramStart =  0;
-        int paramEnd = 0;
-
         QString param = match.captured("param");
 
         if (param.isNull() || !m_envVariables->contains(param))
