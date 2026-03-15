@@ -25,7 +25,7 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="collectionsPage">
            <property name="geometry">
@@ -92,8 +92,26 @@
             </item>
             <item>
              <widget class="QTreeView" name="collectionsTreeView">
+              <property name="acceptDrops">
+               <bool>true</bool>
+              </property>
               <property name="editTriggers">
                <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+              </property>
+              <property name="dragEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::DragDropMode::InternalMove</enum>
+              </property>
+              <property name="defaultDropAction">
+               <enum>Qt::DropAction::MoveAction</enum>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
               </property>
               <attribute name="headerVisible">
                <bool>false</bool>

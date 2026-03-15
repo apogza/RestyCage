@@ -432,7 +432,6 @@ void QueryForm::loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue
     }
 }
 
-
 Query QueryForm::createQuery()
 {
     Query query;

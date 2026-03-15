@@ -114,8 +114,10 @@ void RestyCageWindow::initCollections()
     {
         QStandardItem *collectionItem = new QStandardItem();
         collectionItem->setText(currentCollection.name());
+        collectionItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
 
         TreeviewItem itemData(TreeviewItem::ItemType::Collection, currentCollection.id().value());
+
         QVariant data;
         data.setValue(itemData);
 
@@ -146,6 +148,8 @@ void RestyCageWindow::initCollections()
         {
             QStandardItem *queryItem = new QStandardItem();
             queryItem->setText(query.name());
+            queryItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+
             TreeviewItem itemData(TreeviewItem::ItemType::Query, query.id().value());
             QVariant data;
             data.setValue(itemData);
@@ -157,7 +161,7 @@ void RestyCageWindow::initCollections()
     }
 
     ui->collectionsTreeView->setModel(&m_collectionsModel);
-    ui->collectionsTreeView->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
+    //ui->collectionsTreeView->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
     ui->collectionsTreeView->expandAll();
 }
 
