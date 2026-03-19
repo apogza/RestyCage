@@ -69,7 +69,7 @@ void EnvironmentForm::initModel()
 
 void EnvironmentForm::on_addEnvironmentBtn_clicked()
 {
-    bool result = m_keyValueHandler->addRowModel(this, m_envItemModel);
+    bool result = m_keyValueHandler->addSimpleRowModel(this, m_envItemModel);
 
     if (result)
     {
@@ -79,7 +79,7 @@ void EnvironmentForm::on_addEnvironmentBtn_clicked()
 
 void EnvironmentForm::on_tableView_doubleClicked(const QModelIndex &index)
 {
-    bool result = m_keyValueHandler->editRowModel(this, m_envItemModel, index.row(), index.column());
+    bool result = m_keyValueHandler->editSimpleRowModel(this, m_envItemModel, index.row(), index.column());
 
     if (result)
     {
@@ -89,7 +89,7 @@ void EnvironmentForm::on_tableView_doubleClicked(const QModelIndex &index)
 
 void EnvironmentForm::on_removeEnvironmentBtn_clicked()
 {
-    QList<QVariant> userData = m_keyValueHandler->deleteRowModel(ui->tableView, m_envItemModel);
+    QList<QVariant> userData = m_keyValueHandler->deleteSimpleRowModel(ui->tableView, m_envItemModel);
 
     for (QVariant &data : userData)
     {

@@ -13,6 +13,7 @@ class KeyValueFileTextDialog : public QDialog
 
 public:
     explicit KeyValueFileTextDialog(QWidget *parent = nullptr);
+    explicit KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value, QString &description);
     ~KeyValueFileTextDialog();
 
     QString getKey();

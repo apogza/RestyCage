@@ -409,13 +409,15 @@ void QueryForm::loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue
         rowItems.append(nameItem);
 
         if (paramVal.getValueType() == ParamValue::ParamValueType::File)
-        {
+        {            
             rowItems.append(new QStandardItem("File"));
 
             QString rawValue = paramVal.value("value");
             QFileInfo fileInfo(rawValue);
 
-            rowItems.append(new QStandardItem(fileInfo.fileName()));
+            QStandardItem *fileItem = new QStandardItem(fileInfo.fileName());
+            fileItem->setData(rawValue, Qt::UserRole);
+            rowItems.append(fileItem);
         }
         else
         {
@@ -678,17 +680,17 @@ void QueryForm::on_authComboBox_currentIndexChanged(int index)
 
 void QueryForm::addSimpleModelRow(QStandardItemModel &itemsModel)
 {
-    keyValueHandler->addRowModel(this, itemsModel);
+    keyValueHandler->addSimpleRowModel(this, itemsModel);
 }
 
 void QueryForm::editSimpleRow(QStandardItemModel &itemsModel, int row, int column)
 {
-    keyValueHandler->editRowModel(this, itemsModel, row, column);
+    keyValueHandler->editSimpleRowModel(this, itemsModel, row, column);
 }
 
 QList<QVariant> QueryForm::removeModelRow(QTableView *tableView, QStandardItemModel &itemsModel)
 {
-    return keyValueHandler->deleteRowModel(tableView, itemsModel);
+    return keyValueHandler->deleteSimpleRowModel(tableView, itemsModel);
 }
 
 void QueryForm::on_reqAddParamBtn_clicked()
@@ -740,42 +742,7 @@ void QueryForm::on_reqParamsTableView_doubleClicked(const QModelIndex &index)
 
 void QueryForm::on_reqBodyFormDataAddRowBtn_clicked()
 {
-    KeyValueFileTextDialog *dialog = new  KeyValueFileTextDialog(this);
-
-    int result = dialog->exec();
-    if (result == QDialog::Accepted)
-    {
-        QString key = dialog->getKey();
-        QString type = dialog->getType();
-        QString filePath = dialog->getFilePathValue();
-        QString fileName = dialog->getFileNameValue();
-        QString textValue = dialog->getTextValue();
-
-        QString description = dialog->getDescription();
-
-        QStandardItem *keyItem = new QStandardItem();
-        keyItem->setData(key, Qt::EditRole);
-
-        QStandardItem *typeItem = new QStandardItem();
-        typeItem->setData(type, Qt::EditRole);
-
-        QStandardItem *valueItem = new QStandardItem();
-
-        if (type == "File")
-        {
-            valueItem->setData(fileName, Qt::EditRole);
-            valueItem->setData(filePath, Qt::UserRole);
-        }
-        else
-        {
-            valueItem->setData(textValue, Qt::EditRole);
-        }
-
-        QStandardItem *descriptionItem = new QStandardItem();
-        descriptionItem->setData(description, Qt::EditRole);
-
-        m_reqFormBodyModel.insertRow(m_reqFormBodyModel.rowCount(), { keyItem, typeItem, valueItem, descriptionItem });
-    }
+    keyValueHandler->addRowModel(this, m_reqFormBodyModel);
 }
 
 void QueryForm::on_reqHeadersTableView_doubleClicked(const QModelIndex &index)
@@ -923,3 +890,10 @@ void QueryForm::on_exportBtn_clicked()
         file.commit();
     }
 }
+
+void QueryForm::on_reqBodyFormTableView_doubleClicked(const QModelIndex &index)
+{
+    //editSimpleRow(m_reqFormBodyModel, index.row(), index.column());
+    keyValueHandler->editRowModel(this, m_reqFormBodyModel, index.row(), index.column());
+}
+

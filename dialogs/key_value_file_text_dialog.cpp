@@ -9,6 +9,28 @@ KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent)
     ui->setupUi(this);
 }
 
+KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value, QString &description)
+    : KeyValueFileTextDialog(parent)
+{
+    ui->keyEdit->setText(key);
+    ui->typeComboBox->setCurrentText(type);
+    if (type == "File")
+    {
+        QFileInfo fileInfo(value);
+        filePath = value;
+        fileName = fileInfo.fileName();
+
+        ui->filepathLbl->setText(this->fileName);
+    }
+    else
+    {
+        ui->valueTextEdit->setText(value);
+    }
+
+
+    ui->descriptionEdit->setText(description);
+}
+
 KeyValueFileTextDialog::~KeyValueFileTextDialog()
 {
     delete ui;
@@ -61,8 +83,8 @@ void KeyValueFileTextDialog::on_selectFileBtn_clicked()
         QStringList filePaths = fileDialog.selectedFiles();
         QString filePath = filePaths.at(0);
 
-        QFile file(filePath);
-        QFileInfo fileInfo(file);
+
+        QFileInfo fileInfo(filePath);
 
         this->filePath = filePath;
         fileName = fileInfo.fileName();

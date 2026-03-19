@@ -72,6 +72,8 @@ private slots:
 
     void slotReplyReceived();
 
+    void on_reqBodyFormTableView_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::QueryForm *ui;
     NetworkHelper *m_networkHelper;
