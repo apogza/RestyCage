@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QMenu>
 
+
 RestyCageWindow::RestyCageWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RestyCageWindow)
@@ -19,6 +20,18 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     ui->setupUi(this);
     ui->splitter->setSizes({200, 500});
     ui->envsTreeView->setModel(&m_envsModel);
+
+
+    if (m_settings.contains("windowSize"))
+    {
+        QSize windowSize = m_settings.value("windowSize").toSize();
+        this->resize(windowSize);
+    }
+
+    if (m_settings.contains("activeEnv"))
+    {
+        m_activeEnvId = m_settings.value("activeEnv").toInt();
+    }
 
     addNewQuery();
     initCollections();
@@ -99,6 +112,15 @@ void RestyCageWindow::initEnvironments()
         item->setText(env.name());
         item->setData(env.id().value(), Qt::UserRole);
         m_envsModel.appendRow(item);
+
+        if (m_activeEnvId.has_value() && m_activeEnvId.value() == env.id())
+        {
+            QFont boldFont;
+            boldFont.setBold(true);
+
+            item->setData(boldFont, Qt::FontRole);
+            m_activeEnvIdx = m_envsModel.indexFromItem(item);
+        }
     }
 }
 
@@ -204,6 +226,14 @@ void RestyCageWindow::onEnvContextMenuRequest(const QPoint &point)
     contextMenu->exec(QCursor::pos());
 }
 
+void RestyCageWindow::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+
+    m_settings.setValue("windowSize", event->size());
+
+}
+
 void RestyCageWindow::on_activateEnvironment()
 {
     QModelIndex selectionEnv = ui->envsTreeView->selectionModel()->selectedIndexes()[0];
@@ -223,19 +253,9 @@ void RestyCageWindow::on_activateEnvironment()
     m_envsModel.itemFromIndex(selectionEnv)->setData(boldFont, Qt::FontRole);
     m_activeEnvIdx = selectionEnv;
 
-    std::optional<QMap<QString, QString>> envVals = m_db.getEnvVars(selectedEnvId);
+    activateEnv(selectedEnvId);
 
-    if (envVals.has_value())
-    {
-        m_envVariables.clear();
-        QMapIterator<QString, QString> it(envVals.value());
-
-        while (it.hasNext())
-        {
-            it.next();
-            m_envVariables.insert(it.key(), it.value());
-        }
-    }
+    m_settings.setValue("activeEnv", selectedEnvId);
 }
 
 void RestyCageWindow::on_deactivateEnvironment()
@@ -258,7 +278,25 @@ void RestyCageWindow::on_deactivateEnvironment()
         m_envsModel.itemFromIndex(m_activeEnvIdx.value())->setData(nonBoldFont, Qt::FontRole);
     }
 
+    m_settings.remove("activeEnv");
     m_activeEnvIdx = std::nullopt;
+}
+
+void RestyCageWindow::activateEnv(int envId)
+{
+    std::optional<QMap<QString, QString>> envVals = m_db.getEnvVars(envId);
+
+    if (envVals.has_value())
+    {
+        m_envVariables.clear();
+        QMapIterator<QString, QString> it(envVals.value());
+
+        while (it.hasNext())
+        {
+            it.next();
+            m_envVariables.insert(it.key(), it.value());
+        }
+    }
 }
 
 

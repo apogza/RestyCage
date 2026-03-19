@@ -221,8 +221,8 @@ void QueryForm::setRequestAuth()
 
     if (ui->authComboBox->currentText() == "Basic Auth")
     {
-        QString user = ui->authBasicUserEdit->text();
-        QString password = ui->authBasicPasswordEdit->text();
+        QString user = replaceEnvParameters(ui->authBasicUserEdit->text());
+        QString password = replaceEnvParameters(ui->authBasicPasswordEdit->text());
 
         m_networkHelper->setRequestBasicAuth(user, password);
     }
@@ -239,8 +239,8 @@ void QueryForm::setRequestHeaders()
         QString headerKey = m_reqHeadersModel.item(i, 0)->text();
         QString headerValue = m_reqHeadersModel.item(i, 1)->text();
 
-        headerMap.insert("name", headerKey);
-        headerMap.insert("value", headerValue);
+        headerMap.insert("name", replaceEnvParameters(headerKey));
+        headerMap.insert("value", replaceEnvParameters(headerValue));
 
         ParamValue param(headerMap);
 
@@ -299,7 +299,7 @@ void QueryForm::sendMultiPartRequest(const QString &method)
 
         QMap<QString, QString> paramMap;
         paramMap.insert("name", key);
-        paramMap.insert("value", value);
+        paramMap.insert("value", type != "File" ? replaceEnvParameters(value) : value);
         paramMap.insert("description", description);
 
         ParamValue param(paramMap);
@@ -328,7 +328,7 @@ void QueryForm::sendUrlEncodedFormRequest(const QString &method, QUrlQuery &urlQ
 
         QMap<QString, QString> paramMap;
         paramMap.insert("name", key);
-        paramMap.insert("value", value);
+        paramMap.insert("value", replaceEnvParameters(value));
 
         ParamValue paramValue(paramMap);
         params.append(paramValue);

@@ -5,6 +5,8 @@
 #include <QStandardItemModel>
 #include <QMap>
 #include <QDir>
+#include <QResizeEvent>
+#include <QSettings>
 
 #include "../db/db.h"
 
@@ -35,27 +37,21 @@ public slots:
     void onTabHasChangedName(QWidget *widget, QString newName);
     void onTabHasBeenModified(QWidget *widget);
     void onEnvContextMenuRequest(const QPoint &point);
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-
     void on_tabWidget_tabCloseRequested(int index);
-
     void on_newQueryBtn_clicked();
-
     void on_addEnvironmentBtn_clicked();
-
     void on_envsTreeView_doubleClicked(const QModelIndex &index);
-
     void on_newCollectionBtn_clicked();
-
     void on_delEnvBtn_clicked();
-
     void on_removeCollectionBtn_clicked();
-
     void on_collectionsTreeView_doubleClicked(const QModelIndex &index);
-
     void on_activateEnvironment();
     void on_deactivateEnvironment();
+    void activateEnv(int envId);
 
 private:
     Ui::RestyCageWindow *ui;
@@ -64,6 +60,8 @@ private:
     QMap<QUuid, QWidget*> m_tabs;
     QMap<QString, QString> m_envVariables;
     std::optional<QModelIndex> m_activeEnvIdx;
+    std::optional<int> m_activeEnvId;
+    QSettings m_settings = QSettings("AnonymousSoft", "RestyCage");
 
     Db &m_db = Db::instance();
 

@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
         a.setStyleSheet(stream.readAll());
     }
     */
-
+    a.setApplicationName("RestyCage");
+    a.setOrganizationName("AnonymousSoft");
     a.setWindowIcon(QIcon(":/resources/256-apps-restycage.png"));
 
     RestyCageWindow w;
