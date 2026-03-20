@@ -21,7 +21,6 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     ui->splitter->setSizes({200, 500});
     ui->envsTreeView->setModel(&m_envsModel);
 
-
     if (m_settings.contains("windowSize"))
     {
         QSize windowSize = m_settings.value("windowSize").toSize();
@@ -31,11 +30,13 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
     if (m_settings.contains("activeEnv"))
     {
         m_activeEnvId = m_settings.value("activeEnv").toInt();
+        activateEnv(m_activeEnvId.value());
     }
 
     addNewQuery();
     initCollections();
     initEnvironments();
+
     ui->toolBox->setCurrentIndex(0);
 
     ui->envsTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -119,7 +120,7 @@ void RestyCageWindow::initEnvironments()
             boldFont.setBold(true);
 
             item->setData(boldFont, Qt::FontRole);
-            m_activeEnvIdx = m_envsModel.indexFromItem(item);
+            m_activeEnvIdx = m_envsModel.indexFromItem(item);            
         }
     }
 }
