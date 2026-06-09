@@ -1,31 +1,105 @@
+#include <QSyntaxHighlighter>
+#include <QRegularExpression>
+#include <QTextCharFormat>
 #include "json_highlighter.h"
 
-JsonHighlighter::JsonHighlighter(QTextDocument *parent)
+
+JsonHighlighter::JsonHighlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
 {
-
-    HighlightingRule jsonValueRule;
-
-    jsonValueFormat.setForeground(Qt::blue);
-    jsonValueRule.pattern = QRegularExpression(QStringLiteral(":\\s*\".*\""));
-    jsonValueRule.format = jsonValueFormat;
-    highlightingRules.append(jsonValueRule);
-
-    HighlightingRule jsonVarRule;
-
-    jsonVarFormat.setForeground(Qt::red);
-    jsonVarRule.pattern = QRegularExpression(QStringLiteral("\".*\"\\s*:"));
-    jsonVarRule.format = jsonVarFormat;
-    highlightingRules.append(jsonVarRule);
+    keyFormat.setForeground(QColor(110, 121, 173));
+    stringFormat.setForeground(QColor(221, 161, 94));
+    numberFormat.setForeground(QColor(221, 161, 94));
+    keywordFormat.setForeground(QColor(221, 161, 94));
+    braceFormat.setForeground(QColor(221, 161, 94));
 }
 
-void JsonHighlighter::highlightBlock(const QString &text)
+void JsonHighlighter::highlightBlock(const QString& text)
 {
-    for (const HighlightingRule &rule : std::as_const(highlightingRules)) {
-        QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
-        while (matchIterator.hasNext()) {
-            QRegularExpressionMatch match = matchIterator.next();
-            setFormat(match.capturedStart(), match.capturedLength(), rule.format);
-        }
+    //
+    // Keys: "name":
+    //
+    static const QRegularExpression keyRegex(
+        R"("([^"\\]|\\.)*"(?=\s*:))");
+
+    auto keyMatches = keyRegex.globalMatch(text);
+    while (keyMatches.hasNext())
+    {
+        auto match = keyMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  keyFormat);
+    }
+
+    //
+    // Strings (excluding keys already colored)
+    //
+    static const QRegularExpression stringRegex(
+        R"("([^"\\]|\\.)*")");
+
+    auto stringMatches = stringRegex.globalMatch(text);
+    while (stringMatches.hasNext())
+    {
+        auto match = stringMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  stringFormat);
+    }
+
+    //
+    // Numbers
+    //
+    static const QRegularExpression numberRegex(
+        R"(\b-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?\b)");
+
+    auto numberMatches = numberRegex.globalMatch(text);
+    while (numberMatches.hasNext())
+    {
+        auto match = numberMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  numberFormat);
+    }
+
+    //
+    // true, false, null
+    //
+    static const QRegularExpression keywordRegex(
+        R"(\b(true|false|null)\b)");
+
+    auto keywordMatches = keywordRegex.globalMatch(text);
+    while (keywordMatches.hasNext())
+    {
+        auto match = keywordMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  keywordFormat);
+    }
+
+    //
+    // Braces and brackets
+    //
+    static const QRegularExpression braceRegex(
+        R"([{}\[\]])");
+
+    auto braceMatches = braceRegex.globalMatch(text);
+    while (braceMatches.hasNext())
+    {
+        auto match = braceMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  braceFormat);
+    }
+
+    //
+    // Re-apply key format so keys win over string format.
+    //
+    keyMatches = keyRegex.globalMatch(text);
+    while (keyMatches.hasNext())
+    {
+        auto match = keyMatches.next();
+        setFormat(match.capturedStart(),
+                  match.capturedLength(),
+                  keyFormat);
     }
 }

@@ -17,16 +17,13 @@ protected:
     void highlightBlock(const QString &text) override;
 
 private:
-    struct HighlightingRule
-    {
-        QRegularExpression pattern;
-        QTextCharFormat format;
-    };
+    QTextCharFormat keyFormat;
+    QTextCharFormat stringFormat;
+    QTextCharFormat numberFormat;
+    QTextCharFormat keywordFormat;
+    QTextCharFormat braceFormat;
 
-    QList<HighlightingRule> highlightingRules;
-
-    QTextCharFormat jsonValueFormat;
-    QTextCharFormat jsonVarFormat;
 };
+
 
 #endif // JSON_HIGHLIGHTER_H
