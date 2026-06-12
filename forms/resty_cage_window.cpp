@@ -45,6 +45,7 @@ RestyCageWindow::RestyCageWindow(QWidget *parent)
 
 RestyCageWindow::~RestyCageWindow()
 {
+
     delete ui;
 }
 
@@ -233,6 +234,12 @@ void RestyCageWindow::resizeEvent(QResizeEvent *event)
 
     m_settings.setValue("windowSize", event->size());
 
+}
+
+void RestyCageWindow::closeEvent(QCloseEvent *event)
+{
+    // save open query windows in settings
+    event->accept();
 }
 
 void RestyCageWindow::on_activateEnvironment()

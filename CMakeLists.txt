@@ -51,7 +51,10 @@ message("Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
 ecm_install_icons(ICONS ${ICON_SRCS} DESTINATION share/icons)
 
-qt_add_executable(RestyCage ${restyCage_SRC})
+qt_add_executable(RestyCage ${restyCage_SRC}
+    models/serialized_query.h models/serialized_query.cpp
+    models/serialized_parameter.h models/serialized_parameter.cpp
+    models/serialized_authentication.h models/serialized_authentication.cpp)
 
 target_link_libraries(RestyCage
     PUBLIC

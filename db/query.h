@@ -10,14 +10,12 @@
 #include "bearer_query_auth.h"
 #include "query_raw_body.h"
 #include "query_binary_body.h"
+#include "../constants.h"
 
 class Query
 {
 
 public:
-    enum BodyType { Empty, MultipartForm, EncodedForm, Raw, Binary };
-    enum AuthType { None, Basic, BearerToken };
-
     static AuthType authTypeFromString(const QString &authType);
     static QString authTypeToString(const AuthType authType);
 

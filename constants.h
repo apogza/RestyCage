@@ -7,6 +7,9 @@
 #include <QStandardPaths>
 #include <QDir>
 
+enum BodyType { Empty, MultipartForm, EncodedForm, Raw, Binary };
+enum AuthType { None, Basic, BearerToken };
+
 const QString settingsOrgKey = "NoOrg";
 const QString settingsAppKey = "RestyCage";
 const QString activeEnvironmentId = "activeEnvironmentId";

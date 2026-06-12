@@ -39,6 +39,7 @@ public slots:
     void onEnvContextMenuRequest(const QPoint &point);
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void on_tabWidget_tabCloseRequested(int index);

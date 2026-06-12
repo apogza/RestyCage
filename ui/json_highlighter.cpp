@@ -7,11 +7,11 @@
 JsonHighlighter::JsonHighlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
 {
-    keyFormat.setForeground(QColor(110, 121, 173));
-    stringFormat.setForeground(QColor(221, 161, 94));
-    numberFormat.setForeground(QColor(221, 161, 94));
-    keywordFormat.setForeground(QColor(221, 161, 94));
-    braceFormat.setForeground(QColor(221, 161, 94));
+    keyFormat.setForeground(QColor(220,0 ,0));
+    stringFormat.setForeground(QColor(50, 0, 200));
+    numberFormat.setForeground(QColor(50, 0, 200));
+    keywordFormat.setForeground(QColor(50, 0, 200));
+    braceFormat.setForeground(QColor(220,0 ,0));
 }
 
 void JsonHighlighter::highlightBlock(const QString& text)

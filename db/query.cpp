@@ -1,7 +1,7 @@
 #include "query.h"
 
 
-Query::AuthType Query::authTypeFromString(const QString &authType)
+AuthType Query::authTypeFromString(const QString &authType)
 {
     if (authType == "Bearer Token")
     {
@@ -78,7 +78,7 @@ QString &Query::url()
     return m_url;
 }
 
-Query::AuthType Query::authType()
+AuthType Query::authType()
 {
     return m_authType;
 }
@@ -263,7 +263,7 @@ void Query::setDeletedEncodedFormParams(QList<int> &deletedEncodedFormParams)
     m_deletedEncodedFormParams = deletedEncodedFormParams;
 }
 
-Query::BodyType &Query::bodyType()
+BodyType &Query::bodyType()
 {
     return m_bodyType;
 }
@@ -276,16 +276,16 @@ QString Query::bodyTypeToString(const BodyType bodyType)
     case BodyType::Empty:
         result = "None";
         break;
-    case Query::BodyType::Raw:
+    case BodyType::Raw:
         result = "Raw";
         break;
-    case Query::BodyType::EncodedForm:
+    case BodyType::EncodedForm:
         result = "Encoded";
         break;
-    case Query::BodyType::MultipartForm:
+    case BodyType::MultipartForm:
         result = "Multipart";
         break;
-    case Query::BodyType::Binary:
+    case BodyType::Binary:
         result = "Binary";
         break;
     default:
@@ -295,7 +295,7 @@ QString Query::bodyTypeToString(const BodyType bodyType)
     return result;
 }
 
-Query::BodyType Query::bodyTypeFromString(const QString &bodyType)
+BodyType Query::bodyTypeFromString(const QString &bodyType)
 {
     if (bodyType == "Raw")
     {

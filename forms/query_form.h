@@ -6,6 +6,7 @@
 #include "../db/query.h"
 #include "../db/db.h"
 #include "../network_helper.h"
+#include "../models/serialized_query.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -32,6 +33,7 @@ public:
     ~QueryForm();
 
     void initFromDb(Query &query);
+    void initFromSerialized(SerializedQuery &query);
     QUuid uid();
     void setEnvVariables(QMap<QString, QString> *envVars);
 

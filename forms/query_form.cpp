@@ -2,7 +2,6 @@
 #include "query_form.h"
 
 #include "../constants.h"
-#include "../dialogs/key_value_file_text_dialog.h"
 #include "../db/query.h"
 
 #include "../dialogs/collection_dialog.h"
@@ -106,7 +105,7 @@ void QueryForm::initFromDb(Query &query)
     loadItemsFromDb(m_reqFormBodyModel, query.multipartFormBody());
     loadItemsFromDb(m_reqUrlEncodedFormBodyModel, query.encodedFormBody());
 
-    if (query.bodyType() == Query::BodyType::Raw && query.rawBody().has_value())
+    if (query.bodyType() == BodyType::Raw && query.rawBody().has_value())
     {
         ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
         if (query.rawBody().value().rawBodyType() == QueryRawBody::RawBodyType::JSON)
@@ -466,10 +465,10 @@ Query QueryForm::createQuery()
         query.setHeaders(convertModelToParamValueList(m_reqHeadersModel, 3));
     }
 
-    Query::AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
+    AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
     query.setAuthType(authType);
 
-    if (authType == Query::AuthType::Basic)
+    if (authType == AuthType::Basic)
     {
         QString username = ui->authBasicUserEdit->text();
         QString password = ui->authBasicPasswordEdit->text();
@@ -488,7 +487,7 @@ Query QueryForm::createQuery()
 
         query.setBasicAuth(basicAuth);
     }
-    else if (authType == Query::AuthType::BearerToken)
+    else if (authType == AuthType::BearerToken)
     {
         QString bearerToken = ui->bearerTokenEdit->text();
         BearerQueryAuth bearerAuth(bearerToken);
@@ -506,11 +505,11 @@ Query QueryForm::createQuery()
         query.setBearerAuth(bearerAuth);
     }
 
-    Query::BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
+    BodyType bodyType = Query::bodyTypeFromString(ui->reqBodyTypeComboBox->currentText());
     query.setBodyType(bodyType);
 
     switch (bodyType) {
-    case Query::BodyType::Raw:
+    case BodyType::Raw:
     {
         QueryRawBody::RawBodyType rawBodyType = QueryRawBody::rawBodyTypeFromString(ui->rawContentTypeComboBox->currentText());
         QString value = ui->reqRawBodyTextEdit->toPlainText();
@@ -527,13 +526,13 @@ Query QueryForm::createQuery()
         }
         break;
     }
-    case Query::BodyType::EncodedForm:
+    case BodyType::EncodedForm:
         query.setEncodedFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
         break;
-    case Query::BodyType::MultipartForm:
+    case BodyType::MultipartForm:
         query.setMultipartFormBody(convertModelToParamValueList(m_reqFormBodyModel, 3));
         break;
-    case Query::BodyType::Binary:
+    case BodyType::Binary:
     {
         QueryBinaryBody binaryBody(m_binaryBodyFilePath);
         query.setBinaryBody(binaryBody);

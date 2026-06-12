@@ -637,8 +637,8 @@ std::optional<Query> Db::getQuery(int queryId)
     query.setName(name);
     query.setMethod(method);
     query.setUrl(url);
-    query.setAuthType(static_cast<Query::AuthType>(getQuery.value(6).toInt()));
-    query.setBodyType(static_cast<Query::BodyType>(getQuery.value(7).toInt()));
+    query.setAuthType(static_cast<AuthType>(getQuery.value(6).toInt()));
+    query.setBodyType(static_cast<BodyType>(getQuery.value(7).toInt()));
 
     query.setParameters(getQueryParams(queryId));
     query.setHeaders(getQueryHeaders(queryId));
@@ -1315,19 +1315,19 @@ bool Db::saveQueryBody(Query &query)
 
     switch (query.bodyType())
     {
-    case Query::BodyType::MultipartForm:
+    case BodyType::MultipartForm:
         result = saveQueryBodyFormData(query);
         break;
-    case Query::BodyType::EncodedForm:
+    case BodyType::EncodedForm:
         result = saveQueryBodyEncodedFormData(query);
         break;
-    case Query::BodyType::Raw:
+    case BodyType::Raw:
         result = saveQueryRawBody(query);
         break;
-    case Query::BodyType::Binary:
+    case BodyType::Binary:
         result = saveQueryBinaryBody(query);
         break;
-    case Query::BodyType::Empty:
+    case BodyType::Empty:
         result = true;
         break;
     default:
