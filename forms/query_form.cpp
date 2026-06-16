@@ -293,12 +293,13 @@ void QueryForm::sendMultiPartRequest(const QString &method)
 
         QString key = m_reqFormBodyModel.item(i, 0)->data(Qt::EditRole).toString();
         QString type = m_reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
-        QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
-        QString description = m_reqFormBodyModel.item(i, 2)->data(Qt::EditRole).toString();
+        QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::EditRole).toString();
+        QString pathValue = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
+        QString description = m_reqFormBodyModel.item(i, 3)->data(Qt::EditRole).toString();
 
         QMap<QString, QString> paramMap;
         paramMap.insert("name", key);
-        paramMap.insert("value", type != "File" ? replaceEnvParameters(value) : value);
+        paramMap.insert("value", type != "File" ? replaceEnvParameters(value) : pathValue);
         paramMap.insert("description", description);
 
         ParamValue param(paramMap);
