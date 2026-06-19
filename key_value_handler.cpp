@@ -134,7 +134,15 @@ bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsMod
 
         item = itemsModel.item(row, 2);
         item->setData(keyValueDialog->getFileNameValue(), Qt::EditRole);
-        item->setData(keyValueDialog->getFilePathValue(), Qt::UserRole);
+
+        if (type == "File")
+        {
+            item->setData(keyValueDialog->getFilePathValue(), Qt::UserRole);
+        }
+        else
+        {
+            item->setData(keyValueDialog->getTextValue(), Qt::EditRole);
+        }
 
         item = itemsModel.item(row, 3);
         item->setData(keyValueDialog->getDescription(), Qt::EditRole);
