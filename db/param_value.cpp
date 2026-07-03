@@ -3,31 +3,18 @@
 
 QString ParamValue::paramValueTypeToString(ParamValueType paramValueType)
 {
-    switch (paramValueType)
-    {
-    case ParamValueType::File:
-        return "file";
-    case ParamValueType::String:
-    default:
-        return "string";
-    }
+    return paramValueType == ParamValueType::File ? "file" : "string";
 }
 
 ParamValue::ParamValueType ParamValue::paramValueTypeFromString(const QString &paramValueType)
 {
-    if (paramValueType == "file")
-    {
-        return ParamValueType::File;
-    }
-    else
-    {
-        return ParamValueType::String;
-    }
+    return (paramValueType == "file") ? ParamValueType::File : ParamValueType::String;
 }
 
-ParamValue::ParamValue(const QMap<QString, QString> &valueMap)
+ParamValue::ParamValue(const QMap<QString, QString> &valueMap, const ParamValueType paramValueType)
 {
     setAllValues(valueMap);
+    m_type = paramValueType;
 }
 
 ParamValue::ParamValue(std::optional<int> id, QString name, QString value, QString description)

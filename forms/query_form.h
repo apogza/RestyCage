@@ -6,7 +6,6 @@
 #include "../db/query.h"
 #include "../db/db.h"
 #include "../network_helper.h"
-#include "../models/serialized_query.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -33,9 +32,10 @@ public:
     ~QueryForm();
 
     void initFromDb(Query &query);
-    void initFromSerialized(SerializedQuery &query);
+    void initFromVariantMap(QVariantMap &queryVariant);
     QUuid uid();
     void setEnvVariables(QMap<QString, QString> *envVars);
+    QVariant serializeToVariant();
 
 signals:
     void changedName(QueryForm *form, QString newName);
@@ -91,13 +91,15 @@ private:
     const int tabStop = 4;
 
     QString m_name;
-    QUuid m_uid = QUuid::createUuid();
+    QUuid m_uuid = QUuid::createUuid();
     std::optional<int> m_queryId;
     std::optional<int> m_collectionId;
     std::optional<int> m_rawBodyId;
     std::optional<int> m_binaryBodyId;
     std::optional<int> m_basicAuthId;
     std::optional<int> m_bearerAuthId;
+    std::optional<QByteArray> m_replyBody;
+    std::optional<QString> m_replyType;
 
     Db &m_db = Db::instance();
 
@@ -126,13 +128,15 @@ private:
     void sendBinaryRequest(const QString &method);
 
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
-    void loadItemsFromDb(QStandardItemModel &itemsModel, QList<ParamValue> &vals);
+    QVariantList convertModelToVariantList(const QStandardItemModel &itemsModel, bool hasType = false);
+    QList<ParamValue> convertVariantListToParamValueList(const QVariantList &variantList);
+    void loadItemsFromCollection(QStandardItemModel &itemsModel, QList<ParamValue> &vals);
     Query createQuery();
 
     QString replaceEnvParameters(const QString &originalString);
 
-    void loadReplyBody();
-    void loadReplyHeaders();
+    void loadReplyBody(std::optional<QByteArray> replyBody = std::nullopt, std::optional<QString> replyType = std::nullopt);
+    void loadReplyHeaders(std::optional<QMap<QString, QString>> replyHeadersMap = std::nullopt);
 
     void saveQuery();
 

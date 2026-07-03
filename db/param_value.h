@@ -14,7 +14,7 @@ public:
     static QString paramValueTypeToString(ParamValueType paramValueType);
     static ParamValueType paramValueTypeFromString(const QString &paramValueType);
 
-    explicit ParamValue(const QMap<QString, QString> &valueMap);
+    explicit ParamValue(const QMap<QString, QString> &valueMap, const ParamValueType paramValueType = ParamValueType::String);
     explicit ParamValue(std::optional<int> id, QString name, QString value, QString description);
     explicit ParamValue(int id, const QMap<QString, QString> &valueMap);
 
