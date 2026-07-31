@@ -8,98 +8,102 @@ JsonHighlighter::JsonHighlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
 {
     keyFormat.setForeground(QColor(220,0 ,0));
-    stringFormat.setForeground(QColor(50, 0, 200));
-    numberFormat.setForeground(QColor(50, 0, 200));
-    keywordFormat.setForeground(QColor(50, 0, 200));
+    valueFormat.setForeground(QColor(50, 0, 200));
     braceFormat.setForeground(QColor(220,0 ,0));
 }
 
 void JsonHighlighter::highlightBlock(const QString& text)
 {
-    //
-    // Keys: "name":
-    //
-    static const QRegularExpression keyRegex(
-        R"("([^"\\]|\\.)*"(?=\s*:))");
-
-    auto keyMatches = keyRegex.globalMatch(text);
-    while (keyMatches.hasNext())
+    QTextBlock block = currentBlock();
+    if (!block.isVisible())
     {
-        auto match = keyMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  keyFormat);
+        return;
     }
 
-    //
-    // Strings (excluding keys already colored)
-    //
-    static const QRegularExpression stringRegex(
-        R"("([^"\\]|\\.)*")");
+    int textSize = text.length();
 
-    auto stringMatches = stringRegex.globalMatch(text);
-    while (stringMatches.hasNext())
+    int beginString = -1;
+    int beginValue = -1;
+
+    for (int i = 0; i < textSize; i++)
     {
-        auto match = stringMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  stringFormat);
-    }
+        const QString &currentChar = text[i];
 
-    //
-    // Numbers
-    //
-    static const QRegularExpression numberRegex(
-        R"(\b-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?\b)");
+        if (currentChar == " ")
+        {
+            continue;
+        }
+        else if (currentChar == "{" || currentChar == "}"
+            || currentChar == "[" || currentChar== "]")
+        {
+            if (currentChar == "{")
+            {
+                isInKey = true;
+                isInArray = false;
+            }
 
-    auto numberMatches = numberRegex.globalMatch(text);
-    while (numberMatches.hasNext())
-    {
-        auto match = numberMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  numberFormat);
-    }
+            if (currentChar == "[")
+            {
+                isInArray = true;
+            }
 
-    //
-    // true, false, null
-    //
-    static const QRegularExpression keywordRegex(
-        R"(\b(true|false|null)\b)");
+            if (currentChar == "]")
+            {
+                isInArray = false;
+            }
 
-    auto keywordMatches = keywordRegex.globalMatch(text);
-    while (keywordMatches.hasNext())
-    {
-        auto match = keywordMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  keywordFormat);
-    }
+            setFormat(i, 1, braceFormat);
+        }
 
-    //
-    // Braces and brackets
-    //
-    static const QRegularExpression braceRegex(
-        R"([{}\[\]])");
+        else if (currentChar == ":" && beginString == -1)
+        {
+            isInKey = false;
+            setFormat(i, 1, braceFormat);
+        }
 
-    auto braceMatches = braceRegex.globalMatch(text);
-    while (braceMatches.hasNext())
-    {
-        auto match = braceMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  braceFormat);
-    }
+        else if (currentChar == ",")
+        {
+            if (!isInArray)
+            {
+                isInKey = true;
+            }
 
-    //
-    // Re-apply key format so keys win over string format.
-    //
-    keyMatches = keyRegex.globalMatch(text);
-    while (keyMatches.hasNext())
-    {
-        auto match = keyMatches.next();
-        setFormat(match.capturedStart(),
-                  match.capturedLength(),
-                  keyFormat);
+            setFormat(i, 1, valueFormat);
+
+            if (beginValue != -1)
+            {
+                setFormat(beginValue, i - beginValue + 1, valueFormat);
+                beginValue = -1;
+            }
+        }        
+
+        else if (currentChar == "\"")
+        {
+            if (beginString == -1)
+            {
+                beginString = i;
+            }
+            else
+            {
+                setFormat(beginString, i - beginString + 1, isInKey ? keyFormat : valueFormat);
+                beginString = -1;
+            }
+        }
+        else
+        {
+            if (!isInKey && beginString == -1 && beginValue == -1)
+            {
+                beginValue = i;
+            }
+
+            if (!isInKey && i == textSize - 1)
+            {
+                if (beginValue != -1)
+                {
+                    setFormat(beginValue, i - beginValue + 1, valueFormat);
+                    beginValue = -1;
+                }
+            }
+        }
     }
 }

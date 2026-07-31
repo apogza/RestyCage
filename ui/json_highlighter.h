@@ -18,10 +18,11 @@ protected:
 
 private:
     QTextCharFormat keyFormat;
-    QTextCharFormat stringFormat;
-    QTextCharFormat numberFormat;
-    QTextCharFormat keywordFormat;
+    QTextCharFormat valueFormat;
     QTextCharFormat braceFormat;
+
+    bool isInKey = true;
+    bool isInArray = false;
 
 };
 
