@@ -811,7 +811,7 @@ std::optional<QueryBinaryBody> Db::getQueryBinaryBody(int queryId)
         int queryId = getBinaryBody.value(1).toInt();
         QString filePath = getBinaryBody.value(2).toString();
 
-        QueryBinaryBody binaryBody(id, queryId, filePath);
+        QueryBinaryBody binaryBody(queryId, id, filePath);
         return binaryBody;
     }
 
@@ -1547,7 +1547,7 @@ bool Db::insertQueryBinaryBody(QueryBinaryBody &binaryBody)
     QSqlQuery insertBinaryBody(m_db);
 
     insertBinaryBody.prepare("INSERT into queries_binary_body(query_id, file_path)"
-                             "VALUES(:query_id, :filepath);");
+                             "VALUES(:query_id, :file_path);");
     insertBinaryBody.bindValue(":query_id", binaryBody.queryId().value());
     insertBinaryBody.bindValue(":file_path", binaryBody.filepath());
 

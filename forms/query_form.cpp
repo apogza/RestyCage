@@ -69,16 +69,6 @@ void QueryForm::initFromDb(Query &query)
     m_name = query.name();
     m_collectionId = query.collectionId();
 
-    if (query.rawBody().has_value())
-    {
-        m_rawBodyId = query.rawBody()->id();
-    }
-
-    if (query.binaryBody().has_value())
-    {
-        m_binaryBodyId = query.binaryBody()->id();
-    }
-
     int idx = ui->methodComboBox->findText(query.method());
     ui->methodComboBox->setCurrentIndex(idx);
 
@@ -107,6 +97,8 @@ void QueryForm::initFromDb(Query &query)
 
     if (query.bodyType() == BodyType::Raw && query.rawBody().has_value())
     {
+        m_rawBodyId = query.rawBody()->id();
+
         ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
         if (query.rawBody().value().rawBodyType() == QueryRawBody::RawBodyType::JSON)
         {
@@ -872,9 +864,19 @@ Query QueryForm::createQuery()
     case BodyType::Binary:
     {
         QueryBinaryBody binaryBody(m_binaryBodyFilePath);
+        if (m_queryId.has_value())
+        {
+            binaryBody.setQueryId(m_queryId.value());
+        }
+
+        if (m_binaryBodyId.has_value())
+        {
+            binaryBody.setId(m_binaryBodyId.value());
+        }
+
         query.setBinaryBody(binaryBody);
-        break;
     }
+        break;
     default:
         break;
     }
@@ -929,7 +931,7 @@ void QueryForm::slotReplyReceived()
         ui->sizeLbl->setText("");
         ui->timeLbl->setText("");
 
-        ui->respBodyTextEdit->setText("");
+        ui->respBodyTextEdit->setPlainText("");
         ui->respHeadersTableWidget->clear();
         ui->respHeadersTableWidget->setRowCount(0);
     }
@@ -977,13 +979,20 @@ void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional
 
     if (m_replyType.value().contains("application/json"))
     {
-        QJsonDocument jsonDocument = QJsonDocument::fromJson(m_replyBody.value());
-        ui->respBodyTextEdit->setText(jsonDocument.toJson(QJsonDocument::Indented));
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(m_replyBody.value());        
+        ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
+
+        ui->respBodyTextEdit->setUpdatesEnabled(false);
+        ui->respBodyTextEdit->document()->setUndoRedoEnabled(false);
+
         new JsonHighlighter(ui->respBodyTextEdit->document());
+
+        ui->respBodyTextEdit->setUpdatesEnabled(true);
+        ui->respBodyTextEdit->document()->setUndoRedoEnabled(true);
     }
     else
     {
-        ui->respBodyTextEdit->setText(m_replyBody.value());
+        ui->respBodyTextEdit->setPlainText(m_replyBody.value());
     }
 }
 
