@@ -237,6 +237,25 @@ void RestyCageWindow::resizeEvent(QResizeEvent *event)
 void RestyCageWindow::closeEvent(QCloseEvent *event)
 {
     // save open query windows in settings
+    QList<QVariant> queries;
+
+    QMapIterator<QUuid, QWidget*> it(m_tabs);
+
+    while(it.hasNext())
+    {
+        it.next();
+        QueryForm* form = dynamic_cast<QueryForm*>(it.value());
+
+        if (form == nullptr)
+        {
+            continue;
+        }
+
+        QVariant tabVariantSerialization = form->serializeToVariant();
+        queries.append(tabVariantSerialization);
+    }
+
+    m_settings.setValue("openQueries", queries);
     event->accept();
 }
 
