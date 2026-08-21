@@ -776,7 +776,11 @@
           <widget class="QWidget" name="textBodyPage">
            <layout class="QGridLayout" name="gridLayout_7">
             <item row="0" column="0">
-             <widget class="QPlainTextEdit" name="respBodyTextEdit"/>
+             <widget class="QPlainTextEdit" name="respBodyTextEdit">
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -798,7 +802,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>66</width>
+                 <width>98</width>
                  <height>37</height>
                 </rect>
                </property>
