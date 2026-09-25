@@ -130,7 +130,7 @@ private:
     QList<ParamValue> convertModelToParamValueList(const QStandardItemModel &itemsModel, int numColumns);
     QVariantList convertModelToVariantList(const QStandardItemModel &itemsModel, bool hasType = false);
     QList<ParamValue> convertVariantListToParamValueList(const QVariantList &variantList);
-    void loadItemsFromCollection(QStandardItemModel &itemsModel, QList<ParamValue> &vals);
+    void loadItemsFromCollection(QStandardItemModel &itemsModel, QList<ParamValue> &vals, bool addType = false);
     Query createQuery();
 
     QString replaceEnvParameters(const QString &originalString);

@@ -50,6 +50,7 @@ const QString paramValue = "value";
 const QString paramFilePathValue = "filePathValue";
 const QString paramType = "type";
 const QString paramTypeFile = "File";
+const QString paramTypeText = "Text";
 const QString paramDescription = "description";
 
 const QString requestName = "name";

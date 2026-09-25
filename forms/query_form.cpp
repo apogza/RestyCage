@@ -92,7 +92,7 @@ void QueryForm::initFromDb(Query &query)
 
     ui->reqBodyTypeComboBox->setCurrentIndex(query.bodyType());
 
-    loadItemsFromCollection(m_reqFormBodyModel, query.multipartFormBody());
+    loadItemsFromCollection(m_reqFormBodyModel, query.multipartFormBody(), true);
     loadItemsFromCollection(m_reqUrlEncodedFormBodyModel, query.encodedFormBody());
 
     if (query.bodyType() == BodyType::Raw && query.rawBody().has_value())
@@ -385,32 +385,28 @@ QVariant QueryForm::serializeToVariant()
 
 void QueryForm::initModels()
 {
-    m_reqParamsModel.insertColumns(0, 3);
+    m_reqParamsModel.insertColumns(0, 2);
     m_reqParamsModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqParamsModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    m_reqParamsModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqParamsTableView->setModel(&m_reqParamsModel);
 
-    m_reqHeadersModel.insertColumns(0, 3);
+    m_reqHeadersModel.insertColumns(0, 2);
     m_reqHeadersModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqHeadersModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    m_reqHeadersModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqHeadersTableView->setModel(&m_reqHeadersModel);
 
-    m_reqFormBodyModel.insertColumns(0, 4);
+    m_reqFormBodyModel.insertColumns(0, 3);
     m_reqFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(typeHeader));
     m_reqFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(valueHeader));
-    m_reqFormBodyModel.setHeaderData(3, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqBodyFormTableView->setModel(&m_reqFormBodyModel);
 
-    m_reqUrlEncodedFormBodyModel.insertColumns(0, 3);
+    m_reqUrlEncodedFormBodyModel.insertColumns(0, 2);
     m_reqUrlEncodedFormBodyModel.setHeaderData(0, Qt::Horizontal, QObject::tr(nameHeader));
     m_reqUrlEncodedFormBodyModel.setHeaderData(1, Qt::Horizontal, QObject::tr(valueHeader));
-    m_reqUrlEncodedFormBodyModel.setHeaderData(2, Qt::Horizontal, QObject::tr(descriptionHeader));
 
     ui->reqUrlEncodedBodyTableView->setModel(&m_reqUrlEncodedFormBodyModel);
 }
@@ -550,12 +546,10 @@ void QueryForm::sendMultiPartRequest(const QString &method)
         QString type = m_reqFormBodyModel.item(i, 1)->data(Qt::EditRole).toString();
         QString value = m_reqFormBodyModel.item(i, 2)->data(Qt::EditRole).toString();
         QString pathValue = m_reqFormBodyModel.item(i, 2)->data(Qt::UserRole).toString();
-        QString description = m_reqFormBodyModel.item(i, 3)->data(Qt::EditRole).toString();
 
         QMap<QString, QString> paramMap;
         paramMap.insert(requestName, key);
         paramMap.insert(requestValue, type != "File" ? replaceEnvParameters(value) : pathValue);
-        paramMap.insert(requestDescription, description);
 
         ParamValue param(paramMap);
 
@@ -724,7 +718,7 @@ QList<ParamValue> QueryForm::convertVariantListToParamValueList(const QVariantLi
     return paramValues;
 }
 
-void QueryForm::loadItemsFromCollection(QStandardItemModel &itemsModel, QList<ParamValue> &vals)
+void QueryForm::loadItemsFromCollection(QStandardItemModel &itemsModel, QList<ParamValue> &vals, bool addType)
 {
     for (ParamValue &paramVal: vals)
     {
@@ -737,8 +731,11 @@ void QueryForm::loadItemsFromCollection(QStandardItemModel &itemsModel, QList<Pa
         rowItems.append(nameItem);
 
         if (paramVal.getValueType() == ParamValue::ParamValueType::File)
-        {            
-            rowItems.append(new QStandardItem(paramType));
+        {
+            if (addType)
+            {
+                rowItems.append(new QStandardItem(paramTypeFile));
+            }
 
             QString rawValue = paramVal.value(paramValue);
             QFileInfo fileInfo(rawValue);
@@ -749,13 +746,11 @@ void QueryForm::loadItemsFromCollection(QStandardItemModel &itemsModel, QList<Pa
         }
         else
         {
-            rowItems.append(new QStandardItem("Text"));
+            if (addType)
+            {
+                rowItems.append(new QStandardItem(paramTypeText));
+            }
             rowItems.append(new QStandardItem(paramVal.value(paramValue)));
-        }
-
-        if (paramVal.hasValue(paramDescription))
-        {
-            rowItems.append(new QStandardItem(paramVal.value(paramDescription)));
         }
 
         itemsModel.insertRow(itemsModel.rowCount(), rowItems);
