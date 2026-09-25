@@ -17,7 +17,6 @@ public:
     void setRequestBearerAuth(QString &bearerToken);
     void setRequestHeaders(QList<ParamValue> &headers);
     void initRequest(QUrl &urlQuery);
-    void setRequestUrlQUery(QUrlQuery &urlQuery);
 
     void sendMultiPartRequest(const QString &method, QList<ParamValue> &paramValues);
     void sendUrlEncodedFormRequest(const QString &method, QUrlQuery &urlQuery, QList<ParamValue> &paramValues);
@@ -29,6 +28,7 @@ public:
     int statusCode();
     qint64 replyTotalTime();
     QByteArray &replyBody();
+    QByteArray &partialReplyBody();
     QMap<QString, QString> &replyHeaders();
     QString replyType() const;
 
@@ -43,13 +43,16 @@ private:
     QString m_replyType;
 
     QByteArray m_replyBody;
+    QByteArray m_partialReplyBody;
     QMap<QString, QString> m_replyHeaders;
 
     void readReply();
+    void readPartialReply();
     void readReplyHeaders(QNetworkReply *reply);
 
 signals:
     void replyReceived();
+    void partialReplyReceived();
 
 };
 

@@ -25,6 +25,7 @@ QueryForm::QueryForm(QWidget *parent)
 
     m_networkHelper = new NetworkHelper(this);
     connect(m_networkHelper, &NetworkHelper::replyReceived, this, &QueryForm::slotReplyReceived);
+    connect(m_networkHelper, &NetworkHelper::partialReplyReceived, this, &QueryForm::slotPartialReplyReceived);
 
     keyValueHandler = new KeyValueHandler(this);
 
@@ -415,6 +416,13 @@ void QueryForm::on_sendButton_clicked()
 {
     if (ui->sendButton->text() == "Send")
     {
+        if (m_replyBody.has_value())
+        {
+            m_replyBody.value().clear();
+        }
+
+        ui->respBodyTextEdit->clear();
+
         ui->requestTabWidget->setDisabled(true);
         ui->responseTabWidget->setDisabled(true);
         ui->sendButton->setText("Cancel");
@@ -934,6 +942,13 @@ void QueryForm::slotReplyReceived()
     ui->requestTabWidget->setDisabled(false);
     ui->responseTabWidget->setDisabled(false);
     ui->sendButton->setText("Send");
+}
+
+void QueryForm::slotPartialReplyReceived()
+{
+    QByteArray parialResponse = m_networkHelper->partialReplyBody();
+
+    ui->respBodyTextEdit->appendPlainText(parialResponse);
 }
 
 void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional<QString> replyType)

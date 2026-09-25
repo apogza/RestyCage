@@ -74,6 +74,8 @@ private slots:
 
     void slotReplyReceived();
 
+    void slotPartialReplyReceived();
+
     void on_reqBodyFormTableView_doubleClicked(const QModelIndex &index);
 
 private:
