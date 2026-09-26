@@ -7,6 +7,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(ECM 6.0 REQUIRED CONFIG)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql PdfWidgets)
+find_package(KF6SyntaxHighlighting REQUIRED COMPONENTS KSyntaxHighlighting)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 include(ECMAddAppIcon)
@@ -41,7 +42,7 @@ set(restyCage_SRC
     db/query_binary_body.h db/query_binary_body.cpp
     db/query_raw_body.h db/query_raw_body.cpp
     network_helper.h network_helper.cpp
-    ui/json_highlighter.h ui/json_highlighter.cpp
+
     db/migrations/migration.h db/migrations/migration.cpp
     db/migrations/add_uid_migration.h db/migrations/add_uid_migration.cpp)
 
@@ -51,20 +52,17 @@ message("Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
 ecm_install_icons(ICONS ${ICON_SRCS} DESTINATION share/icons)
 
-qt_add_executable(RestyCage ${restyCage_SRC}
-
-
-)
+qt_add_executable(RestyCage ${restyCage_SRC})
 
 target_link_libraries(RestyCage
-    PUBLIC
+    PRIVATE
         Qt::Core
         Qt::Widgets
         Qt::Network
         Qt::Sql
         Qt::PdfWidgets
+        KF6::SyntaxHighlighting
 )
-target_link_libraries(RestyCage PRIVATE Qt6::Core)
 
 install(TARGETS RestyCage RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
