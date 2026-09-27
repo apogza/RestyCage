@@ -16,7 +16,7 @@
 #include <QSaveFile>
 #include <QPixmap>
 
-#include <KSyntaxHighlighting/Theme>
+#include "../ui/jsonhighlighter.h"
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -104,14 +104,7 @@ void QueryForm::initFromDb(Query &query)
         ui->rawContentTypeComboBox->setCurrentIndex(query.rawBody()->rawBodyType());
         if (query.rawBody().value().rawBodyType() == QueryRawBody::RawBodyType::JSON)
         {
-            m_requestSyntaxHighlighter =
-                new KSyntaxHighlighting::SyntaxHighlighter(ui->reqRawBodyTextEdit->document());
-
-            auto definition = m_highlightingRepository.definitionForName(QStringLiteral("JSON"));
-            auto theme = m_highlightingRepository.defaultTheme(KSyntaxHighlighting::Repository::LightTheme);
-
-            m_requestSyntaxHighlighter->setDefinition(definition);
-            m_requestSyntaxHighlighter->setTheme(theme);
+            new JsonHighlighter(ui->reqRawBodyTextEdit->document());
         }
 
         ui->reqRawBodyTextEdit->setText(query.rawBody()->value());
@@ -225,14 +218,7 @@ void QueryForm::initFromVariantMap(QVariantMap &queryVariant)
             ui->rawContentTypeComboBox->setCurrentIndex(rawBodyType);
             if (rawBodyType == QueryRawBody::RawBodyType::JSON)
             {
-                //new JsonHighlighter(ui->reqRawBodyTextEdit->document());
-
-                auto *highlighter =
-                    new KSyntaxHighlighting::SyntaxHighlighter(ui->reqRawBodyTextEdit->document());
-
-                auto definition = m_highlightingRepository.definitionForName(QStringLiteral("JSON"));
-
-                highlighter->setDefinition(definition);
+                new JsonHighlighter(ui->reqRawBodyTextEdit->document());
             }
 
             ui->reqRawBodyTextEdit->setText(body.toString());
@@ -1007,14 +993,7 @@ void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional
         ui->respBodyTextEdit->setUpdatesEnabled(false);
         ui->respBodyTextEdit->document()->setUndoRedoEnabled(false);
 
-        m_responseSyntaxHighlighter =
-            new KSyntaxHighlighting::SyntaxHighlighter(ui->respBodyTextEdit->document());
-
-        auto definition = m_highlightingRepository.definitionForName(QStringLiteral("JSON"));
-        auto theme = m_highlightingRepository.defaultTheme(KSyntaxHighlighting::Repository::LightTheme);
-
-        m_responseSyntaxHighlighter->setDefinition(definition);
-        m_responseSyntaxHighlighter->setTheme(theme);
+        auto jsonHighlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
 
         QJsonDocument jsonDocument = QJsonDocument::fromJson(m_replyBody.value());
         ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
@@ -1242,17 +1221,7 @@ void QueryForm::on_rawContentTypeComboBox_currentIndexChanged(int index)
 {
     if (index == 0)
     {
-        //new JsonHighlighter(ui->reqRawBodyTextEdit->document());
-
-        m_requestSyntaxHighlighter =
-            new KSyntaxHighlighting::SyntaxHighlighter(ui->reqRawBodyTextEdit->document());
-
-        auto definition = m_highlightingRepository.definitionForName(QStringLiteral("JSON"));
-        auto theme = m_highlightingRepository.defaultTheme(KSyntaxHighlighting::Repository::LightTheme);
-
-        m_requestSyntaxHighlighter->setDefinition(definition);
-        m_requestSyntaxHighlighter->setTheme(theme);
-
+        new JsonHighlighter(ui->reqRawBodyTextEdit->document());
     }
 }
 

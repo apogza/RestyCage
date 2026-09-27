@@ -19,9 +19,6 @@
 #include <QPdfDocument>
 #include <QPdfView>
 
-#include <KSyntaxHighlighting/Repository>
-#include <KSyntaxHighlighting/SyntaxHighlighter>
-
 namespace Ui {
 class QueryForm;
 }
@@ -116,10 +113,6 @@ private:
 
     quint64 requestStartMs;
     KeyValueHandler *keyValueHandler;
-    KSyntaxHighlighting::Repository m_highlightingRepository;
-    KSyntaxHighlighting::SyntaxHighlighter *m_requestSyntaxHighlighter;
-    KSyntaxHighlighting::SyntaxHighlighter *m_responseSyntaxHighlighter;
-
 
     void initModels();
     void addSimpleModelRow(QStandardItemModel &itemsModel);

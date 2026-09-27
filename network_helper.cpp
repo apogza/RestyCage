@@ -243,11 +243,14 @@ void NetworkHelper::readPartialReply()
 {
     m_replyType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
 
-    m_partialReplyBody = m_reply->readAll();
+    if (m_replyType == "text/event-stream")
+    {
+        m_partialReplyBody = m_reply->readAll();
 
-    m_replyBody.append(m_partialReplyBody);
+        m_replyBody.append(m_partialReplyBody);
 
-    emit partialReplyReceived();
+        emit partialReplyReceived();
+    }
 }
 
 void NetworkHelper::readReplyHeaders(QNetworkReply *reply)

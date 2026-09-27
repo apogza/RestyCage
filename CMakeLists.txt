@@ -7,7 +7,6 @@ set(CMAKE_AUTORCC ON)
 
 find_package(ECM 6.0 REQUIRED CONFIG)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql PdfWidgets)
-find_package(KF6SyntaxHighlighting REQUIRED COMPONENTS KSyntaxHighlighting)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 include(ECMAddAppIcon)
@@ -42,7 +41,7 @@ set(restyCage_SRC
     db/query_binary_body.h db/query_binary_body.cpp
     db/query_raw_body.h db/query_raw_body.cpp
     network_helper.h network_helper.cpp
-
+    ui/jsonhighlighter.h ui/jsonhighlighter.cpp
     db/migrations/migration.h db/migrations/migration.cpp
     db/migrations/add_uid_migration.h db/migrations/add_uid_migration.cpp)
 
@@ -61,7 +60,6 @@ target_link_libraries(RestyCage
         Qt::Network
         Qt::Sql
         Qt::PdfWidgets
-        KF6::SyntaxHighlighting
 )
 
 install(TARGETS RestyCage RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
