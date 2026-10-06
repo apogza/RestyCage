@@ -16,7 +16,6 @@
 #include <QSaveFile>
 #include <QPixmap>
 
-#include "../ui/jsonhighlighter.h"
 
 QueryForm::QueryForm(QWidget *parent)
     : QWidget(parent)
@@ -52,12 +51,17 @@ QueryForm::QueryForm(QWidget *parent)
 
     ui->pdfBodyPage->layout()->addWidget(pdfView);
 
+    requestBodyJsonHighlighter = new JsonHighlighter(ui->reqRawBodyTextEdit->document());
+    responseBodyJsonHighlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
+
     initModels();
 }
 
 QueryForm::~QueryForm()
 {
     delete ui;
+    delete requestBodyJsonHighlighter;
+    delete responseBodyJsonHighlighter;
 }
 
 void QueryForm::initFromDb(Query &query)
@@ -962,6 +966,8 @@ void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional
         return;
     }
 
+    responseBodyJsonHighlighter->setDocument(nullptr);
+
     if (m_replyType.value().contains("image"))
     {
         QPixmap pixmap;
@@ -993,7 +999,7 @@ void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional
         ui->respBodyTextEdit->setUpdatesEnabled(false);
         ui->respBodyTextEdit->document()->setUndoRedoEnabled(false);
 
-        auto jsonHighlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
+        responseBodyJsonHighlighter->setDocument(ui->respBodyTextEdit->document());
 
         QJsonDocument jsonDocument = QJsonDocument::fromJson(m_replyBody.value());
         ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
@@ -1095,6 +1101,7 @@ void QueryForm::on_reqHeadersRemoveBtn_clicked()
 void QueryForm::on_reqBodyTypeComboBox_currentIndexChanged(int index)
 {
     ui->reqBodyStackedWidget->setCurrentIndex(index);
+
     ui->rawContentTypeComboBox->setVisible(ui->reqBodyTypeComboBox->currentText() == "Raw");
 }
 
@@ -1219,12 +1226,17 @@ void QueryForm::on_reqBodyFormDataRemoveRowBtn_clicked()
 
 void QueryForm::on_rawContentTypeComboBox_currentIndexChanged(int index)
 {
-    if (index == 0)
+    QString rawBodyType = ui->rawContentTypeComboBox->currentText();
+
+    if (rawBodyType == "JSON")
     {
-        new JsonHighlighter(ui->reqRawBodyTextEdit->document());
+        requestBodyJsonHighlighter->setDocument(ui->reqRawBodyTextEdit->document());
+    }
+    else
+    {
+        requestBodyJsonHighlighter->setDocument(nullptr);
     }
 }
-
 
 void QueryForm::on_exportBtn_clicked()
 {

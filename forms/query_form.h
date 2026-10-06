@@ -6,6 +6,7 @@
 #include "../db/query.h"
 #include "../db/db.h"
 #include "../network_helper.h"
+#include "../ui/jsonhighlighter.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -89,6 +90,8 @@ private:
     QPdfDocument *pdfDocument = nullptr;
     QPdfView *pdfView = nullptr;
     QMap<QString, QString> *m_envVariables = nullptr;
+    JsonHighlighter *requestBodyJsonHighlighter;
+    JsonHighlighter *responseBodyJsonHighlighter;
 
     const int tabStop = 4;
 
@@ -141,7 +144,6 @@ private:
     void loadReplyHeaders(std::optional<QMap<QString, QString>> replyHeadersMap = std::nullopt);
 
     void saveQuery();
-
 };
 
 
