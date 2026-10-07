@@ -52,7 +52,14 @@ QueryForm::QueryForm(QWidget *parent)
     ui->pdfBodyPage->layout()->addWidget(pdfView);
 
     requestBodyJsonHighlighter = new JsonHighlighter(ui->reqRawBodyTextEdit->document());
+    requestBodyXmlHighlighter = new XMLHighlighter(nullptr);
+    requestBodyHtmlHighlighter = new HtmlHighlighter(nullptr);
+    requestBodyJavascriptHighlighter = new JavascriptHighlighter(nullptr);
+
     responseBodyJsonHighlighter = new JsonHighlighter(ui->respBodyTextEdit->document());
+    responseBodyXmlHighlighter = new XMLHighlighter(nullptr);
+    responseBodyHtmlHighlighter = new HtmlHighlighter(nullptr);
+    responseBodyJavascriptHighlighter = new JavascriptHighlighter(nullptr);
 
     initModels();
 }
@@ -61,7 +68,14 @@ QueryForm::~QueryForm()
 {
     delete ui;
     delete requestBodyJsonHighlighter;
+    delete requestBodyXmlHighlighter;
+    delete requestBodyHtmlHighlighter;
+    delete requestBodyJavascriptHighlighter;
+
     delete responseBodyJsonHighlighter;
+    delete responseBodyXmlHighlighter;
+    delete responseBodyHtmlHighlighter;
+    delete responseBodyJavascriptHighlighter;
 }
 
 void QueryForm::initFromDb(Query &query)
@@ -997,19 +1011,32 @@ void QueryForm::loadReplyBody(std::optional<QByteArray> replyBody, std::optional
     if (m_replyType.value().contains("application/json"))
     {
         ui->respBodyTextEdit->setUpdatesEnabled(false);
-        ui->respBodyTextEdit->document()->setUndoRedoEnabled(false);
-
-        responseBodyJsonHighlighter->setDocument(ui->respBodyTextEdit->document());
+        ui->respBodyTextEdit->document()->setUndoRedoEnabled(false);        
 
         QJsonDocument jsonDocument = QJsonDocument::fromJson(m_replyBody.value());
         ui->respBodyTextEdit->setPlainText(jsonDocument.toJson(QJsonDocument::Indented));
 
         ui->respBodyTextEdit->setUpdatesEnabled(true);
         ui->respBodyTextEdit->document()->setUndoRedoEnabled(true);
+
+        responseBodyJsonHighlighter->setDocument(ui->respBodyTextEdit->document());
     }
     else
     {
         ui->respBodyTextEdit->setPlainText(m_replyBody.value());
+
+        if (m_replyType.value().contains("application/xml"))
+        {
+            responseBodyXmlHighlighter->setDocument(ui->respBodyTextEdit->document());
+        }
+        else if (m_replyType.value().contains("text/html"))
+        {
+            responseBodyHtmlHighlighter->setDocument(ui->respBodyTextEdit->document());
+        }
+        else if (m_replyType.value().contains("text/javascript"))
+        {
+            responseBodyJavascriptHighlighter->setDocument(ui->respBodyTextEdit->document());
+        }
     }
 }
 
@@ -1228,13 +1255,26 @@ void QueryForm::on_rawContentTypeComboBox_currentIndexChanged(int index)
 {
     QString rawBodyType = ui->rawContentTypeComboBox->currentText();
 
+    requestBodyJsonHighlighter->setDocument(nullptr);
+    requestBodyXmlHighlighter->setDocument(nullptr);
+    requestBodyHtmlHighlighter->setDocument(nullptr);
+    requestBodyJavascriptHighlighter->setDocument(nullptr);
+
     if (rawBodyType == "JSON")
     {
         requestBodyJsonHighlighter->setDocument(ui->reqRawBodyTextEdit->document());
     }
-    else
+    else if (rawBodyType == "HTML")
     {
-        requestBodyJsonHighlighter->setDocument(nullptr);
+        requestBodyHtmlHighlighter->setDocument(ui->reqRawBodyTextEdit->document());
+    }
+    else if (rawBodyType == "XML")
+    {
+        requestBodyXmlHighlighter->setDocument(ui->reqRawBodyTextEdit->document());
+    }
+    else if (rawBodyType == "JavaScript")
+    {
+        requestBodyJavascriptHighlighter->setDocument(ui->reqRawBodyTextEdit->document());
     }
 }
 

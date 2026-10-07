@@ -7,6 +7,9 @@
 #include "../db/db.h"
 #include "../network_helper.h"
 #include "../ui/jsonhighlighter.h"
+#include "../ui/xmlhighlighter.h"
+#include "../ui/htmlhighlighter.h"
+#include "../ui/javascripthighlighter.h"
 
 #include <QWidget>
 #include <QNetworkAccessManager>
@@ -90,8 +93,16 @@ private:
     QPdfDocument *pdfDocument = nullptr;
     QPdfView *pdfView = nullptr;
     QMap<QString, QString> *m_envVariables = nullptr;
+
     JsonHighlighter *requestBodyJsonHighlighter;
+    XMLHighlighter *requestBodyXmlHighlighter;
+    HtmlHighlighter *requestBodyHtmlHighlighter;
+    JavascriptHighlighter *requestBodyJavascriptHighlighter;
+
     JsonHighlighter *responseBodyJsonHighlighter;
+    XMLHighlighter *responseBodyXmlHighlighter;
+    HtmlHighlighter *responseBodyHtmlHighlighter;
+    JavascriptHighlighter *responseBodyJavascriptHighlighter;
 
     const int tabStop = 4;
 

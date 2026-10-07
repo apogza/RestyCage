@@ -42,6 +42,9 @@ set(restyCage_SRC
     db/query_raw_body.h db/query_raw_body.cpp
     network_helper.h network_helper.cpp
     ui/jsonhighlighter.h ui/jsonhighlighter.cpp
+    ui/htmlhighlighter.h ui/htmlhighlighter.cpp
+    ui/xmlhighlighter.h ui/xmlhighlighter.cpp
+    ui/javascripthighlighter.h ui/javascripthighlighter.cpp
     db/migrations/migration.h db/migrations/migration.cpp
     db/migrations/add_uid_migration.h db/migrations/add_uid_migration.cpp)
 
