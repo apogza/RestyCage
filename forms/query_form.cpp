@@ -652,7 +652,7 @@ QList<ParamValue> QueryForm::convertModelToParamValueList(const QStandardItemMod
 
             paramValueMap.insert(
                 itemData.toString().toLower(),
-                userVariant.isNull() ? displayVariant.toString() : userVariant.toString());
+                i == 0 || userVariant.isNull() ? displayVariant.toString() : userVariant.toString());
         }
 
         ParamValue param(paramValueMap);
@@ -808,12 +808,12 @@ Query QueryForm::createQuery()
 
     if (m_reqParamsModel.rowCount() > 0)
     {
-        query.setParameters(convertModelToParamValueList(m_reqParamsModel, 3));
+        query.setParameters(convertModelToParamValueList(m_reqParamsModel, 2));
     }
 
     if (m_reqHeadersModel.rowCount() > 0)
     {
-        query.setHeaders(convertModelToParamValueList(m_reqHeadersModel, 3));
+        query.setHeaders(convertModelToParamValueList(m_reqHeadersModel, 2));
     }
 
     AuthType authType = Query::authTypeFromString(ui->authComboBox->currentText());
@@ -878,10 +878,10 @@ Query QueryForm::createQuery()
         break;
     }
     case BodyType::EncodedForm:
-        query.setEncodedFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 3));
+        query.setEncodedFormBody(convertModelToParamValueList(m_reqUrlEncodedFormBodyModel, 2));
         break;
     case BodyType::MultipartForm:
-        query.setMultipartFormBody(convertModelToParamValueList(m_reqFormBodyModel, 3));
+        query.setMultipartFormBody(convertModelToParamValueList(m_reqFormBodyModel, 2));
         break;
     case BodyType::Binary:
     {
@@ -1048,7 +1048,8 @@ void QueryForm::loadReplyHeaders(std::optional<QMap<QString, QString>> replyHead
 
     QMapIterator<QString, QString> it(replyHeaders);
 
-    ui->respHeadersTableWidget->clear();
+    ui->respHeadersTableWidget->clearContents();
+
     ui->respHeadersTableWidget->setRowCount(0);
 
     while (it.hasNext())

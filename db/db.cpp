@@ -1163,6 +1163,11 @@ bool Db::saveQueryHeaders(Query &query)
 {
     bool result = true;
 
+    if (!query.deletedHeaders().empty())
+    {
+        deleteQueryHeaders(query.deletedHeaders());
+    }
+
     QList<ParamValue> &headers = query.headers();
     for (int i = 0; i < headers.size(); i++)
     {
@@ -1341,6 +1346,12 @@ bool Db::saveQueryBody(Query &query)
 bool Db::saveQueryBodyFormData(Query &query)
 {
     bool result = true;
+
+    if (!query.deletedMultipartParams().empty())
+    {
+        deleteQueryBodyMultipartParams(query.deletedMultipartParams());
+    }
+
 
     for (ParamValue &paramValue : query.multipartFormBody())
     {

@@ -9,7 +9,7 @@ KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent)
     ui->setupUi(this);
 }
 
-KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value, QString &description)
+KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value)
     : KeyValueFileTextDialog(parent)
 {
     ui->keyEdit->setText(key);
@@ -26,9 +26,6 @@ KeyValueFileTextDialog::KeyValueFileTextDialog(QWidget *parent, QString &key, QS
     {
         ui->valueTextEdit->setText(value);
     }
-
-
-    ui->descriptionEdit->setText(description);
 }
 
 KeyValueFileTextDialog::~KeyValueFileTextDialog()
@@ -59,11 +56,6 @@ QString KeyValueFileTextDialog::getFileNameValue()
 QString KeyValueFileTextDialog::getFilePathValue()
 {
     return filePath;
-}
-
-QString KeyValueFileTextDialog::getDescription()
-{
-    return ui->descriptionEdit->text();
 }
 
 void KeyValueFileTextDialog::on_typeComboBox_currentIndexChanged(int index)

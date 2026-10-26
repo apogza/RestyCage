@@ -13,12 +13,11 @@ class KeyValueDialog : public QDialog
 
 public:
     explicit KeyValueDialog(QWidget *parent = nullptr);
-    explicit KeyValueDialog(QWidget *parent, QString key, QString value, QString description);
+    explicit KeyValueDialog(QWidget *parent, QString key, QString value);
     ~KeyValueDialog();
 
     QString getKey();
     QString getValue();
-    QString getDescription();
 
 private:
     Ui::KeyValueDialog *ui;

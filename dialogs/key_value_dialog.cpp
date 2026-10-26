@@ -8,12 +8,11 @@ KeyValueDialog::KeyValueDialog(QWidget *parent)
     ui->setupUi(this);
 }
 
-KeyValueDialog::KeyValueDialog(QWidget *parent, QString key, QString value, QString description)
+KeyValueDialog::KeyValueDialog(QWidget *parent, QString key, QString value)
     : KeyValueDialog(parent)
 {
     ui->keyEdit->setText(key);
     ui->valueEdit->setText(value);
-    ui->descriptionEdit->setText(description);
 }
 
 KeyValueDialog::~KeyValueDialog()
@@ -29,9 +28,4 @@ QString KeyValueDialog::getKey()
 QString KeyValueDialog::getValue()
 {
     return ui->valueEdit->text();
-}
-
-QString KeyValueDialog::getDescription()
-{
-    return ui->descriptionEdit->text();
 }

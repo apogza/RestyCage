@@ -16,13 +16,11 @@ bool KeyValueHandler::addSimpleRowModel(QWidget *widget, QStandardItemModel &ite
     {
         QString key = dialog->getKey();
         QString value = dialog->getValue();
-        QString description = dialog->getDescription();
 
         itemsModel.insertRow(itemsModel.rowCount(),
                             {
                                 new QStandardItem(key),
-                                new QStandardItem(value),
-                                new QStandardItem(description)
+                                new QStandardItem(value),                                
                             }
         );
         return true;
@@ -44,8 +42,6 @@ bool KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsMode
         QString fileName = dialog->getFileNameValue();
         QString textValue = dialog->getTextValue();
 
-        QString description = dialog->getDescription();
-
         QStandardItem *keyItem = new QStandardItem();
         keyItem->setData(key, Qt::EditRole);
 
@@ -64,10 +60,7 @@ bool KeyValueHandler::addRowModel(QWidget *widget, QStandardItemModel &itemsMode
             valueItem->setData(textValue, Qt::EditRole);
         }
 
-        QStandardItem *descriptionItem = new QStandardItem();
-        descriptionItem->setData(description, Qt::EditRole);
-
-        itemsModel.insertRow(itemsModel.rowCount(), { keyItem, typeItem, valueItem, descriptionItem });
+        itemsModel.insertRow(itemsModel.rowCount(), { keyItem, typeItem, valueItem });
         return true;
     }
 
@@ -78,15 +71,15 @@ bool KeyValueHandler::editSimpleRowModel(QWidget *widget, QStandardItemModel &it
 {
     QStandardItem *nameItem = itemsModel.item(row, 0);
     QStandardItem *valueItem = itemsModel.item(row, 1);
-    QStandardItem *descriptionItem = itemsModel.item(row, 2);
+    //QStandardItem *descriptionItem = itemsModel.item(row, 2);
 
     QVariant paramId = nameItem->data(Qt::UserRole);
 
     QString name = nameItem->data(Qt::EditRole).toString();
     QString value = valueItem->data(Qt::EditRole).toString();
-    QString description = descriptionItem->data(Qt::EditRole).toString();
+    //QString description = descriptionItem->data(Qt::EditRole).toString();
 
-    KeyValueDialog *keyValueDialog = new KeyValueDialog(widget, name, value, description);
+    KeyValueDialog *keyValueDialog = new KeyValueDialog(widget, name, value);
     int result = keyValueDialog->exec();
 
     if (result == QDialog::Accepted)
@@ -98,8 +91,8 @@ bool KeyValueHandler::editSimpleRowModel(QWidget *widget, QStandardItemModel &it
         item = itemsModel.item(row, 1);
         item->setData(keyValueDialog->getValue(), Qt::EditRole);
 
-        item = itemsModel.item(row, 2);
-        item->setData(keyValueDialog->getDescription(), Qt::EditRole);
+        //item = itemsModel.item(row, 2);
+        //item->setData(keyValueDialog->getDescription(), Qt::EditRole);
         return true;
     }
 
@@ -110,17 +103,15 @@ bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsMod
 {
     QStandardItem *nameItem = itemsModel.item(row, 0);
     QStandardItem *typeItem = itemsModel.item(row, 1);
-    QStandardItem *valueItem = itemsModel.item(row, 2);
-    QStandardItem *descriptionItem = itemsModel.item(row, 3);
+    QStandardItem *valueItem = itemsModel.item(row, 2);    
 
     QVariant paramId = nameItem->data(Qt::UserRole);
 
     QString name = nameItem->data(Qt::EditRole).toString();
     QString type = typeItem->data(Qt::EditRole).toString();
     QString value = type == "File" ? valueItem->data(Qt::UserRole).toString() : valueItem->data(Qt::EditRole).toString();
-    QString description = descriptionItem->data(Qt::EditRole).toString();
 
-    KeyValueFileTextDialog *keyValueDialog = new KeyValueFileTextDialog(widget, name, type, value, description);
+    KeyValueFileTextDialog *keyValueDialog = new KeyValueFileTextDialog(widget, name, type, value);
 
     int result = keyValueDialog->exec();
     if (result == QDialog::Accepted)
@@ -144,8 +135,8 @@ bool KeyValueHandler::editRowModel(QWidget *widget, QStandardItemModel &itemsMod
             item->setData(keyValueDialog->getTextValue(), Qt::EditRole);
         }
 
-        item = itemsModel.item(row, 3);
-        item->setData(keyValueDialog->getDescription(), Qt::EditRole);
+        //item = itemsModel.item(row, 3);
+        //item->setData(keyValueDialog->getDescription(), Qt::EditRole);
 
         return true;
     }

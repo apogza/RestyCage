@@ -13,15 +13,14 @@ class KeyValueFileTextDialog : public QDialog
 
 public:
     explicit KeyValueFileTextDialog(QWidget *parent = nullptr);
-    explicit KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value, QString &description);
+    explicit KeyValueFileTextDialog(QWidget *parent, QString &key, QString &type, QString &value);
     ~KeyValueFileTextDialog();
 
     QString getKey();
     QString getType();
     QString getTextValue();
     QString getFileNameValue();
-    QString getFilePathValue();
-    QString getDescription();
+    QString getFilePathValue();    
 
 private slots:
     void on_typeComboBox_currentIndexChanged(int index);
