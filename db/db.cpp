@@ -1246,6 +1246,8 @@ bool Db::saveQueryParams(Query &query)
         return false;
     }
 
+    deleteQueryParams(query.deletedParams());
+
     bool result = true;
     QList<ParamValue>& params = query.parameters();
     for (ParamValue& param : params)
